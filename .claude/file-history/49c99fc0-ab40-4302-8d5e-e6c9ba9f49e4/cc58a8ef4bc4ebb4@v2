@@ -1,0 +1,152 @@
+"""CrewAI 4 Agent 游戏开发流水线 — DeepSeek V4 Pro"""
+
+import os
+import sys
+import io
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+os.environ["PYTHONIOENCODING"] = "utf-8"
+os.environ["CREWAI_DISABLE_TRACING"] = "true"
+
+os.environ["OPENAI_API_KEY"] = "sk-ee22b762408b45e7916f73d4c27cd23d"
+os.environ["OPENAI_API_BASE"] = "https://api.deepseek.com/v1"
+
+MODEL = "openai/deepseek-chat"
+
+from crewai import Agent, Task, Crew, Process
+
+# ═══════════════════════════════════════════════
+# Agent 1: 策划师
+# ═══════════════════════════════════════════════
+planner = Agent(
+    role="游戏策划师",
+    goal="分析现有代码，提出一个可实现的改进建议（新机制/手感优化/视觉增强），附具体实现方案",
+    backstory="独立游戏策划，专注跑酷类游戏，擅长在现有代码基础上提出低成本高回报的改进",
+    verbose=True,
+    allow_delegation=False,
+    llm=MODEL,
+)
+
+# ═══════════════════════════════════════════════
+# Agent 2: 开发者
+# ═══════════════════════════════════════════════
+developer = Agent(
+    role="游戏开发者",
+    goal="根据策划方案写代码。输出完整的修改清单：哪个函数改什么、哪个常量改什么值",
+    backstory="Canvas 2D 游戏程序员，熟悉单文件 HTML 架构，只写能直接粘贴到源码里的代码",
+    verbose=True,
+    allow_delegation=False,
+    llm=MODEL,
+)
+
+# ═══════════════════════════════════════════════
+# Agent 3: 审查员
+# ═══════════════════════════════════════════════
+reviewer = Agent(
+    role="代码审查员",
+    goal="检查开发者输出的代码是否有 bug、是否破坏现有系统、是否遵循现有代码风格",
+    backstory="严谨的代码审查，熟悉 JavaScript 和 Canvas API，专门发现边界情况",
+    verbose=True,
+    allow_delegation=False,
+    llm=MODEL,
+)
+
+# ═══════════════════════════════════════════════
+# Agent 4: 测试员
+# ═══════════════════════════════════════════════
+tester = Agent(
+    role="游戏测试员",
+    goal="从玩家角度验证改动：手感变好了还是变差了？会不会出 bug？给 pass/fail + 理由",
+    backstory="玩了 1000+ 小时跑酷游戏的测试员，直觉判断好不好玩",
+    verbose=True,
+    allow_delegation=False,
+    llm=MODEL,
+)
+
+# ═══════════════════════════════════════════════
+# 任务链
+# ═══════════════════════════════════════════════
+
+GAME_CODE_PATH = os.path.expanduser("~/src/index.html")
+
+plan_task = Task(
+    description=f"""
+阅读 {GAME_CODE_PATH}。
+分析现有玩法和代码结构，提出 1 个具体改进方案。
+只选一个：要么加新机制（如障碍物类型/道具），要么优化手感（速度曲线/跳跃高度），要么增强视觉（粒子/背景）。
+附具体实现步骤。
+""",
+    expected_output="一个改进提案，含：机制描述、改动点列表、预期效果",
+    agent=planner,
+    output_file="output/01_plan.md",
+)
+
+dev_task = Task(
+    description="""
+根据策划师的提案写具体代码修改。
+对每个改动：文件名 → 行号范围 → 原代码 → 新代码。
+只输出能直接复制粘贴替换的内容。
+""",
+    expected_output="代码修改清单，含文件路径、行号、原代码块、新代码块",
+    agent=developer,
+    output_file="output/02_code.md",
+    context=[plan_task],
+)
+
+review_task = Task(
+    description="""
+审查开发者的代码修改，逐项检查：
+1. 语法是否正确？（JavaScript ES6+）
+2. 是否破坏现有逻辑？
+3. 是否遵循现有命名风格？（G.xxx 全局对象，UPPER_SNAKE_CASE 常量）
+4. 是否有性能问题？（检查是否在热循环里做了不该做的事）
+给出 pass/warn/fail 和理由。
+""",
+    expected_output="审查报告：每项 pass/warn/fail + 具体理由",
+    agent=reviewer,
+    output_file="output/03_review.md",
+    context=[dev_task],
+)
+
+test_task = Task(
+    description="""
+从玩家视角验证：
+1. 这个改动会让游戏更好玩吗？
+2. 会不会引入新问题？
+3. 数值合理吗？（太快/太慢/太难/太简单）
+给出最终评分：PASS / FAIL + 一句话理由。
+如果是 FAIL，指出哪里需要改。
+""",
+    expected_output="测试结论：PASS 或 FAIL + 理由",
+    agent=tester,
+    output_file="output/04_test.md",
+    context=[review_task],
+)
+
+# ═══════════════════════════════════════════════
+# 组装 Crew
+# ═══════════════════════════════════════════════
+crew = Crew(
+    agents=[planner, developer, reviewer, tester],
+    tasks=[plan_task, dev_task, review_task, test_task],
+    process=Process.sequential,
+    verbose=True,
+)
+
+# ═══════════════════════════════════════════════
+# 执行
+# ═══════════════════════════════════════════════
+os.makedirs("output", exist_ok=True)
+print("\n🎮 启动 4 Agent 游戏开发流水线...\n")
+print("策划师 → 开发者 → 审查员 → 测试员\n")
+result = crew.kickoff()
+
+print("\n" + "=" * 60)
+print("流水线完成。产出文件：")
+for f in ["01_plan.md", "02_code.md", "03_review.md", "04_test.md"]:
+    path = f"output/{f}"
+    if os.path.exists(path):
+        size = os.path.getsize(path)
+        print(f"  ✅ {f} ({size} 字节)")
+print("=" * 60)

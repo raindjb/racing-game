@@ -1,0 +1,15 @@
+{
+  "id": "5",
+  "subject": "Migrate effects and audio",
+  "description": "Migrate particles, effects, screen shake, audio synthesis to Godot",
+  "status": "completed",
+  "blocks": [
+    "5"
+  ],
+  "blockedBy": [
+    "4",
+    "5",
+    "6",
+    "7"
+  ]
+}

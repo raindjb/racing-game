@@ -1,0 +1,24 @@
+class_name ObstacleData
+extends Resource
+
+enum ActionType { SLIDE = 0, JUMP = 1, LANE_CHANGE = 2 }
+
+@export var type_name: String
+@export var action: ActionType
+@export var color: Color
+@export var height_ratio: float
+
+static func all_types() -> Array[Dictionary]:
+	return [
+		{name="barrier", action=0, color="#e74c3c", h=0.15},
+		{name="pipe", action=0, color="#95a5a6", h=0.12},
+		{name="low_fence", action=0, color="#f39c12", h=0.18},
+		{name="wire", action=0, color="#e67e22", h=0.10},
+		{name="signal", action=1, color="#2c3e50", h=0.45},
+		{name="ties", action=1, color="#8B4513", h=0.40},
+		{name="barrel", action=1, color="#e74c3c", h=0.42},
+		{name="cone_wall", action=1, color="#ff6600", h=0.38},
+		{name="cart", action=2, color="#f1c40f", h=0.70},
+		{name="tower", action=2, color="#7f8c8d", h=0.85},
+		{name="worker", action=2, color="#ff6600", h=0.75},
+	]

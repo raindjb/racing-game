@@ -1,0 +1,209 @@
+1. State Machine & Flow
+🔴 R.state.time 永远为 0，从未递增
+位置: engine.js R.state 初始化 + R.updateStateMachine 全文
+描述: R.state.time 初始化为 0，游戏循环中没有任何代码递增它。R.state.raceTime 在 'racing' 阶段递增，但 R.state.time 不变。
+触发条件: 进入游戏后观察 HUD 计时器
+根因: 缺少 R.state.time += dt;
+影响范围:
+- R.renderRaceTimer 显示 0:00.000
+- R.renderMenu 动画（Math.sin(R.state.time * 3)）不闪烁
+- R._renderMenuPrompt 提示文字不闪烁
+- R.renderCountdown 缩放动画不动
+- hud.js 位置更新定时器 R.state.time - _lastPositionUpdate 永远为负，位置排序从不执行
+- _bounceTimers 从不衰减
+修复: 在 R.loop 中 R.updateStateMachine(dt) 之后添加 R.state.time += dt;
+🟠 菜单阶段 HUD 双重渲染
+位置: engine.js R.render() 约第 200 行 + hud.js R.renderHUD()
+描述: R.render() 在 phase === 'menu' 时调用 R.renderMenu(ctx)，之后又调用 R.renderHUD(ctx)。renderHUD → renderOverlay → _renderMenuPrompt() 再次渲染菜单元素。
+触发条件: 启动游戏，停留在菜单画面
+根因: R.render() 和 R.renderHUD() 都在菜单阶段绘制内容
+修复: 在 R.render() 中，R.renderHUD 调用前加 if (R.state.phase !== 'menu')
+🟠 暂停状态没有渲染暂停菜单
+位置: engine.js R.render() + hud.js R.renderHUD()
+描述: R.renderHUD 在 phase === 'paused' 时直接 return，不渲染任何内容。R.renderPauseMenu() 函数存在但从未被调用。
+触发条件: 游戏中按 ESC 暂停
+根因: 缺少暂停菜单的渲染调用
+修复: 在 R.renderHUD 或 R.renderOverlay 中添加 case 'paused': R.renderPauseMenu(); break;
+🟠 暂停时计时器仍在递增
+位置: engine.js R.updateStateMachine 'racing' case
+描述: state.raceTime += dt; 在 input.pause 检查之前执行。当用户按暂停时，当前帧的 raceTime 已经被递增。
+触发条件: 按 ESC 暂停
+根因: raceTime 递增在 pause 检查前
+修复: 将 state.raceTime += dt; 移到 pause 检查之后
+🟠 从 finished 返回 menu 时不重置玩家状态
+位置: engine.js R.updateStateMachine 'finished' case
+描述: 转换到 menu 时重置了 state.raceTime、state.playerLap 等，但没有调用 R.resetPlayerForRetry()。玩家车辆保留上一局的位置、速度、圈数。
+触发条件: 完成比赛 → 等待 → 按 Enter 返回菜单 → 再按 Enter 开始新比赛
+根因: 缺少 R.resetPlayerForRetry() 调用
+修复: 在 state.phase = 'menu' 之后添加 if (typeof R.resetPlayerForRetry === 'function') R.resetPlayerForRetry();
+🟠 countdown 阶段输入未被清理
+位置: engine.js R.updateStateMachine 'menu' → 'countdown' 转换
+描述: 菜单阶段按 Enter 触发倒计时，但 _keysDown['Enter'] 在 _onKeyUp 之前仍为 true。虽然 _syncKeyboardState 不读取 Enter，但 input.confirm 可能在下一帧被 updateInput 的 _edgeTriggeredConfirm 再次设置。
+触发条件: 快速按 Enter
+根因: 虽然消费了 input._keys['Enter']，但 _edgeTriggeredConfirm 可能已在 updateInput 中被设置
+影响: 倒计时可能被跳过（实际上用户报告按 Enter 可以跳过倒计时，这可能是设计意图但不明确）
+2. Coordinates & Perspective
+🔴 worldToScreen 完全忽略高程参数 wz
+位置: track.js R.worldToScreen 函数体
+描述: 函数签名 (wx, wy, wz) 但 wz（高程）从未在计算中使用。sy = cy + (wy - cam.y) * scale 只用 wy。
+触发条件: 任何需要高程透视的场景（山坡上的车辆）
+根因: 缺少 wz 的处理
+修复:
+var elev = wz || 0;
+var sy = cy + relZ * scale - elev * scale;
+🔴 AI 的 worldToScreenPos 参数顺序错误
+位置: ai.js worldToScreenPos 函数
+描述: function worldToScreenPos(wx,wz,wy){return R.worldToScreen(wx,wy,wz);} — 将 wy（高程）传给 worldToScreen 的第二个参数（深度），wz（深度）传给第三个参数（被忽略）。
+触发条件: 渲染任何 AI 车辆
+根因: 参数映射错误
+修复: return R.worldToScreen(wx, wz, wy);
+🟠 赛道渲染与车辆渲染的 Y 投影公式不一致
+位置: track.js _projectSegment vs R.worldToScreen
+描述: _projectSegment 使用 sy = H/2 + dy*scale - dz*ROAD_V_OFFSET*scale，而 worldToScreen 使用 sy = cy + relZ*scale（没有 ROAD_V_OFFSET 修正）。赛道 segment 和车辆的垂直位置不对齐。
+触发条件: 在有坡度的赛道段上观察车辆位置
+根因: 两套投影公式不统一
+修复: 在 worldToScreen 中添加 ROAD_V_OFFSET 修正，或统一使用同一投影函数
+🟠 cam.y 存储 player.z 造成语义混淆
+位置: engine.js R.updateCamera
+描述: cam.y += (player.z + offY - cam.y) * t — 相机的 Y 属性存储玩家的 Z 坐标（前向距离），而非高程。
+触发条件: 任何使用 R.camera.y 的代码预期它是高程
+根因: 坐标系约定不一致
+影响: 当前代码能工作（因为 worldToScreen 的 wy 参数就是深度），但维护困难
+3. Collision Detection
+🔴 碰撞系统在 XY 平面运行，但游戏世界是 XZ 平面
+位置: collision.js 全文（_getCarCorners、resolveCollision、checkCarToBoundary）
+描述: 所有碰撞函数使用 car.x 和 car.y 作为水平坐标。但玩家/ AI 使用 car.x 和 car.z 作为水平坐标，car.y 是高程（通常为 0）。碰撞检测在错误的平面上执行。
+触发条件: 任何两辆车靠近
+根因: 坐标系约定从 XY 迁移到 XZ 时 collision.js 未更新
+影响: 车辆永远不会碰撞（因为所有 car.y ≈ 0），resolveCollision 推开方向错误
+修复: 将 collision.js 中所有 car.y 替换为 car.z（水平前向坐标）
+🟠 高速穿透（tunneling）
+位置: collision.js R.checkCollisions — 每帧只检测一次
+描述: MAX_SPEED = 12，每帧移动 12 * f ≈ 12px。CAR_WIDTH = 40。两车对向行驶时相对速度可达 24px/帧。没有连续碰撞检测（CCD）。
+触发条件: 两辆高速车辆正面碰撞
+根因: 离散碰撞检测，无 CCD
+影响: 车辆可能互相穿过
+修复: 在碰撞检测前，根据速度预测是否可能穿透，或使用射线投射
+🟠 碰撞后速度可以变为负数
+位置: collision.js R.resolveCollision
+描述: carA.speed *= R.CONFIG.COLLISION_DAMPING — 如果 speed 是负数（理论上不应该，但 car.speed -= car.braking * f 可能产生负值），乘以正数仍为负。
+触发条件: 刹车到极低速度后碰撞
+根因: resolveCollision 假设 speed 为正，但未验证
+修复: 在 resolveCollision 中添加 car.speed = Math.max(0, car.speed)
+🟡 碰撞推送使用 R.CONFIG.CAR_WIDTH 但 collision.js 和 player.js 各自定义
+位置: collision.js 和 player.js 都设置 R.CONFIG.CAR_WIDTH = 40
+描述: 两个模块都设置相同的值（40），但如果一个被修改而另一个没有，会导致碰撞半径不一致。
+触发条件: 修改任一模块的 CAR_WIDTH
+根因: 配置重复定义
+修复: 只在 config.js 中定义一次
+4. Input Handling
+🟡 ArrowRight 不在 engine.js 的 preventDefault 列表中
+位置: engine.js _attachBuiltinInput keydown 处理
+描述: preventDefault 检查列表包含 ArrowRight，但实际上列表中确实有。让我重新检查... 列表是 'ArrowUp' || 'ArrowDown' || 'ArrowLeft' || 'ArrowRight' || 'Space' || 'Enter'。ArrowRight 在列表中。这不是 bug。
+🟡 Space 键同时触发 confirm 和 boost
+位置: input.js _onKeyDown + _syncKeyboardState
+描述: Space 在 _onKeyDown 中设置 _edgeTriggeredConfirm = true 并 return（不设置 _keysDown['Space']）。但 _syncKeyboardState 读取 _keysDown['Space'] 来设置 R.input.boost。由于 _onKeyDown return 前没有设置 _keysDown['Space']，boost 不会被 Space 触发。
+触发条件: 按 Space
+根因: _onKeyDown 对 Space 提前 return，不设置 _keysDown
+实际行为: Space 只触发 confirm，不触发 boost。Shift 才触发 boost。这可能是设计意图，但文档不明确。
+🟠 游戏开始时键盘输入状态未清理
+位置: engine.js R.updateStateMachine 'menu' → 'countdown' 转换
+描述: 如果用户在菜单阶段按住 ArrowUp，_keysDown['ArrowUp'] = true。进入 countdown 后，_syncKeyboardState 设置 R.input.throttle = 1。虽然 updatePlayer 在 countdown 阶段不执行，但进入 racing 阶段时，throttle 仍然为 1。
+触发条件: 在菜单按住加速键 → 按 Enter 开始 → 倒计时结束
+根因: 状态转换时未清理持续性输入状态
+影响: 比赛开始时车辆立即加速，无需用户按键
+修复: 在 countdown → racing 转换时，调用清理函数重置 _keysDown 和 R.input
+5. Boundary Conditions
+🟠 玩家车辆离开赛道后无自动重生
+位置: player.js R.updatePlayer — track check 部分
+描述: R.CONFIG.RESPAWN_DELAY = 60 定义了自动重生延迟，但 updatePlayer 中没有实现自动重生逻辑。车辆可以无限远离赛道。
+触发条件: 将车开出赛道并持续行驶
+根因: 重生逻辑未实现
+修复: 添加 off-track 计时器，超过 RESPAWN_DELAY 帧后调用 R.resetPlayerForRetry 或传送到最近赛道点
+🟠 玩家速度刹车到 0 后无法停止
+位置: player.js R.updatePlayer — 速度更新
+描述: 刹车逻辑 p.speed -= p.braking * f 可以将 p.speed 减到负值。虽然后面有 if (p.speed < 0) p.speed = 0;，但这是在 boost max 检查之后。实际上 p.speed < 0 检查在 if (p.speed > maxNow) p.speed = maxNow 之后，所以负速度会被钳制到 0。这不是 bug。
+但 p.speed *= Math.pow(cfg.FRICTION, f) — 当 p.speed 很小时（如 0.001），FRICTION = 0.985 永远不会让它变为 0。车辆以极低速度无限滑行。
+触发条件: 刹车到极低速度后松开刹车
+根因: 缺少最小速度阈值停止
+修复: if (p.speed < cfg.MIN_SPEED && !throttle) p.speed = 0;
+🟡 时间计数器无上限保护
+位置: engine.js R.state.raceTime += dt;
+描述: raceTime 无限累加。Number.MAX_SAFE_INTEGER = 9007199254740991，以 60fps 运行约 477 万年才会溢出。不是实际问题。
+6. Rendering
+🟠 暂停时 updatePlayer 不执行但 renderPlayerCar 仍渲染
+位置: engine.js R.loop + R.render
+描述: 暂停时 updatePlayer 和 updateAI 不执行（正确），但 renderPlayerCar 和 renderAICars 仍然执行。车辆冻结在当前位置但视觉效果（exhaust、drift marks）继续衰减。
+触发条件: 按 ESC 暂停
+根因: 渲染和更新分离，暂停只阻止更新不阻止渲染
+影响: 轻微 — 暂停时 exhaust 粒子继续消散
+🟡 minimap 不显示暂停/完成状态的车辆
+位置: hud.js R.renderMiniMap
+描述: minimap 使用 R.cars 数组来绘制所有车辆。R.cars 在 R.loop 中通过 R.cars = [R.player].concat(R.aiCars || []) 同步。暂停时 R.loop 仍执行（RAF 不暂停），所以 R.cars 仍被更新。这不是 bug。
+🟠 renderTrack 的 segment 可见性判断可能遗漏近距离 segment
+位置: track.js R.renderTrack — 可见性循环
+描述: if (dz < -renderDist || dz > renderDist * 1.4) continue; — 使用 renderDist * 1.4 作为远裁剪面，但 _forwardDist 可能返回负值（车辆后方）。后方 segment 被排除是正确的，但如果 renderDist 太小，近处 segment 可能被错误排除。
+触发条件: RENDER_DISTANCE = 1200，正常行驶不会触发
+7. Performance & Resources
+🟠 R.renderTrack 每帧分配新数组
+位置: track.js R.renderTrack
+描述: 每帧创建 var visible = [];、var visSet = {};、var drawnPairs = {};。200+ segment 的遍历产生大量临时对象。
+触发条件: 每帧
+根因: 未预分配
+影响: GC 压力，可能导致帧率抖动
+修复: 预分配 visible 数组为闭包变量，每帧复用
+🟠 R.renderAICars 不做深度排序
+位置: ai.js R.renderAICars
+描述: AI 车辆按数组顺序渲染，不做深度排序。远处的车辆可能绘制在近处车辆之上。
+触发条件: 多辆 AI 车辆在不同深度重叠
+根因: 缺少 visible.sort 调用
+修复: 在渲染前按 screen.y 或 screen.scale 排序
+🟠 R.sortCarsByPosition 每次调用都创建新数组
+位置: hud.js + ai.js R.sortCarsByPosition
+描述: 每次调用创建 entries = [] 并 push 所有车辆。每 0.5 秒调用一次（通过 R.updateHUD）。
+触发条件: 比赛进行中
+根因: 未复用数组
+影响: 轻微 GC 压力
+🟡 R.getTrackPosition 使用二分查找但赛道不是单调递增
+位置: track.js R.getTrackPosition
+描述: 二分查找 if (segs[mid].dist <= d) lo = mid; 假设 seg.dist 单调递增。闭合赛道的 dist 从 0 累加到 totalLength，确实是单调递增的（不绕回）。这不是 bug。
+8. Async & Events
+🟠 R.init 中的 resize 监听器从不清理
+位置: engine.js R.init
+描述: window.addEventListener('resize', _onResize); 添加后从不移除。如果 R.init 被多次调用（虽然有 _initialised 保护），或游戏被销毁重建，会累积监听器。
+触发条件: 不太可能触发（有防重入保护）
+根因: 缺少 cleanup 机制
+🟠 input.js 的 blur 监听器从不清理
+位置: input.js R.initInput 中的 window.addEventListener('blur', ...)
+描述: 匿名函数作为 blur handler，R.destroyInput 不移除它。
+触发条件: 调用 destroyInput 后重新 initInput，blur handler 累积
+根因: destroyInput 未移除 blur 监听器
+修复: 将 blur handler 提取为命名函数，在 destroyInput 中移除
+🟠 R.initAudio 没有防重入保护时的 AudioContext 泄漏
+位置: audio.js R.initAudio
+描述: if (_initialized) return; 提供了防重入保护。但如果第一次调用成功创建了 _ctx 和 _masterGain，然后 _initialized 被意外重置，再次调用会创建新的 AudioContext 而不释放旧的。
+触发条件: 不太可能（_initialized 是闭包变量，无法从外部重置）
+🟡 requestAnimationFrame 回调不会被多次注册
+位置: engine.js R.init 和 R.loop
+描述: R.init 调用 requestAnimationFrame(R.loop) 启动循环，R.loop 结束时再调用 requestAnimationFrame(R.loop)。由于有 _initialised 保护，R.init 只执行一次。这不是 bug。
+汇总表
+#    严重度    维度    问题    位置
+1    🔴    状态机    R.state.time 永远为 0    engine.js
+2    🔴    坐标    worldToScreen 忽略高程 wz    track.js
+3    🔴    坐标    AI worldToScreenPos 参数顺序反    ai.js
+4    🔴    碰撞    collision.js 在 XY 平面而非 XZ    collision.js
+5    🟠    状态机    菜单双重渲染    engine.js + hud.js
+6    🟠    状态机    暂停菜单从未渲染    hud.js
+7    🟠    状态机    暂停时 raceTime 多计一帧    engine.js
+8    🟠    状态机    finished→menu 不重置玩家    engine.js
+9    🟠    输入    countdown 时 throttle 状态残留    engine.js + input.js
+10    🟠    坐标    赛道与车辆 Y 投影公式不一致    track.js
+11    🟠    碰撞    高速穿透无 CCD    collision.js
+12    🟠    碰撞    碰撞后速度可为负    collision.js
+13    🟠    边界    玩家离赛道无自动重生    player.js
+14    🟠    边界    极低速度无限滑行    player.js
+15    🟠    性能    renderTrack 每帧分配数组    track.js
+16    🟠    性能    AI 车辆无深度排序    ai.js
+17    🟠    事件    blur 监听器不清理    input.js
+18    🟡    渲染    暂停时视觉效果继续衰减    engine.js
+19    🟡    碰撞    CAR_WIDTH 重复定义    collision.js + player.js

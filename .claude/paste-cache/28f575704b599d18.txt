@@ -1,0 +1,31 @@
+9:01:46 [ws] ⇄ res ✓ sessions.list 232ms conn=e5fa2c2a…1d54 id=84e920a3…0750
+19:01:46 [agent/embedded] auth profile failure state updated: runId=e5244f1b-2f72-4c31-bdba-a5e5cc217412 profile=sha256:ef058b79e235 provider=xiaomi reason=billing window=disabled reused=false
+19:01:46 [agent/embedded] embedded run failover decision: runId=e5244f1b-2f72-4c31-bdba-a5e5cc217412 stage=assistant decision=surface_error reason=billing from=xiaomi/mimo-v2-flash profile=sha256:ef058b79e235 rawError=402 Insufficient account balance
+19:01:46 [diagnostic] lane task error: lane=main durationMs=7331 error="FailoverError: ⚠️ xiaomi (mimo-v2-flash) returned a billing error — your API key has run out of credits or has an insufficient balance. Check your xiaomi billing dashboard and top up or switch to a different API key."
+19:01:46 [diagnostic] lane task error: lane=session:agent:main:main durationMs=7335 error="FailoverError: ⚠️ xiaomi (mimo-v2-flash) returned a billing error — your API key has run out of credits or has an insufficient balance. Check your xiaomi billing dashboard and top up or switch to a different API key."
+19:01:46 [model-fallback/decision] model fallback decision: decision=candidate_failed requested=xiaomi/mimo-v2-flash candidate=xiaomi/mimo-v2-flash reason=billing next=none detail=402 Insufficient account balance
+19:01:46 Embedded agent failed before reply: ⚠️ xiaomi (mimo-v2-flash) returned a billing error — your API key has run out of credits or has an insufficient balance. Check your xiaomi billing dashboard and top up or switch to a different API key.
+19:01:50 [gateway] provider auth state re-warmed (auth-profile-failure) in 3134ms eventLoopMax=1144.0ms
+19:05:58 [reload] config change detected; evaluating reload (meta.lastTouchedAt)
+19:06:06 [ws] webchat disconnected code=1001 reason=n/a conn=e5fa2c2a-ac3b-49ce-9f12-d9b5c5a91d54
+19:06:06 [ws] webchat connected conn=deeafd89-0fb1-4b99-bd77-6efcdc6e8aee remote=127.0.0.1 client=openclaw-control-ui webchat v2026.5.22
+19:06:07 [ws] ⇄ res ✓ health 335ms cached=true conn=deeafd89…8aee id=06e2e1ab…77fe
+19:06:07 [ws] ⇄ res ✓ agents.list 687ms conn=deeafd89…8aee id=90b3efa2…1cf3
+19:06:07 [ws] ⇄ res ✓ models.authStatus 274ms conn=deeafd89…8aee id=e50e8460…3286
+19:06:08 [ws] ⇄ res ✓ commands.list 598ms conn=deeafd89…8aee id=db00646f…5910
+19:06:08 [ws] ⇄ res ✓ models.list 915ms conn=deeafd89…8aee id=7e4a94d0…a19e
+19:06:08 [ws] ⇄ res ✓ sessions.list 1189ms conn=deeafd89…8aee id=75919bdc…52b4
+19:06:09 [ws] ⇄ res ✓ chat.history 1416ms conn=deeafd89…8aee id=d9f8d778…01f8
+19:06:20 [model-fallback/decision] model fallback decision: decision=probe_cooldown_candidate requested=xiaomi/mimo-v2-flash candidate=xiaomi/mimo-v2-flash reason=billing next=none
+19:06:21 [agent/embedded] probing cooldowned auth profile for xiaomi/mimo-v2-flash due to billing unavailability
+19:06:23 [ws] ⇄ res ✓ sessions.list 231ms conn=deeafd89…8aee id=e2c8f2fc…4bf0
+19:06:23 [ws] ⇄ res ✓ sessions.list 226ms conn=deeafd89…8aee id=0464ff58…2dd9
+19:06:24 [agent/embedded] embedded run agent end: runId=3baf4d33-12cf-43dd-b446-24496bf15ce4 isError=true model=mimo-v2-flash provider=xiaomi error=⚠️ xiaomi (mimo-v2-flash) returned a billing error — your API key has run out of credits or has an insufficient balance. Check your xiaomi billing dashboard and top up or switch to a different API key. rawError=402 Insufficient account balance
+19:06:24 [ws] ⇄ res ✓ sessions.list 234ms conn=deeafd89…8aee id=e57eb11e…7598
+19:06:24 [agent/embedded] auth profile failure state updated: runId=3baf4d33-12cf-43dd-b446-24496bf15ce4 profile=sha256:ef058b79e235 provider=xiaomi reason=billing window=disabled reused=false
+19:06:24 [agent/embedded] embedded run failover decision: runId=3baf4d33-12cf-43dd-b446-24496bf15ce4 stage=assistant decision=surface_error reason=billing from=xiaomi/mimo-v2-flash profile=sha256:ef058b79e235 rawError=402 Insufficient account balance
+19:06:24 [diagnostic] lane task error: lane=main durationMs=4120 error="FailoverError: ⚠️ xiaomi (mimo-v2-flash) returned a billing error — your API key has run out of credits or has an insufficient balance. Check your xiaomi billing dashboard and top up or switch to a different API key."
+19:06:24 [diagnostic] lane task error: lane=session:agent:main:main durationMs=4122 error="FailoverError: ⚠️ xiaomi (mimo-v2-flash) returned a billing error — your API key has run out of credits or has an insufficient balance. Check your xiaomi billing dashboard and top up or switch to a different API key."
+19:06:24 [model-fallback/decision] model fallback decision: decision=candidate_failed requested=xiaomi/mimo-v2-flash candidate=xiaomi/mimo-v2-flash reason=billing next=none detail=402 Insufficient account balance
+19:06:25 Embedded agent failed before reply: ⚠️ xiaomi (mimo-v2-flash) returned a billing error — your API key has run out of credits or has an insufficient balance. Check your xiaomi billing dashboard and top up or switch to a different API key.
+19:06:28 [gateway] provider auth state re-warmed (auth-profile-failure) in 3122ms eventLoopMax=1048.1ms

@@ -1,0 +1,52 @@
+---
+name: project-tier1
+description: "Rail Runner game — Tier 1 core loop complete, single HTML Canvas file, Web Canvas engine"
+metadata: 
+  node_type: memory
+  type: project
+  originSessionId: 79e93986-b072-406e-813b-899b6c309869
+---
+
+**Project**: Rail Runner (轨道跑者) — 2.5D isometric infinite runner
+
+**Why**: Build a playable prototype fast, validate core loop, then consider Godot migration at Tier 3+.
+
+**How to apply**: When working on this project, read `production/session-state/active.md` first. The game is a single-file `src/index.html` (~1225 lines). No build system, no dependencies. Open in browser to test.
+
+## Current State (2026-05-20)
+
+- **Stage**: Tier 1 core loop — playable prototype
+- **Engine**: Web Canvas (HTML5 Canvas 2D + vanilla JavaScript)
+- **Game code**: `src/index.html` (~1225 lines, ~55KB)
+- **Design doc**: `design/gdd/game-concept.md`
+- **Tech config**: `.claude/docs/technical-preferences.md` (updated to Web Canvas)
+
+## What's Implemented
+- 2.5D perspective projection (`worldToScreen`, `laneX`)
+- 3-lane track system with smooth lane switching
+- Player states: run, jump, slide, hit
+- 3 obstacle types: low (slide under), mid (jump over), high (lane-switch required)
+- Coin collection with particle effects
+- 3-heart health system with invincibility frames
+- Progressive difficulty (speed increases, obstacle mix changes)
+- Score = distance + coins, high score persisted to localStorage
+- Object pooling (obstacles, coins, particles)
+- Offscreen pre-rendering (sky, buildings, player sprites, obstacle sprites, coin sprite)
+- Parallax scrolling cityscape (2 layers)
+- Keyboard + touch input (swipe detection)
+- Start screen, death screen, HUD (hearts, score, speed %)
+
+## TODO (no particular order)
+- [ ] Game feel tuning (speed curve, obstacle spacing, collision tolerance)
+- [ ] Visual quality (player sprite polish, track materials, graffiti elements)
+- [ ] Tier 2: Train system + powerups (magnet, double coins, medkit, skateboard)
+- [ ] Tier 2: Terrain slopes, parallax skyline improvements
+- [ ] Web Audio SFX
+- [ ] Tier 3: Touch adaptation, mobile performance
+
+## Key Files
+- `src/index.html` — the entire game
+- `design/gdd/game-concept.md` — game design document
+- `.claude/docs/technical-preferences.md` — coding standards for this phase
+- `docs/engine-reference/web-canvas/VERSION.md` — engine version reference
+- `production/session-state/active.md` — living session checkpoint

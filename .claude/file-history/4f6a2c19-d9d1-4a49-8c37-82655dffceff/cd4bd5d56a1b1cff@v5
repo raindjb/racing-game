@@ -1,0 +1,37 @@
+<!-- STATUS -->
+Epic: 赛车游戏 Bug 修复
+Feature: 相机初始化 + 道路边缘透视修复
+Task: 16项修复，待验证
+<!-- /STATUS -->
+
+# Session State — 2026-05-31 (续3)
+
+## 新增修复 (3项)
+
+### 15. 相机初始化导致画面滚动
+- R.camera 初始化为 {x:0, y:0, zoom:1}，但玩家在 (~1350, 0)
+- 每帧 lerp 追赶 ~100 单位，导致画面持续从右往左移动
+- 修复：`R.camera = R.camera || { zoom: 1 }` → x/y undefined → 首帧直接 snap
+
+### 16. 道路边缘缺少 Z 分量 (3D→屏幕投影)
+- 原代码只计算边缘的 X 偏移 (`cosθ * halfW`)，忽略 Z 偏移
+- 对角线方向路面宽度变形（sinθ=1 时宽度为 0）
+- 修复：左边缘 `(lx, ly) = (cx - cosθ·hw, cy + sinθ·hw·scale)`
+- 右边缘 `(rx, ry) = (cx + cosθ·hw, cy - sinθ·hw·scale)`
+- 更新梯形绘制代码使用 `cly, cry, nly, nry`
+
+### 14. Minimap 坐标 Y→Z (3处)
+- `worldY`/`car.y` → `worldZ`/`car.z`
+
+## 全部修复 (16项)
+渲染管线 | 坐标约定 | 透视计算 | 碰撞 | minimap | 道路边缘 | 相机初始化 | Space键
+
+## 待验证
+1. 打开 `src/racing/index.html`
+2. Enter/Space → 倒计时 → ↑ 加速
+3. 确认画面不滚动
+4. 确认赛道形状正常（不扭曲）
+5. 确认车辆正常移动
+
+## 文件
+- `src/racing/index.html` — ~10150行

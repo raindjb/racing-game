@@ -1,0 +1,15 @@
+{
+  "name": "racing-game",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "build": "cd src/racing && node build.cjs"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9"
+  }
+}

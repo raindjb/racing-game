@@ -1,0 +1,26 @@
+@echo off
+chcp 65001 >nul
+title CS Optimization
+echo === CS Optimization ===
+echo.
+
+echo [1/4] Disabling HAGS...
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v HwSchMode /t REG_DWORD /d 0 /f
+echo.
+
+echo [2/4] Disabling MPO...
+reg add "HKLM\SOFTWARE\Microsoft\Windows\Dwm" /v OverlayTestMode /t REG_DWORD /d 5 /f
+echo.
+
+echo [3/4] TCP optimization...
+netsh int tcp set global timestamps=disabled
+netsh int tcp set global initialRto=300
+echo.
+
+echo [4/4] Setting DNS...
+netsh interface ip set dns name="以太网" source=static addr=223.5.5.5
+netsh interface ip add dns name="以太网" addr=119.29.29.29 index=2
+echo.
+
+echo === Done. REBOOT required for HAGS + MPO. ===
+pause

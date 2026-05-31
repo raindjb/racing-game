@@ -1,0 +1,14 @@
+---
+name: user-role
+description: "User is not a game developer — player perspective, judges by feel and visuals"
+metadata: 
+  node_type: memory
+  type: user
+  originSessionId: bbd5c358-836a-40e6-b21d-22b54a8186f3
+---
+
+User is not a game developer. Doesn't know coding, can't give technical direction.
+Role: player/tester. Judges by: gameplay feel, visual quality, fun factor.
+I should take full initiative on technical decisions, design improvements, and what to build next.
+Don't ask for technical input — present results and ask for playtest feedback.
+User is Chinese-speaking, prefers rapid progress over meticulous planning.

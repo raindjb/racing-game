@@ -1,0 +1,66 @@
+"""实时显示 pip 安装进度"""
+import time
+import re
+import os
+
+LOG = os.path.expandvars(
+    r"C:\Users\13751\AppData\Local\Temp\claude\C--Users-13751"
+    r"\a84c6853-f067-4160-bf24-7bb76d0348b9\tasks\bduyq2dck.output"
+)
+
+BAR_WIDTH = 40
+
+print("\033[?25l")  # 隐藏光标
+count = 0
+last_line = ""
+
+try:
+    while True:
+        try:
+            with open(LOG, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+        except:
+            time.sleep(0.5)
+            continue
+
+        lines = content.strip().split("\n")
+        new_lines = lines[count:]
+        count = len(lines)
+
+        for line in new_lines:
+            # 匹配下载进度行
+            m = re.search(r"Downloading (\S+)\s*\n?\s*([━╺╸╱]*)\s*([\d.]+)/([\d.]+)\s*(k?[MG]?B)", line)
+            if not m:
+                m = re.search(r"(\S+)\s+([━╺╸╱]*)\s*([\d.]+)/([\d.]+)\s*(k?[MG]?B)", line)
+            if m:
+                name = m.group(1)[-40:]
+                current = float(m.group(3))
+                total = float(m.group(4))
+                unit = m.group(5)
+                pct = min(current / total, 1.0) if total > 0 else 0
+                filled = int(BAR_WIDTH * pct)
+                bar = "█" * filled + "░" * (BAR_WIDTH - filled)
+                size_str = f"{current:.0f}/{total:.0f} {unit}"
+                print(f"\r  {bar} {pct*100:5.1f}%  {size_str:>15}  {name}", end="", flush=True)
+            elif "Successfully installed" in line:
+                print(f"\n\n✅ {line.strip()}")
+            elif "ERROR" in line:
+                print(f"\n❌ {line.strip()}")
+            elif "Installing collected packages" in line:
+                print(f"\n📦 解包安装中...", flush=True)
+            elif line != last_line and ("Collecting" in line or "Download" in line):
+                pass  # 跳过元数据行
+
+        if content and "Successfully installed" in content:
+            print("\n\n安装完成!")
+            break
+        if content and "ERROR" in content and "Could not install" in content:
+            print("\n\n安装失败!")
+            break
+
+        time.sleep(0.3)
+
+except KeyboardInterrupt:
+    pass
+finally:
+    print("\033[?25h")  # 恢复光标

@@ -1,0 +1,101 @@
+Racing Game Coordinate System Diagnostic
+A) Per-Module Coordinate Convention
+Module    worldX    worldY    worldZ
+track.js    horizontal    elevation    forward (depth)
+player.js    horizontal    elevation (0)    forward
+ai.js    horizontal    elevation    forward
+collision.js    horizontal    forward ❌    N/A
+scenery.js    horizontal    lateral offset    depth
+hud.js    minimap X = worldX    minimap Y = worldZ    —
+engine.js worldToScreen(wx,wy,wz)    X    depth (named "wy")    ignored
+worldToScreen actual semantics: (worldX, depth, elevation) — the wz (3rd param) is never used in the function body.
+B) Confirmed Bugs (Priority Order)
+🔴 P0 — Collision system in wrong coordinate plane
+collision.js uses XY for all physics, but the game world is XZ.
+R._getCarCorners — collision.js:~line 85:
+const cx = car.x;   // ✓ horizontal
+const cy = car.y;   // ❌ car.y = elevation (usually 0), NOT forward
+Should use car.z for the forward axis.
+R._getCarCorners local corners use {x: -hw, y: -hh} — the y here should map to car.z, not car.y.
+R.resolveCollision — collision.js:~line 130:
+carA.x -= overlap.overlapX * pushRatioA;
+carA.y -= overlap.overlapY * pushRatioA;  // ❌ pushes in elevation, not forward
+R.checkCarToBoundary — collision.js:~line 185:
+R.isOnTrack(car.x, carZ)  // carZ = car.z ?? 0 → ✓ for boundary check
+But the AABB and SAT operate on XY, so collisions between cars are detected in the wrong plane. Cars moving along the Z-axis (forward) never collide in XY-space.
+Fix: Rewrite _getCarCorners, resolveCollision, and carAABB to use XZ plane. Change all car.y references to car.z in collision functions.
+🔴 P0 — worldToScreen ignores elevation (wz)
+track.js R.worldToScreen — the 3rd parameter wz (elevation) is never used:
+R.worldToScreen=function(wx,wy,wz){
+  // wz is NEVER referenced in the function body
+  var relZ=(wy!=null)?wy-(cam.y||0):0;
+  var scale=zoom/(1+relZ*pCoeff);
+  var sx=cx+(wx-(cam.x||0))*scale;
+  var sy=cy+(wy-(cam.y||0))*scale;  // only wx and wy used
+  return{x:sx,y:sy,scale:scale};
+};
+Impact: Hills/elevation have zero effect on car/scenery projection. All objects render at flat-ground height. _projectSegment handles elevation separately for track segments, so track hills render but cars on those hills don't follow.
+Fix: Add elevation to sy:
+var elev = wz || 0;
+var sy = cy + relZ * scale - elev * scale;
+🔴 P0 — AI.js parameter order wrong in worldToScreen
+ai.js worldToScreenPos function:
+function worldToScreenPos(wx,wz,wy){return R.worldToScreen(wx,wy,wz);}
+//                                                       // 1st=wx ✓, 2nd=wy(elevation) ❌, 3rd=wz(depth) ❌
+This passes elevation as wy (depth) and depth as wz (elevation/ignored). AI cars render at completely wrong screen positions.
+Fix:
+function worldToScreenPos(wx,wz,wy){return R.worldToScreen(wx,wz,wy);}
+🟠 P1 — Drift marks/exhaust/bounce use wrong Y coordinate for projection
+player.js spawnDriftMark stores rearZ (world Z) as m.y:
+spawnDriftMark(rearX + perpX * trackOffset, rearZ + perpZ * trackOffset);
+// spawnDriftMark(x, y) → m.x = worldX, m.y = worldZ
+Then renders:
+const sc = R.worldToScreen(m.x, m.y);
+// worldToScreen(wx=worldX, wy=worldZ) → ✓ depth is correct
+This actually works because worldToScreen's 2nd param IS depth. But m.y is semantically worldZ, not screen Y — confusing but not a runtime bug. Same for exhaust particles and bounce markers.
+Verdict: Not a runtime bug, but a naming/semantic issue. The 3D coordinate is dropped (wz=undefined), so elevation is lost.
+🟠 P1 — Camera cam.y stores player.z (naming confusion)
+engine.js R.updateCamera:
+cam.y += (player.z + offY - cam.y) * t;
+cam.y stores the player's forward Z position. This works because worldToScreen uses its 2nd param (wy) as depth and cam.y is the depth reference. But it's confusing and breaks if anyone expects cam.y to be elevation.
+Not a runtime bug, but a maintenance hazard.
+🟡 P2 — Input: Space triggers both confirm AND boost
+input.js _onKeyDown:
+if (e.code === 'Enter' || e.code === 'Space') {
+    _edgeTriggeredConfirm = true;  // sets confirm
+    return;                        // returns early
+}
+Space sets confirm (edge-triggered). But _syncKeyboardState also reads Space:
+R.input.boost = (_keysDown['ShiftLeft'] || _keysDown['ShiftRight'] || _keysDown['Space']) ? 1 : 0;
+Since _onKeyDown returns early for Space, _keysDown['Space'] is never set to true. So boost does NOT activate from Space. Only ShiftLeft/Right trigger boost.
+Fix: Remove Space from the confirm check, or remove it from boost mapping. Current behavior: Space = confirm only, Shift = boost only. This may be intentional.
+🟡 P2 — Right arrow not in preventDefault guard
+engine.js _attachBuiltinInput:
+if (e.code === 'ArrowUp' || e.code === 'ArrowDown' ||
+    e.code === 'ArrowLeft' || e.code === 'ArrowRight' ||  // ✓ present
+    e.code === 'Space' || e.code === 'Enter') {
+  e.preventDefault();
+}
+Actually this IS correct — ArrowRight is included. Not a bug.
+🟡 P2 — Double menu rendering
+engine.js R.render():
+if (R.state && R.state.phase === 'menu' && typeof R.renderMenu === 'function') {
+    R.renderMenu(ctx);  // Full title screen
+}
+if (typeof R.renderHUD === 'function') { R.renderHUD(ctx); }
+renderHUD → renderOverlay → _renderMenuPrompt() also draws menu elements during phase='menu'. So the menu prompt renders twice (once from renderMenu, once from _renderMenuPrompt).
+Fix: Remove the R.renderMenu call from R.render(), or guard renderHUD to skip during menu phase.
+C) Fix Priority Summary
+Priority    Bug    Module    Impact
+🔴 P0    Collision uses XY instead of XZ    collision.js    Cars never collide; boundary checks wrong plane
+🔴 P0    worldToScreen ignores elevation    track.js    Hills don't affect car/scenery rendering
+🔴 P0    AI worldToScreen param order swapped    ai.js    AI cars render at completely wrong positions
+🟠 P1    cam.y stores player.z    engine.js    Confusing but works on flat tracks
+🟠 P1    Drift marks/exhaust drop elevation    player.js    Not a bug on flat tracks
+🟡 P2    Double menu render    engine.js + hud.js    Visual overlap on menu screen
+🟡 P2    Space key semantics    input.js    May be intentional (confirm-only)
+Root cause of reported symptoms:
+- "Cars don't move" → Likely AI cars rendering at wrong positions (P0 AI param bug) + collision in wrong plane
+- "Track deforms/C-shape" → _projectSegment Y calculation may compound with worldToScreen elevation bug
+- "Screen scrolls right" → Camera snap may not fire if cam.x is pre-set; also cam.y confusion
+- "Cars pass through each other" → P0 collision XY vs XZ bug

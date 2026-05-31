@@ -1,0 +1,68 @@
+extends Node
+
+var _players: Array[AudioStreamPlayer] = []
+const POOL_SIZE := 8
+
+func _ready() -> void:
+	for i in POOL_SIZE:
+		var p := AudioStreamPlayer.new()
+		add_child(p)
+		_players.append(p)
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func _get_free() -> AudioStreamPlayer:
+	for p in _players:
+		if not p.playing:
+			return p
+	return null
+
+func _tone(freq: float, waveform: int, duration: float, volume: float = 0.08, glide: float = 0.0) -> void:
+	var player := _get_free()
+	if not player:
+		return
+	var gen := AudioStreamGenerator.new()
+	gen.mix_rate = 44100
+	gen.buffer_length = duration + 0.02
+	player.stream = gen
+	player.volume_db = linear_to_db(volume)
+	player.play()
+
+func play_coin() -> void:
+	_tone(880, 0, 0.07, 0.07)
+	await get_tree().create_timer(0.05).timeout
+	_tone(1320, 0, 0.05, 0.06)
+
+func play_hit() -> void:
+	_tone(70, 2, 0.3, 0.15)
+	_tone(40, 1, 0.35, 0.12)
+
+func play_jump() -> void:
+	_tone(260, 3, 0.12, 0.05, 400)
+
+func play_slide() -> void:
+	_tone(180, 1, 0.08, 0.03, -80)
+
+func play_die() -> void:
+	_tone(180, 2, 0.4, 0.12)
+	await get_tree().create_timer(0.12).timeout
+	_tone(120, 2, 0.4, 0.12)
+	await get_tree().create_timer(0.14).timeout
+	_tone(80, 2, 0.6, 0.2)
+
+func play_heal() -> void:
+	_tone(523, 3, 0.12, 0.06)
+	await get_tree().create_timer(0.08).timeout
+	_tone(659, 3, 0.12, 0.06)
+	await get_tree().create_timer(0.08).timeout
+	_tone(784, 3, 0.15, 0.08)
+
+func play_power_up() -> void:
+	_tone(600, 3, 0.1, 0.06)
+	await get_tree().create_timer(0.08).timeout
+	_tone(800, 3, 0.1, 0.06)
+	await get_tree().create_timer(0.08).timeout
+	_tone(1000, 3, 0.12, 0.08)
+
+func play_horn() -> void:
+	_tone(140, 2, 0.5, 0.08)
+	_tone(110, 2, 0.4, 0.08)

@@ -1,0 +1,177 @@
+{
+  "numStartups": 35,
+  "hasSeenTasksHint": true,
+  "tipsHistory": {
+    "new-user-warmup": 7,
+    "plan-mode-for-complex-tasks": 32,
+    "memory-command": 31,
+    "theme-command": 21,
+    "powershell-tool-env": 32,
+    "status-line": 1,
+    "prompt-queue": 1,
+    "enter-to-steer-in-relatime": 21,
+    "todo-list": 21,
+    "ide-upsell-external-terminal": 35,
+    "drag-and-drop-images": 32,
+    "double-esc-code-restore": 32,
+    "continue": 32,
+    "shift-tab": 32,
+    "image-paste": 22,
+    "subagent-fanout-nudge": 35,
+    "loop-command-nudge": 35,
+    "frontend-design-plugin": 35,
+    "agent-flag": 22,
+    "permissions": 32,
+    "rename-conversation": 26,
+    "color-when-multi-clauding": 35,
+    "auto-copy-config-hint": 35
+  },
+  "promptQueueUseCount": 38,
+  "btwUseCount": 5,
+  "firstStartTime": "2026-05-15T14:22:29.378Z",
+  "opusProMigrationComplete": true,
+  "sonnet1m45MigrationComplete": true,
+  "seenNotifications": {},
+  "migrationVersion": 13,
+  "userID": "6557d5f5d82c7ae48d47200a52c7086bebd9a8c670bed3875d8e00fc168376cc",
+  "changelogLastFetched": 1780200169369,
+  "hasCompletedOnboarding": true,
+  "lastOnboardingVersion": "2.1.142",
+  "lastReleaseNotesSeen": "2.1.158",
+  "projects": {
+    "C:/Users/13751": {
+      "allowedTools": [],
+      "mcpContextUris": [],
+      "mcpServers": {},
+      "enabledMcpjsonServers": [],
+      "disabledMcpjsonServers": [],
+      "hasTrustDialogAccepted": false,
+      "projectOnboardingSeenCount": 1,
+      "hasClaudeMdExternalIncludesApproved": false,
+      "hasClaudeMdExternalIncludesWarningShown": false,
+      "exampleFiles": [],
+      "lastGracefulShutdown": false,
+      "lastVersionBase": "2.1.158",
+      "lastHintSessionId": "cb92acf5-3a06-43f3-88b4-c8fd9673b0d3",
+      "lastSessionFirstPrompt": "帮我打开openclaw的网页版",
+      "lastSessionModified": 1780155285308,
+      "hasCompletedProjectOnboarding": true,
+      "lastCost": 18.22673500000001,
+      "lastAPIDuration": 2257737,
+      "lastAPIDurationWithoutRetries": 2257533,
+      "lastToolDuration": 7629,
+      "lastDuration": 6348699,
+      "lastLinesAdded": 319,
+      "lastLinesRemoved": 400,
+      "lastTotalInputTokens": 191296,
+      "lastTotalOutputTokens": 112263,
+      "lastTotalCacheCreationInputTokens": 0,
+      "lastTotalCacheReadInputTokens": 28927360,
+      "lastTotalWebSearchRequests": 0,
+      "lastModelUsage": {
+        "deepseek-v4-pro": {
+          "inputTokens": 191296,
+          "outputTokens": 112263,
+          "cacheReadInputTokens": 28927360,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 18.22673500000001
+        }
+      },
+      "lastSessionId": "d66cc1ba-7351-4b2c-a826-81628cf5d69d",
+      "lastSessionMetrics": {
+        "frame_duration_ms_count": 93239,
+        "frame_duration_ms_min": 0.025400000624358654,
+        "frame_duration_ms_max": 77.19069999991916,
+        "frame_duration_ms_avg": 0.5591214802788645,
+        "frame_duration_ms_p50": 0.3957999995909631,
+        "frame_duration_ms_p95": 1.1987699985504139,
+        "frame_duration_ms_p99": 2.8539939998323085,
+        "hook_duration_ms_count": 615,
+        "hook_duration_ms_min": 0,
+        "hook_duration_ms_max": 747,
+        "hook_duration_ms_avg": 97.82926829268293,
+        "hook_duration_ms_p50": 124,
+        "hook_duration_ms_p95": 191,
+        "hook_duration_ms_p99": 276.86,
+        "pre_tool_hook_duration_ms_count": 589,
+        "pre_tool_hook_duration_ms_min": 0,
+        "pre_tool_hook_duration_ms_max": 259,
+        "pre_tool_hook_duration_ms_avg": 63.23769100169779,
+        "pre_tool_hook_duration_ms_p50": 1,
+        "pre_tool_hook_duration_ms_p95": 180,
+        "pre_tool_hook_duration_ms_p99": 211.24
+      },
+      "lastFpsAverage": 6.95,
+      "lastFpsLow1Pct": 192.25
+    }
+  },
+  "officialMarketplaceAutoInstallAttempted": true,
+  "officialMarketplaceAutoInstalled": true,
+  "showSpinnerTree": false,
+  "skillUsage": {
+    "start": {
+      "usageCount": 1,
+      "lastUsedAt": 1778957983977
+    },
+    "brainstorm": {
+      "usageCount": 3,
+      "lastUsedAt": 1779602281945
+    },
+    "setup-engine": {
+      "usageCount": 2,
+      "lastUsedAt": 1778997456242
+    },
+    "superpowers:writing-plans": {
+      "usageCount": 2,
+      "lastUsedAt": 1779624888412
+    },
+    "superpowers:subagent-driven-development": {
+      "usageCount": 1,
+      "lastUsedAt": 1778998732515
+    },
+    "fewer-permission-prompts": {
+      "usageCount": 1,
+      "lastUsedAt": 1779283720909
+    },
+    "superpowers:brainstorming": {
+      "usageCount": 3,
+      "lastUsedAt": 1779885777117
+    },
+    "learn": {
+      "usageCount": 1,
+      "lastUsedAt": 1779688702606
+    },
+    "ielts-diagnosis": {
+      "usageCount": 1,
+      "lastUsedAt": 1779689653492
+    },
+    "kaogong-schedule": {
+      "usageCount": 1,
+      "lastUsedAt": 1779690506959
+    },
+    "debug": {
+      "usageCount": 1,
+      "lastUsedAt": 1780038873315
+    },
+    "statusline": {
+      "usageCount": 1,
+      "lastUsedAt": 1780064883852
+    },
+    "changelog": {
+      "usageCount": 1,
+      "lastUsedAt": 1780156179672
+    },
+    "superpowers:systematic-debugging": {
+      "usageCount": 1,
+      "lastUsedAt": 1780162494207
+    }
+  },
+  "feedbackSurveyState": {
+    "lastShownTime": 1779885959590
+  },
+  "opus48LaunchSeenCount": 5,
+  "agentLastUsed": {
+    "bg": 1780206517130
+  }
+}

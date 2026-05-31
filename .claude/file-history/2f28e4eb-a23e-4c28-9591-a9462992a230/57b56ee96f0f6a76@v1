@@ -1,0 +1,110 @@
+# Technical Preferences
+
+<!-- Populated by /setup-engine. Updated as the user makes decisions throughout development. -->
+<!-- All agents reference this file for project-specific standards and conventions. -->
+
+## Engine & Language
+
+- **Engine**: Godot 4.5.1
+- **Language**: GDScript (gameplay/UI scripting), C# (performance-critical systems), C++ via GDExtension (native only)
+- **Rendering**: Godot 2D Renderer (GPU-accelerated via Vulkan/OpenGL)
+- **Physics**: Godot Physics (CharacterBody2D, Area2D, RayCast2D)
+- **Input**: Godot Input System (Input Map + `_input()` / `_unhandled_input()`)
+
+## Language Division
+
+| System Type | Language | Rationale |
+|------------|----------|-----------|
+| Player controller, input handling | GDScript | Rapid iteration, signal-heavy |
+| Obstacle/pickup/train entities | GDScript | Simple state, scene-linked |
+| UI (menus, HUD, death screen) | GDScript | Tight Godot Control node integration |
+| Audio management | GDScript | AudioStreamPlayer integration |
+| Collision math, score calculation | C# | Pure logic, performance-sensitive |
+| Object pooling, spawner systems | C# | Hot-path performance |
+| Data/config loading | C# | .NET JSON/file I/O |
+
+Prefer signals over direct cross-language method calls at the boundary.
+
+## Input & Platform
+
+- **Target Platforms**: Web (Desktop + Mobile)
+- **Input Methods**: Keyboard, Touch
+- **Primary Input**: Keyboard (desktop) / Touch (mobile)
+- **Gamepad Support**: None
+- **Touch Support**: Full
+- **Platform Notes**: Export to HTML5 via Godot Web export template. Touch input via Godot InputEventScreenTouch/Drag.
+
+## Naming Conventions
+
+**GDScript (.gd files):**
+- Classes: PascalCase (e.g., `PlayerController`)
+- Variables/functions: snake_case (e.g., `move_speed`, `apply_damage()`)
+- Signals: snake_case past tense (e.g., `health_changed`, `coin_collected`)
+- Files: snake_case matching class (e.g., `player_controller.gd`)
+- Scenes: PascalCase matching root node (e.g., `PlayerController.tscn`)
+- Constants: UPPER_SNAKE_CASE (e.g., `MAX_HEALTH`, `TRACK_COUNT`)
+
+**C# (.cs files):**
+- Classes: PascalCase, `partial` (e.g., `ScoreCalculator`)
+- Public properties/fields: PascalCase (e.g., `MoveSpeed`, `JumpVelocity`)
+- Private fields: `_camelCase` (e.g., `_currentHealth`, `_isGrounded`)
+- Methods: PascalCase (e.g., `TakeDamage()`, `GetCurrentHealth()`)
+- Signal delegates: PascalCase + `EventHandler` suffix
+- Files: PascalCase matching class (e.g., `ScoreCalculator.cs`)
+- Constants: PascalCase (e.g., `MaxHealth`, `DefaultMoveSpeed`)
+
+## Performance Budgets
+
+- **Target Framerate**: 60fps
+- **Frame Budget**: 16.6ms (target <8ms script time for mobile headroom)
+- **Draw Calls**: Godot 2D batches automatically; target <200 items per frame
+- **Memory Ceiling**: 100MB (Godot + browser runtime)
+
+## Testing
+
+- **GDScript Framework**: GUT (Godot Unit Testing) — `tests/unit/`
+- **C# Framework**: NUnit via .NET test runner — `tests/unit/`
+- **Minimum Coverage**: Core logic (collision detection, scoring, obstacle generation) must have testable pure functions
+- **Required Tests**: Collision math, score calculation, procedural obstacle template validation
+
+## Forbidden Patterns
+
+- `get_node()` in `_process()` or `_physics_process()` — cache in `@onready` or `_ready()`
+- `new()` in hot loops — use object pools
+- Deep nesting of Control nodes (>5 levels) — flatten UI hierarchies
+- Calling C# from GDScript in `_process()` — use signals for cross-language communication
+- Hardcoding gameplay values in scripts — use `@export` variables or resource files
+- `ResourceLoader.load()` in `_process()` — preload or cache
+
+## Allowed Libraries / Addons
+
+- [None — to be added as needed]
+
+## Architecture Decisions Log
+
+<!-- Quick reference linking to full ADRs in docs/architecture/ -->
+- [No ADRs yet — use /architecture-decision to create one]
+
+## Engine Specialists
+
+- **Primary**: godot-specialist
+- **GDScript Specialist**: godot-gdscript-specialist (.gd files — gameplay/UI scripts)
+- **C# Specialist**: godot-csharp-specialist (.cs files — performance-critical systems)
+- **Shader Specialist**: godot-shader-specialist (.gdshader files, VisualShader resources)
+- **UI Specialist**: godot-specialist (no dedicated UI specialist — primary covers all UI)
+- **Additional Specialists**: godot-gdextension-specialist (GDExtension / native C++ bindings only)
+- **Routing Notes**: Invoke primary for cross-language architecture decisions and which systems belong in which language. Invoke GDScript specialist for .gd files. Invoke C# specialist for .cs files and .csproj management. Prefer signals over direct cross-language method calls at the boundary.
+
+### File Extension Routing
+
+| File Extension / Type | Specialist to Spawn |
+|-----------------------|---------------------|
+| Game code (.gd files) | godot-gdscript-specialist |
+| Game code (.cs files) | godot-csharp-specialist |
+| Cross-language boundary decisions | godot-specialist |
+| Shader / material files (.gdshader, VisualShader) | godot-shader-specialist |
+| UI / screen files (Control nodes, CanvasLayer) | godot-specialist |
+| Scene / prefab / level files (.tscn, .tres) | godot-specialist |
+| Project config (.csproj, NuGet) | godot-csharp-specialist |
+| Native extension / plugin files (.gdextension, C++) | godot-gdextension-specialist |
+| General architecture review | godot-specialist |

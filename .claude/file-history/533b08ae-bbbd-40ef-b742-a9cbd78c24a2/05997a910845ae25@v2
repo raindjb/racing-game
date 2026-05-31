@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "usageStats": {
+    "xiaomi:default": {
+      "cooldownUntil": 1779880189733,
+      "cooldownReason": "auth",
+      "errorCount": 1,
+      "failureCounts": {
+        "auth": 1
+      },
+      "lastFailureAt": 1779880159733
+    }
+  }
+}

@@ -1,0 +1,26 @@
+extends Label
+
+var velocity: Vector2 = Vector2(0, -60)
+var lifetime: float = 1.2
+var elapsed: float = 0.0
+
+func _ready() -> void:
+	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_theme_font_size_override("font_size", 18)
+
+func _process(delta: float) -> void:
+	elapsed += delta
+	position += velocity * delta
+	var alpha := clamp(1.0 - elapsed / lifetime, 0.0, 1.0)
+	modulate.a = alpha
+	if elapsed >= lifetime:
+		queue_free()
+
+static func show(parent: Node, pos: Vector2, text: String, color: Color, size: float = 1.0) -> void:
+	var scene := load("res://scenes/effects/floating_text.tscn")
+	var ft := scene.instantiate()
+	ft.position = pos
+	ft.text = text
+	ft.add_theme_color_override("font_color", color)
+	ft.add_theme_font_size_override("font_size", int(18 * size))
+	parent.add_child(ft)

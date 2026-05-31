@@ -1,0 +1,37 @@
+extends Node
+
+var viewport_size: Vector2
+var horizon_y: float
+var bottom_y: float
+
+func _ready() -> void:
+	get_viewport().size_changed.connect(_on_resize)
+	_on_resize()
+
+func _on_resize() -> void:
+	viewport_size = get_viewport().get_visible_rect().size
+	horizon_y = viewport_size.y * 0.2
+	bottom_y = viewport_size.y * 0.94
+
+func screen_y(depth: float) -> float:
+	return horizon_y + pow(depth, 0.7) * (bottom_y - horizon_y)
+
+func scale_at_sy(sy: float) -> float:
+	var player_sy := screen_y(0.62)
+	if sy <= horizon_y:
+		return 0.08
+	var t := (sy - horizon_y) / (player_sy - horizon_y)
+	return clamp(t, 0.08, 2.5)
+
+func lane_x(lane: float, sy: float) -> float:
+	var sc := scale_at_sy(sy)
+	var spread := viewport_size.x * 0.09 * sc
+	return viewport_size.x * 0.5 + lane * spread * 3.2
+
+func depth_to_position(lane: float, depth: float) -> Dictionary:
+	var sy := screen_y(depth)
+	return {
+		"x": lane_x(lane, sy),
+		"y": sy,
+		"scale": scale_at_sy(sy)
+	}

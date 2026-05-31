@@ -1,0 +1,88 @@
+# Technical Preferences
+
+<!-- Populated by /setup-engine. Updated as the user makes decisions throughout development. -->
+<!-- All agents reference this file for project-specific standards and conventions. -->
+
+## Engine & Language
+
+- **Engine**: Web Canvas/HTML5 2D
+- **Language**: JavaScript (ES6+)
+- **Rendering**: Canvas 2D API
+- **Physics**: Custom (no physics engine — simple AABB collision)
+
+## Input & Platform
+
+<!-- Written by /setup-engine. Read by /ux-design, /ux-review, /test-setup, /team-ui, and /dev-story -->
+<!-- to scope interaction specs, test helpers, and implementation to the correct input methods. -->
+
+- **Target Platforms**: Web (Desktop + Mobile)
+- **Input Methods**: Keyboard, Touch
+- **Primary Input**: Keyboard (desktop) / Touch (mobile)
+- **Gamepad Support**: None
+- **Touch Support**: Full
+- **Platform Notes**: Single HTML file, responsive Canvas. Mobile: `touch-action: manipulation` on canvas to eliminate 300ms delay. Touch events with `{ passive: false }` only where `preventDefault()` needed.
+
+## Naming Conventions
+
+- **Classes**: PascalCase (e.g., `GameEngine`, `PlayerController`)
+- **Variables**: camelCase (e.g., `moveSpeed`, `currentHealth`)
+- **Functions**: camelCase (e.g., `updateScore()`, `spawnObstacle()`)
+- **Events/Handlers**: `on` + PascalCase (e.g., `onPlayerHit`, `onCoinCollect`)
+- **Files**: Single HTML file — sections separated by `/* ========== SECTION NAME ========== */` comment blocks
+- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_HEALTH`, `TRACK_COUNT`)
+
+## Performance Budgets
+
+- **Target Framerate**: 60fps
+- **Frame Budget**: 16.6ms (target <10ms JS per frame for mobile headroom)
+- **Draw Calls**: Max ~75 `drawImage()` calls per frame (viewport-culled)
+- **Memory Ceiling**: 50MB (browser environment)
+
+## Testing
+
+- **Framework**: Manual browser testing + console-based test hooks on `G.test.*`
+- **Minimum Coverage**: Core logic (collision detection, scoring, obstacle generation) must have testable pure functions
+- **Required Tests**: Collision math, score calculation, procedural obstacle template validation
+
+## Forbidden Patterns
+
+<!-- Add patterns that should never appear in this project's codebase -->
+- `new` or `delete` in hot loops — use object pools
+- `ctx.save()` / `ctx.restore()` in draw loops — manually reset transforms
+- `getImageData()` during gameplay — forces GPU→CPU readback
+- Bare global variables — all game state on `const G = {}` namespace
+- `new OscillatorNode()` per sound effect — use pre-rendered AudioBuffers and source node pool
+
+## Allowed Libraries / Addons
+
+<!-- Add approved third-party dependencies here -->
+- [None — zero external dependencies by design]
+
+## Architecture Decisions Log
+
+<!-- Quick reference linking to full ADRs in docs/architecture/ -->
+- [No ADRs yet — use /architecture-decision to create one]
+
+## Engine Specialists
+
+<!-- Written by /setup-engine when engine is configured. -->
+<!-- Read by /code-review, /architecture-decision, /architecture-review, and team skills -->
+<!-- to know which specialist to spawn for engine-specific validation. -->
+
+- **Primary**: general-purpose (no engine-specific specialist for Canvas/JS)
+- **Language/Code Specialist**: general-purpose (JavaScript review)
+- **Shader Specialist**: N/A (no shaders — pure 2D Canvas)
+- **UI Specialist**: general-purpose (HTML/CSS overlay + Canvas HUD)
+- **Additional Specialists**: N/A
+- **Routing Notes**: For a pure Canvas/JS project, the general-purpose agent handles architecture and code review. No Godot/Unity/Unreal specialists are relevant.
+
+### File Extension Routing
+
+| File Extension / Type | Specialist to Spawn |
+|-----------------------|---------------------|
+| Game code (.js, .html) | general-purpose |
+| Shader / material files | N/A |
+| UI / screen files (.html, Canvas HUD) | general-purpose |
+| Scene / prefab / level files | N/A (procedural generation) |
+| Native extension / plugin files | N/A |
+| General architecture review | general-purpose |

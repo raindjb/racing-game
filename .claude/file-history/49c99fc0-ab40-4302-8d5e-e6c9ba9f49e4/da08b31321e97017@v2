@@ -1,0 +1,68 @@
+"""CrewAI 多 Agent 协作演示 — 走 OpenRouter"""
+
+import os
+from crewai import Agent, Task, Crew, Process
+
+# ============================================================
+# 配置：换成你自己的 key
+# ============================================================
+OPENROUTER_KEY = "sk-or-v1-你的key"  # ← 改这里
+MODEL = "deepseek/deepseek-chat"     # OpenRouter 上的 DeepSeek
+
+os.environ["OPENAI_API_KEY"] = OPENROUTER_KEY
+os.environ["OPENAI_API_BASE"] = "https://openrouter.ai/api/v1"
+
+# ============================================================
+# Agent 定义
+# ============================================================
+
+researcher = Agent(
+    role="技术研究员",
+    goal="调查指定技术现状，输出 3 个关键发现",
+    backstory="资深技术研究员，擅长快速梳理技术脉络，输出简洁结论",
+    verbose=True,
+    allow_delegation=False,
+    llm=f"openai/{MODEL}",
+)
+
+writer = Agent(
+    role="技术撰稿人",
+    goal="把调研结果整理成一页精简报告给老板看",
+    backstory="技术写手，擅长把复杂信息压缩成清晰短文",
+    verbose=True,
+    allow_delegation=False,
+    llm=f"openai/{MODEL}",
+)
+
+# ============================================================
+# 任务
+# ============================================================
+
+task_research = Task(
+    description="调查 2025-2026 年多 Agent AI 框架的发展趋势，列出 3 个最重要的变化。中文输出。",
+    expected_output="150-200 字中文，3 个趋势要点，每个一行",
+    agent=researcher,
+)
+
+task_write = Task(
+    description="基于研究员的调研摘要，整理成一页报告：标题 + 3 个要点 + 一句话总结。中文。",
+    expected_output="格式化的中文一页报告",
+    agent=writer,
+)
+
+# ============================================================
+# 执行
+# ============================================================
+
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[task_research, task_write],
+    process=Process.sequential,
+    verbose=True,
+)
+
+print("启动 CrewAI 多 Agent 协作...\n")
+result = crew.kickoff()
+print("\n" + "=" * 60)
+print(result)
+print("=" * 60)

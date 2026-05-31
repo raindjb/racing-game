@@ -1,0 +1,34 @@
+extends Node2D
+
+@export var train_scene: PackedScene
+
+var spawn_timer: float = 9.0
+var train_colors := [Color("#c0392b"), Color("#2980b9"), Color("#27ae60"), Color("#f39c12"), Color("#1a1a1a")]
+
+func _process(delta: float) -> void:
+	if GameManager.state != GameManager.State.PLAY:
+		return
+
+	spawn_timer -= delta
+	if spawn_timer <= 0:
+		spawn_train()
+		var dist_factor := minf(GameManager.total_distance / 20000.0, 0.4)
+		spawn_timer = randf_range(8.0, 14.0) * (1.0 - dist_factor)
+
+func spawn_train() -> void:
+	var train: Node2D = train_scene.instantiate()
+	train.train_color = train_colors[randi() % train_colors.size()]
+
+	var two_lane := randf() < 0.45
+	if two_lane:
+		train.train_width = 2
+		train.lane = -1 if randf() < 0.5 else 0
+		train.num_cars = randi_range(2, 4)
+	else:
+		train.train_width = 1
+		train.lane = randi_range(-1, 1)
+		train.num_cars = randi_range(1, 5) if randf() < 0.3 else randi_range(1, 2)
+		train.climbable = randf() < 0.35
+
+	train.depth = 0.02
+	add_child(train)

@@ -1,0 +1,33 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; but the values here are provided for reference.
+
+config_version=5
+
+[application]
+config/name="Subway Runner"
+config/version="1.0.0"
+config/features=PackedStringArray("4.5", "Forward+")
+
+[autoload]
+GameManager="*res://scripts/autoload/game_manager.gd"
+Perspective="*res://scripts/autoload/perspective.gd"
+AudioManager="*res://scripts/autoload/audio_manager.gd"
+
+[display]
+window/size/viewport_width=360
+window/size/viewport_height=640
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[input]
+move_left={ "key": "A", "key": "Left" }
+move_right={ "key": "D", "key": "Right" }
+jump={ "key": "W", "key": "Up" }
+slide={ "key": "S", "key": "Down" }
+start={ "key": "Space" }
+
+[rendering]
+renderer/rendering_method="mobile"
+textures/canvas_textures/default_texture_filter=0

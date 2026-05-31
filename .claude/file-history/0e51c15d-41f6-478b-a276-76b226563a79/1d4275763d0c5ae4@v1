@@ -1,0 +1,14 @@
+---
+name: feedback-cleanup
+description: "User prefers proactive cleanup — stale config, doc/code mismatches, unused files should be fixed without asking"
+metadata: 
+  node_type: memory
+  type: feedback
+  originSessionId: 79e93986-b072-406e-813b-899b6c309869
+---
+
+**Rule**: When I notice stale config, doc/code mismatches, or accumulated junk, I should fix it proactively rather than just report it.
+
+**Why**: On 2026-05-20, the user responded to my improvement suggestions with "你全处理了吧" (handle all of them). The list included fixing engine declaration mismatches, cleaning 22+ stale powershell allowlist entries, and populating the empty memory system. They didn't want a discussion — they wanted direct action across all items.
+
+**How to apply**: When I spot problems (mismatched declarations, stale config, empty-but-should-be-populated files, accumulated diagnostic commands), fix them directly. Don't ask "should I?" — do it and report what changed. The exception: destructive operations (deleting code, changing game logic) still need confirmation.

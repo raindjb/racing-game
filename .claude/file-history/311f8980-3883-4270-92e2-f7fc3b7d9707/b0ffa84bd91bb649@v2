@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>地铁跑酷 - Subway Runner</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+canvas { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+// ============================================================
+// 地铁跑酷 - Subway Runner (无限跑酷网页游戏)
+// ============================================================
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// ---- 响应式画布 ----
+function resize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const aspect = 9 / 16;
+  if (w / h > aspect) {
+    canvas.height = h;
+    canvas.width = h * aspect;
+  } else {
+    canvas.width = w;
+    canvas.height = w / aspect;
+  }
+  canvas.style.width = canvas.width + 'px';
+  canvas.style.height = canvas.height + 'px';
+}
+resize();
+window.addEventListener('resize', resize);
+
+const W = () => canvas.width;
+const H = () => canvas.height;
+
+// ============================================================
+// 音效引擎 (Web Audio API)
+// ============================================================
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playTone(freq, type, duration, vol = 0.1, glide = 0) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t);
+  if (glide) osc.frequency.linearRampToValueAtTime(freq + glide, t + duration);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + duration);
+}
+function sfxCoin() { playTone(880, 'square', 0.08, 0.08); setTimeout(() => playTone(1320, 'square', 0.06, 0.06), 60); }
+function sfxHit() { playTone(80, 'sawtooth', 0.25, 0.15); }
+function sfxJump() { playTone(300, 'sine', 0.15, 0.06, 400); }
+function sfxSlide() { playTone(200, 'triangle', 0.1, 0.04, -100); }
+function sfxPowerup() { playTone(660, 'sine', 0.12, 0.08); setTimeout(() => playTone(880, 'sine', 0.12, 0.08), 100); setTimeout(() => playTone(1100, 'sine', 0.15, 0.1), 200); }
+function sfxDeath() { playTone(200, 'sawtooth', 0.4, 0.12); setTimeout(() => playTone(150, 'sawtooth', 0.4, 0.12), 150); setTimeout(() => playTone(100, 'sawtooth', 0.6, 0.2), 300); }
+function sfxHeal() { playTone(523, 'sine', 0.15, 0.08); setTimeout(() => playTone(659, 'sine', 0.15, 0.08), 100); setTimeout(() => playTone(784, 'sine', 0.2, 0.1), 200); }
+function sfxTrainHorn() { playTone(150, 'sawtooth', 0.6, 0.1); playTone(120, 'sawtooth', 0.5, 0.1); }
+
+// ============================================================
+// 透视系统
+// ============================================================
+const PERSPECTIVE = {
+  vanishX: 0.5,       // 消失点X (0-1, 屏幕比例)
+  vanishY: 0.18,      // 消失点Y (屏幕比例)
+  playerScreenY: 0.78, // 玩家所在屏幕Y比例
+  groundBase: 0.92,    // 地面底部
+  // 透视缩放: screenY -> scale (远处小, 近处大)
+  scaleAt(y) {
+    const vY = H() * this.vanishY;
+    const bY = H() * this.groundBase;
+    if (y <= vY) return 0.15;
+    const t = (y - vY) / (bY - vY);
+    return 0.15 + t * 0.85;
+  },
+  // 世界坐标 -> 屏幕坐标
+  worldToScreen(wx, wy) {
+    // wx: 跑道 (-1, 0, 1) / wy: 深度 (0=远处, 1=近处)
+    const vX = W() * this.vanishX;
+    const vY = H() * this.vanishY;
+    const bY = H() * this.groundBase;
+    const sy = vY + wy * (bY - vY);
+    const laneWidth = W() * 0.12 * this.scaleAt(sy);
+    const sx = vX + wx * laneWidth * 3;
+    return { x: sx, y: sy, scale: this.scaleAt(sy) };
+  }
+};
+
+// ============================================================
+// 游戏状态
+// ============================================================
+const STATE = {
+  MENU: 'menu',
+  PLAYING: 'playing',
+  DEAD: 'dead'
+};
+
+let gameState = STATE.MENU;
+let score = 0;
+let highScore = parseInt(localStorage.getItem('subwayHighScore')) || 0;
+let distance = 0;
+let speed = 0;          // 基础速度
+let currentSpeed = 0;   // 当前实际速度(受坡度影响)
+let slopeValue = 0;     // 当前坡度 (-1到1)
+let targetSlope = 0;    // 目标坡度
+let slopeTimer = 0;     // 坡度计时器
+let frameCount = 0;
+let shakeTimer = 0;
+let shakeIntensity = 0;
+let slowMotion = 0;     // 慢动作计时
+
+// 场景偏移(用于视差)
+let sceneOffset = 0;
+// 轨道偏移(移动纹理)
+let trackOffset = 0;
+
+// ============================================================
+// 玩家
+// ============================================================
+const PLAYER = {
+  lane: 0,           // -1, 0, 1 (左中右)
+  targetLane: 0,
+  laneSwitchSpeed: 0.15, // 跑道切换平滑过渡
+  currentLaneX: 0,   // 当前实际X (平滑过渡用)
+  y: 0.78,           // 屏幕Y比例(基础位置)
+  vy: 0,             // 垂直速度(跳跃用)
+  isJumping: false,
+  isSliding: false,
+  slideTimer: 0,
+  jumpHeight: 0,
+  animFrame: 0,
+  animTimer: 0,
+  invincible: 0,     // 无敌时间
+  hp: 3,
+  maxHp: 3,
+  // 道具状态
+  magnetActive: false,
+  magnetTimer: 0,
+  doubleCoin: false,
+  doubleCoinTimer: 0,
+  skateboard: false,
+  skateboardTimer: 0,
+  // 火车顶状态
+  onTrain: null,     // 当前所在的火车引用
+  trainRideX: 0,
+};
+
+function resetPlayer() {
+  PLAYER.lane = 0;
+  PLAYER.targetLane = 0;
+  PLAYER.currentLaneX = 0;
+  PLAYER.y = 0.78;
+  PLAYER.vy = 0;
+  PLAYER.isJumping = false;
+  PLAYER.isSliding = false;
+  PLAYER.slideTimer = 0;
+  PLAYER.jumpHeight = 0;
+  PLAYER.animFrame = 0;
+  PLAYER.animTimer = 0;
+  PLAYER.invincible = 0;
+  PLAYER.hp = 3;
+  PLAYER.magnetActive = false;
+  PLAYER.magnetTimer = 0;
+  PLAYER.doubleCoin = false;
+  PLAYER.doubleCoinTimer = 0;
+  PLAYER.skateboard = false;
+  PLAYER.skateboardTimer = 0;
+  PLAYER.onTrain = null;
+  PLAYER.trainRideX = 0;
+}
+
+// ============================================================
+// 障碍物 & 道具 & 火车 池
+// ============================================================
+let obstacles = [];
+let powerups = [];
+let trains = [];
+let particles = [];
+let sceneryItems = []; // 远处装饰物
+
+// 生成控制
+let spawnTimer = 0;
+let spawnInterval = 2.0;  // 基础生成间隔(秒)
+let powerupSpawnTimer = 0;
+let trainSpawnTimer = 0;
+let nextTrainTime = 8;
+
+// 已跑距离(用于恢复血量等)
+let totalDistanceTraveled = 0;
+let lastHealDistance = 0;
+
+// ============================================================
+// 障碍物定义
+// ============================================================
+const OBSTACLE_TYPES = {
+  barrier:   { name: '道口栏杆', height: 0, sprite: 'barrier',   color: '#e74c3c' },
+  pipe:      { name: '横放铁管', height: 0, sprite: 'pipe',      color: '#95a5a6' },
+  fence:     { name: '低矮围栏', height: 0, sprite: 'fence',     color: '#f39c12' },
+  signalBox: { name: '信号灯箱', height: 1, sprite: 'signalBox', color: '#2c3e50' },
+  tiesPile:  { name: '枕木堆',   height: 1, sprite: 'tiesPile',  color: '#8B4513' },
+  cone:      { name: '施工锥桶', height: 1, sprite: 'cone',      color: '#ff6600' },
+  maintCart: { name: '维修车',   height: 2, sprite: 'maintCart', color: '#f1c40f' },
+  towerBase: { name: '信号塔基座', height: 2, sprite: 'tower',   color: '#7f8c8d' },
+  worker:    { name: '维修工人', height: 2, sprite: 'worker',    color: '#ff6600' },
+};
+
+// 每类障碍需要什么操作: 0=滑铲, 1=跳跃, 2=换道
+const OBSTACLE_ACTION = {
+  barrier: 0, pipe: 0, fence: 0,
+  signalBox: 1, tiesPile: 1, cone: 1,
+  maintCart: 2, towerBase: 2, worker: 2,
+};
+
+// ============================================================
+// 道具定义
+// ============================================================
+const POWERUP_TYPES = {
+  coin:       { name: '金币',   color: '#f1c40f', effect: 'coin' },
+  coinSilver: { name: '银币',   color: '#bdc3c7', effect: 'coin' },
+  medkit:     { name: '医疗包', color: '#e74c3c', effect: 'heal' },
+  magnet:     { name: '磁铁',   color: '#3498db', effect: 'magnet' },
+  doubleCoin: { name: '双倍金币', color: '#f39c12', effect: 'doubleCoin' },
+  skateboard: { name: '滑板',   color: '#2ecc71', effect: 'skateboard' },
+};
+
+// ============================================================
+// 辅助函数
+// ============================================================
+function rand(min, max) { return Math.random() * (max - min) + min; }
+function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+// 检测碰撞: 两个对象在屏幕空间重叠
+function checkCollision(obj) {
+  const pw = PERSPECTIVE;
+  const pSy = H() * PLAYER.y + PLAYER.jumpHeight * H() * 0.12;
+  const pSx = W() * 0.5 + PLAYER.currentLaneX * W() * 0.12 * pw.scaleAt(pSy) * 3;
+  const pScale = pw.scaleAt(pSy);
+  const pHalfW = W() * 0.04 * pScale;
+  const pHalfH = H() * 0.05 * pScale;
+
+  // 玩家碰撞箱(缩一点的)
+  const pLeft = pSx - pHalfW * 0.6;
+  const pRight = pSx + pHalfW * 0.6;
+  const pTop = pSy - pHalfH * (PLAYER.isSliding ? 0.3 : 0.8);
+  const pBottom = pSy + pHalfH * 0.5;
+
+  const oSy = obj.screenY;
+  const oLaneX = (obj.lane || 0);
+  const oScale = pw.scaleAt(oSy);
+  const laneW = W() * 0.12 * oScale * 3;
+  const oSx = W() * 0.5 + oLaneX * laneW;
+  const oHalfW = obj.halfWidth || (W() * 0.035 * oScale);
+  const oHalfH = obj.halfHeight || (H() * 0.04 * oScale);
+
+  const oLeft = oSx - oHalfW * 0.7;
+  const oRight = oSx + oHalfW * 0.7;
+  const oTop = oSy - oHalfH * 0.7;
+  const oBottom = oSy + oHalfH * 0.7;
+
+  return !(pRight < oLeft || pLeft > oRight || pBottom < oTop || pTop > oBottom);
+}
+
+// ============================================================
+// 生成障碍物
+// ============================================================
+function spawnObstacle() {
+  const types = Object.keys(OBSTACLE_TYPES);
+  const typeName = types[randInt(0, types.length - 1)];
+  const type = OBSTACLE_TYPES[typeName];
+  const lane = randInt(-1, 1);
+
+  // 检查是否已有障碍物在附近(避免堆叠)
+  for (const o of obstacles) {
+    if (o.lane === lane && o.worldY > 0.85) return; // 太近，跳过
+  }
+
+  obstacles.push({
+    type: typeName,
+    lane: lane,
+    worldY: 0.02,     // 远处生成
+    screenY: 0,
+    color: type.color,
+    action: OBSTACLE_ACTION[typeName],
+    halfWidth: W() * 0.035,
+    halfHeight: H() * 0.04,
+    passed: false,
+    wobble: rand(0, Math.PI * 2),
+  });
+}
+
+function spawnPowerup() {
+  const types = Object.keys(POWERUP_TYPES);
+  const weights = [30, 20, 8, 12, 12, 10]; // 权重: 金币最常见
+  const totalW = weights.reduce((a, b) => a + b, 0);
+  let r = rand(0, totalW);
+  let idx = 0;
+  for (let i = 0; i < weights.length; i++) {
+    r -= weights[i];
+    if (r <= 0) { idx = i; break; }
+  }
+  const typeName = types[idx];
+  const type = POWERUP_TYPES[typeName];
+  const lane = randInt(-1, 1);
+
+  powerups.push({
+    type: typeName,
+    lane: lane,
+    worldY: 0.02,
+    screenY: 0,
+    color: type.color,
+    effect: type.effect,
+    halfWidth: W() * 0.03,
+    halfHeight: H() * 0.035,
+    rotation: 0,
+    bobOffset: rand(0, Math.PI * 2),
+  });
+}
+
+function spawnTrain() {
+  const isLong = Math.random() < 0.35;
+  const numCars = isLong ? randInt(4, 6) : randInt(1, 2);
+  const lane = randInt(-1, 1);
+  const colors = ['#c0392b', '#2980b9', '#27ae60', '#f39c12', '#1a1a1a'];
+  const color = colors[randInt(0, colors.length - 1)];
+  const isClimbable = !isLong && Math.random() < 0.4; // 短火车才有可攀爬的
+
+  // 检查附近没有火车
+  for (const t of trains) {
+    if (t.lane === lane && t.worldY > 0.5) return;
+  }
+
+  trains.push({
+    lane: lane,
+    worldY: 0.02,
+    screenY: 0,
+    numCars: numCars,
+    color: color,
+    isLong: isLong,
+    climbable: isClimbable,
+    halfWidth: W() * 0.05,
+    hornTimer: rand(0.5, 2.0),
+    lightOn: true,
+    lightTimer: 0,
+    graffiti: randInt(0, 3),
+  });
+}
+
+// ============================================================
+// 粒子系统
+// ============================================================
+function spawnParticles(x, y, count, color, speed = 2) {
+  for (let i = 0; i < count; i++) {
+    const angle = rand(0, Math.PI * 2);
+    const spd = rand(speed * 0.5, speed);
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd - rand(1, 4),
+      life: rand(0.3, 0.8),
+      maxLife: 0.8,
+      color: color,
+      size: rand(2, 5),
+    });
+  }
+}
+
+// ============================================================
+// 游戏流程
+// ============================================================
+function startGame() {
+  initAudio();
+  resetPlayer();
+  obstacles = [];
+  powerups = [];
+  trains = [];
+  particles = [];
+  sceneryItems = [];
+  score = 0;
+  distance = 0;
+  totalDistanceTraveled = 0;
+  lastHealDistance = 0;
+  speed = 250;         // 初始基础速度
+  currentSpeed = 250;
+  slopeValue = 0;
+  targetSlope = 0;
+  slopeTimer = 0;
+  spawnTimer = 0;
+  powerupSpawnTimer = 0;
+  trainSpawnTimer = 0;
+  nextTrainTime = 6 + rand(0, 4);
+  sceneOffset = 0;
+  trackOffset = 0;
+  shakeTimer = 0;
+  shakeIntensity = 0;
+  slowMotion = 0;
+  gameState = STATE.PLAYING;
+
+  // 生成初始远景色
+  generateScenery();
+}
+
+function generateScenery() {
+  sceneryItems = [];
+  for (let i = 0; i < 15; i++) {
+    sceneryItems.push({
+      x: rand(0.05, 0.95),
+      y: rand(0.05, 0.25),
+      size: rand(15, 45),
+      type: randInt(0, 2), // 0=建筑, 1=树, 2=起重机
+      color: `hsl(${randInt(190, 260)}, ${randInt(20, 50)}%, ${randInt(20, 50)}%)`,
+    });
+  }
+}
+
+function gameOver() {
+  gameState = STATE.DEAD;
+  sfxDeath();
+  shakeIntensity = 8;
+  shakeTimer = 0.4;
+  slowMotion = 0.6;
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('subwayHighScore', highScore);
+  }
+}
+
+// ============================================================
+// 渲染: 天空 & 城市背景
+// ============================================================
+function drawSky() {
+  const h = H();
+  const vY = h * PERSPECTIVE.vanishY;
+  // 天空渐变: 顶部深蓝 -> 消失点浅蓝
+  const grad = ctx.createLinearGradient(0, 0, 0, vY);
+  grad.addColorStop(0, '#1a1a4e');
+  grad.addColorStop(0.4, '#2d3a7a');
+  grad.addColorStop(0.7, '#5b8cbe');
+  grad.addColorStop(1, '#a8d8ea');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W(), vY);
+
+  // 太阳/光晕
+  const sunX = W() * 0.75 + sceneOffset * 0.03;
+  const sunY = h * 0.05;
+  const sunGrad = ctx.createRadialGradient(sunX, sunY, W() * 0.02, sunX, sunY, W() * 0.12);
+  sunGrad.addColorStop(0, 'rgba(255,255,200,0.9)');
+  sunGrad.addColorStop(0.3, 'rgba(255,200,150,0.4)');
+  sunGrad.addColorStop(0.7, 'rgba(255,150,100,0.1)');
+  sunGrad.addColorStop(1, 'rgba(255,100,50,0)');
+  ctx.fillStyle = sunGrad;
+  ctx.fillRect(0, 0, W(), vY);
+}
+
+function drawCitySkyline() {
+  const h = H();
+  const vY = h * PERSPECTIVE.vanishY;
+  const w = W();
+
+  // 远距离建筑(小，缓慢视差)
+  for (const s of sceneryItems) {
+    if (s.y > vY / h) continue;
+    const sy = s.y * h;
+    const sx = (s.x * w + sceneOffset * 0.02 * (1 - s.y * 3)) % w;
+    const sz = s.size * (0.5 + s.y * 1.5);
+
+    ctx.fillStyle = s.color;
+    if (s.type === 0) {
+      // 建筑
+      ctx.fillRect(sx - sz * 0.3, sy - sz, sz * 0.6, sz);
+      // 窗户
+      const winColor = 'rgba(255,255,200,0.6)';
+      ctx.fillStyle = winColor;
+      for (let wy = sy - sz + sz * 0.1; wy < sy; wy += sz * 0.2) {
+        for (let wx = sx - sz * 0.2; wx < sx + sz * 0.2; wx += sz * 0.15) {
+          if (Math.random() > 0.4) ctx.fillRect(wx, wy, sz * 0.06, sz * 0.08);
+        }
+      }
+    } else if (s.type === 1) {
+      // 简化的树
+      ctx.fillStyle = '#2d5016';
+      ctx.beginPath();
+      ctx.arc(sx, sy - sz * 0.6, sz * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#4a3520';
+      ctx.fillRect(sx - sz * 0.04, sy - sz * 0.3, sz * 0.08, sz * 0.3);
+    } else {
+      // 起重机
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(sx, sy - sz);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(sx - sz * 0.3, sy - sz * 0.7);
+      ctx.lineTo(sx, sy - sz);
+      ctx.lineTo(sx + sz * 0.4, sy - sz * 0.4);
+      ctx.stroke();
+    }
+  }
+}
+
+// ============================================================
+// 渲染: 地形 (轨道、枕木、碎石、高架桥墩)
+// ============================================================
+function drawTerrain() {
+  const h = H();
+  const w = W();
+  const vY = h * PERSPECTIVE.vanishY;
+  const bY = h * PERSPECTIVE.groundBase;
+  const vX = w * PERSPECTIVE.vanishX;
+  const slopeOffset = slopeValue * h * 0.12; // 坡度对消失点的偏移
+
+  // 地面区域
+  const groundTop = vY + slopeOffset;
+
+  // ---- 碎石地面 ----
+  const groundGrad = ctx.createLinearGradient(0, groundTop, 0, bY);
+  groundGrad.addColorStop(0, '#8a8a7a');
+  groundGrad.addColorStop(0.3, '#9e9e8e');
+  groundGrad.addColorStop(0.7, '#7a7a6a');
+  groundGrad.addColorStop(1, '#5a5a4a');
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(0, groundTop, w, bY - groundTop);
+
+  // 碎石纹理
+  ctx.fillStyle = 'rgba(180,175,160,0.3)';
+  const gravelStep = h * 0.015;
+  for (let gy = groundTop + (trackOffset % gravelStep); gy < bY; gy += gravelStep) {
+    for (let gx = 0; gx < w; gx += gravelStep * 1.5) {
+      if (Math.random() > 0.65) {
+        const gs = gravelStep * 0.3 * ((gy - groundTop) / (bY - groundTop));
+        ctx.fillRect(gx, gy, gs, gs);
+      }
+    }
+  }
+
+  // ---- 高架桥墩 ----
+  if (slopeValue > 0.15) {
+    const pierCount = 4;
+    const pierSpacing = w / pierCount;
+    for (let px = pierSpacing * 0.3; px < w; px += pierSpacing) {
+      const pierH = slopeValue * h * 0.2;
+      const pierTop = groundTop;
+      const pierBot = groundTop + pierH;
+      const pierW = w * 0.015;
+
+      ctx.fillStyle = '#5a5a5a';
+      ctx.fillRect(px - pierW, pierTop, pierW * 2, pierH);
+
+      // 横梁
+      ctx.fillStyle = '#4a4a4a';
+      ctx.fillRect(px - pierW * 2, pierTop, pierW * 4, pierW * 1.5);
+      ctx.fillRect(px - pierW * 1.5, pierBot - pierW, pierW * 3, pierW);
+    }
+  }
+
+  // ---- 三条铁轨 ----
+  const lanes = [-1, 0, 1];
+  for (const lane of lanes) {
+    // 铁轨透视: 从消失点辐射
+    const railSpread = w * 0.06;
+    const railX1 = vX + lane * railSpread * 3;
+    const railX2 = railX1 + railSpread;
+
+    // 每条轨道的两根钢轨
+    for (const offset of [0, 1]) {
+      const rx = offset === 0 ? railX1 : railX2;
+      const railBottomX = vX + (rx - vX) * (bY - groundTop) / (bY - groundTop) * (bY / h);
+
+      // 绘制钢轨(近处粗远处细)
+      ctx.strokeStyle = '#7f8c8d';
+      ctx.beginPath();
+      ctx.moveTo(rx, groundTop);
+      // 计算底部X(透视发散)
+      const dx = rx - vX;
+      const botX = vX + dx * ((bY - vX) / (groundTop - vX || 1));
+      ctx.lineTo(botX, bY);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // 轨顶高光
+      ctx.strokeStyle = '#bdc3c7';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(rx - 0.5, groundTop);
+      ctx.lineTo(botX - 0.5, bY);
+      ctx.stroke();
+    }
+
+    // 枕木(横向)
+    const tieSpacing = h * 0.025;
+    ctx.fillStyle = '#6d4c2a';
+    for (let ty = groundTop + (trackOffset % tieSpacing); ty < bY; ty += tieSpacing) {
+      const t = (ty - groundTop) / (bY - groundTop);
+      const scale = 0.2 + t * 0.8;
+      const tieW = railSpread * 1.6 * scale;
+      const tieH = h * 0.006 * scale;
+      const tieX = lerp(railX1, vX + (railX1 - vX) * ((bY - vX) / (groundTop - vX || 1)), t);
+      ctx.fillRect(tieX - tieW / 2, ty, tieW, tieH);
+    }
+  }
+
+  // ---- 坡道标记(上坡/下坡视觉提示) ----
+  if (Math.abs(slopeValue) > 0.05) {
+    const arrowY = bY - 20;
+    const arrowX = w / 2;
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = `${W()*0.03}px Arial`;
+    ctx.textAlign = 'center';
+    if (slopeValue > 0.05) {
+      ctx.fillText('▲ 上坡', arrowX, arrowY);
+    } else if (slopeValue < -0.05) {
+      ctx.fillText('▼ 下坡', arrowX, arrowY);
+    }
+  }
+}
+
+// ============================================================
+// 渲染: 角色
+// ============================================================
+function drawCharacter(x, y, scale, state = 'run') {
+  // state: 'run', 'jump', 'slide', 'hit'
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  const s = W() * 0.032; // 基础尺寸单位
+  const isHit = state === 'hit';
+  const isSlide = state === 'slide';
+  const isJump = state === 'jump';
+  const flash = PLAYER.invincible > 0 && Math.floor(PLAYER.invincible * 20) % 2 === 0;
+
+  // ---- 阴影 ----
+  if (!isJump) {
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, s * 1.5, s * 2.5, s * 0.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(0, s * 4, s * 1.5, s * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (isSlide) {
+    // ---- 滑铲姿态 ----
+    // 压低的身体
+    ctx.fillStyle = flash ? '#fff' : '#2c3e50';
+    ctx.fillRect(-s * 2.5, -s * 0.5, s * 5, s * 1.2);
+    // 连帽衫颜色
+    ctx.fillStyle = flash ? '#fff' : '#e74c3c';
+    ctx.fillRect(-s * 2.5, -s * 0.3, s * 3.5, s * 1);
+    // 头(压低)
+    ctx.fillStyle = flash ? '#fff' : '#f5c6a0';
+    ctx.beginPath();
+    ctx.arc(-s * 1.8, -s * 0.2, s * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    // 帽子
+    ctx.fillStyle = flash ? '#fff' : '#e74c3c';
+    ctx.beginPath();
+    ctx.arc(-s * 1.8, -s * 0.6, s * 1.3, Math.PI, Math.PI * 2);
+    ctx.fill();
+    // 腿(伸展)
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(-s * 2.5, s * 0.3, s * 2, s * 0.7);
+    ctx.fillRect(s * 1, s * 0.3, s * 1.5, s * 0.7);
+    // 鞋
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-s * 2.7, s * 0.8, s * 1.5, s * 0.5);
+    ctx.fillRect(s * 1.2, s * 0.8, s * 1.3, s * 0.5);
+  } else {
+    // ---- 正常/跳跃/跑步姿态 ----
+    const bodySquash = isJump ? -0.7 : 0;
+    const bodyY = -s * 2 + bodySquash;
+
+    // 跑步动画计算
+    const runCycle = frameCount * 0.15;
+    const armSwingL = Math.sin(runCycle) * s * 1.5;
+    const armSwingR = Math.sin(runCycle + Math.PI) * s * 1.5;
+    const legSwingL = Math.sin(runCycle) * s * 1.8;
+    const legSwingR = Math.sin(runCycle + Math.PI) * s * 1.8;
+    const bodyBob = Math.abs(Math.sin(runCycle * 2)) * s * 0.3;
+
+    const realBodyY = bodyY - bodyBob;
+
+    // 左腿
+    ctx.fillStyle = '#1a1a2e';
+    ctx.save();
+    ctx.translate(-s * 0.8, realBodyY + s * 2.5);
+    ctx.rotate(legSwingL * 0.08);
+    ctx.fillRect(-s * 0.5, 0, s, s * 2.5);
+    // 鞋
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-s * 0.6, s * 2.2, s * 1.2, s * 0.6);
+    ctx.restore();
+
+    // 右腿
+    ctx.fillStyle = '#1a1a2e';
+    ctx.save();
+    ctx.translate(s * 0.8, realBodyY + s * 2.5);
+    ctx.rotate(legSwingR * 0.08);
+    ctx.fillRect(-s * 0.5, 0, s, s * 2.5);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-s * 0.6, s * 2.2, s * 1.2, s * 0.6);
+    ctx.restore();
+
+    // 身体(躯干)
+    ctx.fillStyle = flash ? '#fff' : '#2c3e50';
+    ctx.fillRect(-s * 1.5, realBodyY, s * 3, s * 3);
+    // 连帽衫(上半身)
+    ctx.fillStyle = flash ? '#fff' : '#e74c3c';
+    ctx.fillRect(-s * 1.8, realBodyY, s * 3.6, s * 2);
+    // 帽衫下摆
+    ctx.fillStyle = flash ? '#fff' : '#c0392b';
+    ctx.fillRect(-s * 1.6, realBodyY + s * 1.8, s * 3.2, s * 1.2);
+
+    // 左臂
+    ctx.fillStyle = flash ? '#fff' : '#e74c3c';
+    ctx.save();
+    ctx.translate(-s * 1.8, realBodyY + s * 0.5);
+    ctx.rotate(-0.3 + armSwingL * 0.06);
+    ctx.fillRect(-s * 0.4, 0, s * 0.8, s * 2.2);
+    // 手
+    ctx.fillStyle = flash ? '#fff' : '#f5c6a0';
+    ctx.beginPath();
+    ctx.arc(0, s * 2.3, s * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 右臂
+    ctx.fillStyle = flash ? '#fff' : '#e74c3c';
+    ctx.save();
+    ctx.translate(s * 1.8, realBodyY + s * 0.5);
+    ctx.rotate(0.3 + armSwingR * 0.06);
+    ctx.fillRect(-s * 0.4, 0, s * 0.8, s * 2.2);
+    ctx.fillStyle = flash ? '#fff' : '#f5c6a0';
+    ctx.beginPath();
+    ctx.arc(0, s * 2.3, s * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 头
+    const headY = realBodyY - s * 1.5;
+    ctx.fillStyle = flash ? '#fff' : '#f5c6a0';
+    ctx.beginPath();
+    ctx.arc(0, headY, s * 1.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 帽子
+    ctx.fillStyle = flash ? '#fff' : '#e74c3c';
+    ctx.beginPath();
+    ctx.arc(0, headY - s * 0.3, s * 1.4, Math.PI, Math.PI * 2);
+    ctx.fill();
+    // 帽檐
+    ctx.fillStyle = flash ? '#fff' : '#c0392b';
+    ctx.fillRect(-s * 1.6, headY - s * 0.3, s * 3.2, s * 0.3);
+    // 帽子前沿
+    ctx.fillStyle = flash ? '#fff' : '#e74c3c';
+    ctx.beginPath();
+    ctx.moveTo(-s * 1.8, headY - s * 0.3);
+    ctx.lineTo(s * 1.8, headY - s * 0.3);
+    ctx.lineTo(s * 1.3, headY - s * 0.9);
+    ctx.lineTo(-s * 1.3, headY - s * 0.9);
+    ctx.fill();
+
+    // 头发(从帽子下露出)
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(0, headY + s * 0.8, s * 1.1, -0.2, Math.PI + 0.2);
+    ctx.fill();
+  }
+
+  // ---- 滑板特效 ----
+  if (PLAYER.skateboard && PLAYER.skateboardTimer > 0) {
+    ctx.fillStyle = 'rgba(46,204,113,0.4)';
+    ctx.beginPath();
+    ctx.arc(0, s * 1, s * 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2ecc71';
+    ctx.fillRect(-s * 3, s * 1.4, s * 6, s * 0.4);
+    ctx.fillRect(-s * 2.2, s * 1.6, s * 1, s * 0.3);
+    ctx.fillRect(s * 1.2, s * 1.6, s * 1, s * 0.3);
+  }
+
+  // ---- 磁铁特效 ----
+  if (PLAYER.magnetActive && PLAYER.magnetTimer > 0) {
+    const pulse = Math.sin(frameCount * 0.3) * 0.3 + 0.5;
+    ctx.strokeStyle = `rgba(52,152,219,${pulse})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, s * 0.5, s * 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(52,152,219,${pulse*0.5})`;
+    ctx.beginPath();
+    ctx.arc(0, s * 0.5, s * 5, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ============================================================
+// 渲染: 障碍物
+// ============================================================
+function drawObstacle(obs) {
+  const pw = PERSPECTIVE;
+  const laneW = W() * 0.12 * pw.scaleAt(obs.screenY) * 3;
+  const sx = W() * 0.5 + obs.lane * laneW;
+  const sy = obs.screenY;
+  const sc = pw.scaleAt(sy);
+  const s = W() * 0.03 * sc;
+
+  ctx.save();
+  ctx.translate(sx, sy);
+
+  switch (obs.type) {
+    case 'barrier':
+      // 道口栏杆 - 横杆+柱子
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillRect(-s * 5, -s * 0.8, s * 10, s * 1.6);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(-s * 4.5, -s * 0.4, s * 2, s * 0.8);
+      ctx.fillRect(s * 1.5, -s * 0.4, s * 2, s * 0.8);
+      ctx.fillStyle = '#333';
+      ctx.fillRect(-s * 4, s * 0.8, s * 0.5, s * 3);
+      ctx.fillRect(s * 3.5, s * 0.8, s * 0.5, s * 3);
+      break;
+    case 'pipe':
+      // 横放铁管
+      ctx.fillStyle = '#95a5a6';
+      ctx.fillRect(-s * 4.5, -s * 0.6, s * 9, s * 1.2);
+      ctx.fillStyle = '#7f8c8d';
+      ctx.fillRect(-s * 4.5, -s * 0.6, s * 9, s * 0.3);
+      break;
+    case 'fence':
+      // 低矮围栏
+      ctx.fillStyle = '#f39c12';
+      for (let fx = -s * 4; fx <= s * 4; fx += s * 1.2) {
+        ctx.fillRect(fx, -s * 2, s * 0.3, s * 2);
+      }
+      ctx.fillRect(-s * 4.2, -s * 1.8, s * 8.4, s * 0.4);
+      ctx.fillRect(-s * 4.2, -s * 0.8, s * 8.4, s * 0.4);
+      break;
+    case 'signalBox':
+      // 信号灯箱
+      ctx.fillStyle = '#2c3e50';
+      ctx.fillRect(-s * 1.5, -s * 4, s * 3, s * 4);
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.arc(0, -s * 2.5, s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#2ecc71';
+      ctx.beginPath();
+      ctx.arc(0, -s * 1, s, 0, Math.PI * 2);
+      ctx.fill();
+      // 闪烁
+      if (Math.sin(frameCount * 0.2) > 0) {
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(0, -s * 2.5, s * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#555';
+      ctx.fillRect(-s * 0.3, -s * 0.2, s * 0.6, s * 3);
+      break;
+    case 'tiesPile':
+      // 枕木堆
+      ctx.fillStyle = '#8B4513';
+      for (let tx = -s * 2.5; tx <= s * 2.5; tx += s * 1.5) {
+        ctx.fillRect(tx, -s * (1.5 + Math.random() * 0.8), s * 1.4, s * 0.6);
+      }
+      ctx.fillRect(-s * 2.8, -s * 1, s * 5.6, s * 0.6);
+      ctx.fillRect(-s * 2.2, -s * 1.8, s * 4.4, s * 0.6);
+      break;
+    case 'cone':
+      // 施工锥桶
+      ctx.fillStyle = '#ff6600';
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 3);
+      ctx.lineTo(-s * 1.5, s * 0.5);
+      ctx.lineTo(s * 1.5, s * 0.5);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(-s * 0.8, -s * 1.8, s * 1.6, s * 0.4);
+      ctx.fillRect(-s * 0.6, -s * 0.6, s * 1.2, s * 0.4);
+      break;
+    case 'maintCart':
+      // 维修车
+      ctx.fillStyle = '#f1c40f';
+      ctx.fillRect(-s * 3, -s * 2.5, s * 6, s * 3.5);
+      ctx.fillStyle = '#e67e22';
+      ctx.fillRect(-s * 2.5, -s * 2, s * 5, s * 2.5);
+      ctx.fillStyle = '#333';
+      ctx.beginPath();
+      ctx.arc(-s * 2, s * 1.5, s * 0.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(s * 2, s * 1.5, s * 0.8, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 'tower':
+      // 信号塔基座
+      ctx.fillStyle = '#7f8c8d';
+      ctx.fillRect(-s * 2.5, -s * 5, s * 5, s * 5.5);
+      ctx.fillStyle = '#666';
+      for (let ty = -s * 4.5; ty < s * 0.5; ty += s * 1.2) {
+        ctx.fillRect(-s * 3, ty, s * 6, s * 0.3);
+      }
+      break;
+    case 'worker':
+      // 横穿工人(动态移动)
+      const wx = Math.sin(frameCount * 0.05 + obs.wobble) * s * 3;
+      ctx.fillStyle = '#ff6600';
+      ctx.fillRect(wx - s, -s * 3.5, s * 2, s * 2);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(wx - s, -s * 1.5, s * 2, s * 2.5);
+      ctx.fillStyle = '#f5c6a0';
+      ctx.beginPath();
+      ctx.arc(wx, -s * 4, s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f39c12';
+      ctx.beginPath();
+      ctx.arc(wx, -s * 4.2, s * 1.2, Math.PI, Math.PI * 2);
+      ctx.fill();
+      break;
+  }
+
+  // 警告指示 (离玩家很近时)
+  const playerScreenY = H() * PLAYER.y;
+  if (sy > playerScreenY - H() * 0.05 && sy < playerScreenY + H() * 0.03 && !obs.passed) {
+    ctx.fillStyle = 'rgba(255,0,0,0.3)';
+    ctx.beginPath();
+    ctx.arc(0, -s * 3, s * 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ============================================================
+// 渲染: 火车
+// ============================================================
+function drawTrain(train) {
+  const pw = PERSPECTIVE;
+  const laneW = W() * 0.12 * pw.scaleAt(train.screenY) * 3;
+  const sx = W() * 0.5 + train.lane * laneW;
+  const sy = train.screenY;
+  const sc = pw.scaleAt(sy);
+  const s = W() * 0.03 * sc;
+
+  ctx.save();
+  ctx.translate(sx, sy);
+
+  // 火车头
+  const headX = train.numCars * s * 4;
+  ctx.fillStyle = train.color;
+  ctx.fillRect(headX - s * 2, -s * 5, s * 4.5, s * 6);
+  // 驾驶室窗
+  ctx.fillStyle = '#87CEEB';
+  ctx.fillRect(headX - s, -s * 4, s * 2.5, s * 2);
+  // 车灯
+  if (train.lightOn) {
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath();
+    ctx.arc(headX + s * 1.8, -s * 2, s * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    // 光晕
+    const glowGrad = ctx.createRadialGradient(headX + s * 1.8, -s * 2, s * 0.3, headX + s * 1.8, -s * 2, s * 2);
+    glowGrad.addColorStop(0, 'rgba(255,255,100,0.6)');
+    glowGrad.addColorStop(1, 'rgba(255,255,0,0)');
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath();
+    ctx.arc(headX + s * 1.8, -s * 2, s * 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // 烟囱
+  ctx.fillStyle = '#333';
+  ctx.fillRect(headX - s * 0.5, -s * 6.5, s * 1.2, s * 1.8);
+
+  // 车厢
+  for (let c = 0; c < train.numCars; c++) {
+    const cx = c * s * 4.5;
+    ctx.fillStyle = train.color;
+    ctx.fillRect(cx, -s * 4.5, s * 4.2, s * 5.5);
+    // 车厢分隔线
+    ctx.fillStyle = '#333';
+    ctx.fillRect(cx + s * 4, -s * 4.5, s * 0.2, s * 5.5);
+    // 车轮
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(cx + s * 1, s * 1.5, s * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + s * 3, s * 1.5, s * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+    // 涂鸦
+    if ((c + train.graffiti) % 2 === 0) {
+      ctx.fillStyle = '#fff';
+      ctx.font = `${s*1.5}px Arial`;
+      ctx.fillText('WILD', cx + s * 0.3, -s * 2.5);
+    } else if ((c + train.graffiti) % 3 === 0) {
+      ctx.fillStyle = '#ff0';
+      ctx.font = `bold ${s*1.3}px Arial`;
+      ctx.fillText('ART', cx + s * 0.5, -s * 1.5);
+    }
+  }
+
+  // 可攀爬标记(车顶平台)
+  if (train.climbable) {
+    ctx.fillStyle = 'rgba(100,200,100,0.5)';
+    ctx.fillRect(-s, -s * 5.2, train.numCars * s * 4.7, s * 0.8);
+  }
+
+  // 火车名(涂鸦风格)
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${s*1}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.fillText('METRO', headX, -s * 3);
+
+  ctx.restore();
+}
+
+// ============================================================
+// 渲染: 道具
+// ============================================================
+function drawPowerup(pu) {
+  const pw = PERSPECTIVE;
+  const laneW = W() * 0.12 * pw.scaleAt(pu.screenY) * 3;
+  const sx = W() * 0.5 + pu.lane * laneW;
+  const sy = pu.screenY;
+  const sc = pw.scaleAt(sy);
+  const s = W() * 0.03 * sc;
+
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(sy * 2 + pu.rotation); // 旋转效果
+  const bob = Math.sin(frameCount * 0.08 + pu.bobOffset) * s * 0.5;
+  ctx.translate(0, bob);
+
+  switch (pu.type) {
+    case 'coin':
+      // 金币
+      ctx.fillStyle = '#f1c40f';
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f39c12';
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 1.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f1c40f';
+      ctx.font = `bold ${s*1.8}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$', 0, 0);
+      break;
+    case 'coinSilver':
+      // 银币
+      ctx.fillStyle = '#bdc3c7';
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ecf0f1';
+      ctx.beginPath();
+      ctx.arc(0, 0, s * 1.1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#95a5a6';
+      ctx.font = `bold ${s*1.8}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$', 0, 0);
+      break;
+    case 'medkit':
+      // 医疗包 - 白色方块+红十字
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(-s * 1.8, -s * 1.8, s * 3.6, s * 3.6);
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillRect(-s * 0.4, -s * 1.3, s * 0.8, s * 2.6);
+      ctx.fillRect(-s * 1.3, -s * 0.4, s * 2.6, s * 0.8);
+      ctx.strokeStyle = '#c0392b';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-s * 1.8, -s * 1.8, s * 3.6, s * 3.6);
+      break;
+    case 'magnet':
+      // 磁铁 - 蓝色U形
+      ctx.fillStyle = '#3498db';
+      ctx.beginPath();
+      ctx.arc(0, s * 0.2, s * 2, Math.PI, Math.PI * 2);
+      ctx.lineWidth = s * 0.8;
+      ctx.strokeStyle = '#3498db';
+      ctx.stroke();
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillRect(-s * 1.8, -s * 0.3, s * 0.8, s * 1);
+      ctx.fillRect(s * 1, -s * 0.3, s * 0.8, s * 1);
+      break;
+    case 'doubleCoin':
+      // 双倍金币 - 金色星星
+      ctx.fillStyle = '#f39c12';
+      drawStar(0, 0, s * 1.8, s * 0.7, 5);
+      ctx.fillStyle = '#f1c40f';
+      drawStar(0, 0, s * 1.2, s * 0.45, 5);
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${s*1.2}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('x2', 0, 0);
+      break;
+    case 'skateboard':
+      // 滑板 - 绿色
+      ctx.fillStyle = '#2ecc71';
+      ctx.fillRect(-s * 2.5, -s * 0.5, s * 5, s * 1);
+      ctx.fillRect(-s * 2, s * 0.3, s * 1, s * 0.6);
+      ctx.fillRect(s * 1, s * 0.3, s * 1, s * 0.6);
+      ctx.fillStyle = '#27ae60';
+      ctx.font = `bold ${s*1}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('SK8', 0, 0);
+      break;
+  }
+
+  ctx.restore();
+}
+
+function drawStar(cx, cy, outerR, innerR, points) {
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const r = i % 2 === 0 ? outerR : innerR;
+    const angle = (i * Math.PI) / points - Math.PI / 2;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ============================================================
+// 渲染: 粒子
+// ============================================================
+function drawParticles() {
+  for (const p of particles) {
+    const alpha = p.life / p.maxLife;
+    ctx.fillStyle = p.color.replace(')', `,${alpha})`).replace('rgb', 'rgba');
+    if (p.color.startsWith('#')) {
+      const r = parseInt(p.color.slice(1, 3), 16);
+      const g = parseInt(p.color.slice(3, 5), 16);
+      const b = parseInt(p.color.slice(5, 7), 16);
+      ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+    }
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ============================================================
+// 渲染: HUD
+// ============================================================
+function drawHUD() {
+  const w = W();
+  const h = H();
+  const s = w * 0.035;
+
+  // ---- 血量(左上) ----
+  for (let i = 0; i < PLAYER.maxHp; i++) {
+    const hx = w * 0.04 + i * s * 1.5;
+    const hy = h * 0.03;
+    // 心形
+    ctx.fillStyle = i < PLAYER.hp ? '#e74c3c' : '#555';
+    drawHeart(hx, hy, s * 0.6);
+  }
+
+  // ---- 分数(顶部中央) ----
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${w*0.05}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 4;
+  ctx.fillText(Math.floor(score), w / 2, h * 0.06);
+  ctx.shadowBlur = 0;
+  // 距离小字
+  ctx.fillStyle = '#ddd';
+  ctx.font = `${w*0.028}px Arial`;
+  ctx.fillText(Math.floor(totalDistanceTraveled) + 'm', w / 2, h * 0.1);
+
+  // ---- 暂停按钮(右上) ----
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillRect(w * 0.88, h * 0.02, w * 0.09, w * 0.09);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(w * 0.905, h * 0.032, w * 0.012, w * 0.06);
+  ctx.fillRect(w * 0.93, h * 0.032, w * 0.012, w * 0.06);
+
+  // ---- 道具计时器 ----
+  let timerY = h * 0.13;
+  if (PLAYER.magnetActive && PLAYER.magnetTimer > 0) {
+    ctx.fillStyle = '#3498db';
+    ctx.font = `${w*0.032}px Arial`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`磁铁 ${Math.ceil(PLAYER.magnetTimer)}s`, w * 0.04, timerY);
+    timerY += w * 0.04;
+  }
+  if (PLAYER.doubleCoin && PLAYER.doubleCoinTimer > 0) {
+    ctx.fillStyle = '#f39c12';
+    ctx.font = `${w*0.032}px Arial`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`2x金币 ${Math.ceil(PLAYER.doubleCoinTimer)}s`, w * 0.04, timerY);
+    timerY += w * 0.04;
+  }
+  if (PLAYER.skateboard && PLAYER.skateboardTimer > 0) {
+    ctx.fillStyle = '#2ecc71';
+    ctx.font = `${w*0.032}px Arial`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`滑板 ${Math.ceil(PLAYER.skateboardTimer)}s`, w * 0.04, timerY);
+  }
+}
+
+function drawHeart(x, y, size) {
+  ctx.beginPath();
+  const topY = y - size * 0.8;
+  ctx.moveTo(x, topY + size * 1.5);
+  ctx.bezierCurveTo(x, topY + size * 0.5, x - size, topY, x - size * 0.5, topY + size * 0.2);
+  ctx.bezierCurveTo(x - size * 0.5, topY + size * 0.8, x, topY + size * 1.2, x, topY + size * 1.8);
+  ctx.bezierCurveTo(x, topY + size * 1.2, x + size * 0.5, topY + size * 0.8, x + size * 0.5, topY + size * 0.2);
+  ctx.bezierCurveTo(x + size, topY, x, topY + size * 0.5, x, topY + size * 1.5);
+  ctx.fill();
+}
+
+// ============================================================
+// 渲染: 菜单
+// ============================================================
+function drawMenu() {
+  const w = W();
+  const h = H();
+
+  // 半透明背景
+  drawSky();
+  drawCitySkyline();
+  drawTerrain();
+
+  // 深色遮罩
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(0, 0, w, h);
+
+  // 标题(涂鸦风格)
+  const titleY = h * 0.22;
+  ctx.fillStyle = '#f39c12';
+  ctx.font = `bold ${w*0.1}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = w * 0.015;
+  ctx.strokeText('地铁跑酷', w / 2, titleY);
+  ctx.fillText('地铁跑酷', w / 2, titleY);
+
+  // 副标题
+  ctx.fillStyle = '#fff';
+  ctx.font = `${w*0.04}px Arial`;
+  ctx.fillText('SUBWAY RUNNER', w / 2, titleY + w * 0.08);
+
+  // 最高分
+  ctx.fillStyle = '#f1c40f';
+  ctx.font = `${w*0.04}px Arial`;
+  ctx.fillText(`最高分: ${highScore}`, w / 2, h * 0.45);
+
+  // 开始按钮
+  const btnW = w * 0.5;
+  const btnH = h * 0.07;
+  const btnX = w / 2 - btnW / 2;
+  const btnY = h * 0.55;
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath();
+  roundRect(btnX, btnY, btnW, btnH, btnH / 4);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${w*0.045}px Arial`;
+  ctx.fillText('点 击 开 始', w / 2, btnY + btnH * 0.7);
+
+  // 操作说明
+  ctx.fillStyle = '#bbb';
+  ctx.font = `${w*0.028}px Arial`;
+  const infoY = h * 0.7;
+  ctx.fillText('← → 切换跑道 | ↑ 跳跃 | ↓ 滑铲', w / 2, infoY);
+  ctx.fillText('手机: 左右滑切换 | 上滑跳 | 下滑铲', w / 2, infoY + w * 0.04);
+
+  // 版本
+  ctx.fillStyle = '#666';
+  ctx.font = `${w*0.02}px Arial`;
+  ctx.fillText('v1.0 - Canvas Game', w / 2, h * 0.95);
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ============================================================
+// 渲染: 死亡面板
+// ============================================================
+function drawDeathPanel() {
+  const w = W();
+  const h = H();
+
+  // 遮罩
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0, 0, w, h);
+
+  // 面板
+  const pw = w * 0.8;
+  const ph = h * 0.45;
+  const px = w / 2 - pw / 2;
+  const py = h * 0.2;
+  ctx.fillStyle = 'rgba(30,30,50,0.95)';
+  ctx.beginPath();
+  roundRect(px, py, pw, ph, 15);
+  ctx.fill();
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // 标题
+  ctx.fillStyle = '#e74c3c';
+  ctx.font = `bold ${w*0.07}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.fillText('游戏结束', w / 2, py + h * 0.07);
+
+  // 统计
+  const statX = w / 2;
+  let statY = py + h * 0.14;
+  ctx.fillStyle = '#fff';
+  ctx.font = `${w*0.04}px Arial`;
+  ctx.fillText(`本次得分: ${Math.floor(score)}`, statX, statY);
+  statY += h * 0.05;
+  ctx.fillText(`最高记录: ${highScore}`, statX, statY);
+  statY += h * 0.05;
+  ctx.fillText(`奔跑距离: ${Math.floor(totalDistanceTraveled)}m`, statX, statY);
+
+  // 再来一次按钮
+  const btnW = pw * 0.6;
+  const btnH = h * 0.06;
+  const btnX = w / 2 - btnW / 2;
+  const btnY = py + ph - h * 0.1;
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath();
+  roundRect(btnX, btnY, btnW, btnH, btnH / 3);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = `bold ${w*0.04}px Arial`;
+  ctx.fillText('再来一次', w / 2, btnY + btnH * 0.7);
+
+  // 分享按钮(仅展示)
+  const shareX = btnX;
+  const shareY = btnY + btnH + h * 0.02;
+  ctx.fillStyle = '#2980b9';
+  ctx.beginPath();
+  roundRect(shareX, shareY, btnW, btnH, btnH / 3);
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = `${w*0.035}px Arial`;
+  ctx.fillText('📤 分享成绩', w / 2, shareY + btnH * 0.7);
+}
+
+// ============================================================
+// 输入处理
+// ============================================================
+function handleInput(action) {
+  if (gameState === STATE.MENU) {
+    if (action === 'start' || action === 'jump' || action === 'slide') {
+      startGame();
+    }
+    return;
+  }
+  if (gameState === STATE.DEAD) {
+    if (action === 'start' || action === 'jump' || action === 'slide') {
+      startGame();
+    }
+    return;
+  }
+  if (gameState !== STATE.PLAYING) return;
+
+  switch (action) {
+    case 'left':
+      PLAYER.targetLane = Math.max(-1, PLAYER.targetLane - 1);
+      break;
+    case 'right':
+      PLAYER.targetLane = Math.min(1, PLAYER.targetLane + 1);
+      break;
+    case 'jump':
+      if (!PLAYER.isJumping && !PLAYER.isSliding) {
+        PLAYER.isJumping = true;
+        PLAYER.vy = -9;
+        PLAYER.jumpHeight = 0;
+        sfxJump();
+      }
+      break;
+    case 'slide':
+      if (!PLAYER.isJumping && !PLAYER.isSliding) {
+        PLAYER.isSliding = true;
+        PLAYER.slideTimer = 0.55;
+        sfxSlide();
+      }
+      break;
+  }
+}
+
+// 键盘
+const keys = {};
+window.addEventListener('keydown', e => {
+  if (keys[e.code]) return;
+  keys[e.code] = true;
+  switch (e.code) {
+    case 'ArrowLeft': case 'KeyA': handleInput('left'); break;
+    case 'ArrowRight': case 'KeyD': handleInput('right'); break;
+    case 'ArrowUp': case 'KeyW': handleInput('jump'); break;
+    case 'ArrowDown': case 'KeyS': handleInput('slide'); break;
+    case 'Space': handleInput('start'); break;
+  }
+  e.preventDefault();
+});
+window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// 触屏
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+window.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+  touchStartTime = Date.now();
+});
+window.addEventListener('touchend', e => {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  const dt = Date.now() - touchStartTime;
+
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 300) {
+    // Tap
+    handleInput('start');
+    return;
+  }
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
+    handleInput(dx > 0 ? 'right' : 'left');
+  } else if (Math.abs(dy) > 30) {
+    handleInput(dy < 0 ? 'jump' : 'slide');
+  }
+});
+
+// 点击(PC)
+canvas.addEventListener('click', e => {
+  if (gameState !== STATE.PLAYING) {
+    handleInput('start');
+  }
+});
+
+// ============================================================
+// 游戏更新
+// ============================================================
+function update(dt) {
+  if (gameState !== STATE.PLAYING) return;
+  if (slowMotion > 0) {
+    dt *= 0.3;
+    slowMotion -= dt;
+  }
+
+  // 限制最大步长
+  dt = Math.min(dt, 0.1);
+  frameCount++;
+
+  // ---- 速度 & 坡度 ----
+  slopeTimer -= dt;
+  if (slopeTimer <= 0) {
+    targetSlope = rand(-0.6, 0.6);
+    slopeTimer = rand(3, 7);
+  }
+  slopeValue = lerp(slopeValue, targetSlope, dt * 0.5);
+  // 速度随距离逐渐增加(0-30%加速)
+  const speedRamp = 1 + Math.min(totalDistanceTraveled / 15000, 1) * 0.3;
+  speed = 250 * speedRamp;
+  currentSpeed = speed * (1 - slopeValue * 0.25); // 上坡慢，下坡快
+  currentSpeed = Math.max(150, Math.min(450, currentSpeed));
+
+  // ---- 距离 & 分数 ----
+  const distDelta = currentSpeed * dt;
+  totalDistanceTraveled += distDelta;
+  distance += distDelta;
+  score += distDelta * 0.5;
+  trackOffset += distDelta * 0.8;
+  sceneOffset += distDelta * 0.3;
+
+  // 每500米回血
+  if (totalDistanceTraveled - lastHealDistance >= 500) {
+    lastHealDistance = Math.floor(totalDistanceTraveled / 500) * 500;
+    if (PLAYER.hp < PLAYER.maxHp) {
+      PLAYER.hp = Math.min(PLAYER.maxHp, PLAYER.hp + 1);
+      sfxHeal();
+      spawnParticles(W() / 2, H() * PLAYER.y, 12, '#e74c3c');
+    }
+  }
+
+  // ---- 跑道切换平滑过渡 ----
+  PLAYER.lane = PLAYER.targetLane;
+  PLAYER.currentLaneX = lerp(PLAYER.currentLaneX, PLAYER.lane, dt * 10);
+
+  // ---- 跳跃 ----
+  if (PLAYER.isJumping) {
+    PLAYER.jumpHeight += PLAYER.vy * dt;
+    PLAYER.vy += 25 * dt; // 重力
+    if (PLAYER.jumpHeight >= 0) {
+      PLAYER.jumpHeight = 0;
+      PLAYER.vy = 0;
+      PLAYER.isJumping = false;
+    }
+  }
+
+  // ---- 滑铲 ----
+  if (PLAYER.isSliding) {
+    PLAYER.slideTimer -= dt;
+    if (PLAYER.slideTimer <= 0) {
+      PLAYER.isSliding = false;
+    }
+  }
+
+  // ---- 无敌时间 ----
+  if (PLAYER.invincible > 0) PLAYER.invincible -= dt;
+
+  // ---- 道具计时器 ----
+  if (PLAYER.magnetTimer > 0) { PLAYER.magnetTimer -= dt; if (PLAYER.magnetTimer <= 0) PLAYER.magnetActive = false; }
+  if (PLAYER.doubleCoinTimer > 0) { PLAYER.doubleCoinTimer -= dt; if (PLAYER.doubleCoinTimer <= 0) PLAYER.doubleCoin = false; }
+  if (PLAYER.skateboardTimer > 0) { PLAYER.skateboardTimer -= dt; if (PLAYER.skateboardTimer <= 0) PLAYER.skateboard = false; }
+
+  // ---- 火车顶跟随 ----
+  if (PLAYER.onTrain) {
+    PLAYER.trainRideX += currentSpeed * dt * 0.8;
+    // 检查火车是否快出屏幕
+    const t = PLAYER.onTrain;
+    if (t.screenY > H() * 0.85) {
+      // 强制跳回轨道
+      PLAYER.onTrain = null;
+      PLAYER.isJumping = true;
+      PLAYER.vy = -8;
+      PLAYER.jumpHeight = -H() * 0.02;
+    }
+  }
+
+  // ---- 更新障碍物 ----
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    const pw = PERSPECTIVE;
+    o.worldY += currentSpeed * dt / (H() * 0.8); // 向玩家移动
+    o.screenY = H() * pw.vanishY + o.worldY * (H() * pw.groundBase - H() * pw.vanishY);
+
+    // 移除出屏的
+    if (o.worldY > 1.1) {
+      if (!o.passed) {
+        // 安全通过，加分
+        score += 10;
+      }
+      obstacles.splice(i, 1);
+      continue;
+    }
+
+    // 碰撞检测: 障碍物到达玩家所在深度区域
+    if (!o.passed && o.worldY > 0.68 && o.worldY < 0.86) {
+      // 检查是否在同一跑道(带容差)
+      const laneDist = Math.abs(PLAYER.currentLaneX - o.lane);
+      if (laneDist < 0.55) {
+        let hit = true;
+
+        // 跳跃可越过 action=1 (中等高度)障碍
+        if (o.action === 1 && PLAYER.isJumping && PLAYER.jumpHeight < -H() * 0.025) {
+          hit = false;
+        }
+        // 滑铲可越过 action=0 (低矮)障碍
+        if (o.action === 0 && PLAYER.isSliding) {
+          hit = false;
+        }
+        // 高障碍(action=2)在非相同跑道时不碰撞
+        if (o.action === 2 && laneDist > 0.35) {
+          hit = false;
+        }
+
+        if (hit && PLAYER.invincible <= 0 && PLAYER.onTrain === null) {
+          // 碰到! 扣血
+          if (PLAYER.skateboard) {
+            PLAYER.skateboard = false;
+            PLAYER.skateboardTimer = 0;
+            spawnParticles(W() / 2, H() * PLAYER.y, 15, '#2ecc71');
+          } else {
+            PLAYER.hp--;
+            PLAYER.invincible = 1.5;
+            sfxHit();
+            shakeIntensity = 5;
+            shakeTimer = 0.3;
+            spawnParticles(W() / 2, H() * PLAYER.y, 10, '#ff0000');
+            if (PLAYER.hp <= 0) {
+              gameOver();
+              return;
+            }
+          }
+          o.passed = true; // 碰到后标记，避免一帧内多次碰撞
+        }
+        // 安全通过标记
+        if (!hit && o.worldY > 0.78) o.passed = true;
+      }
+    }
+  }
+
+  // ---- 更新道具 ----
+  for (let i = powerups.length - 1; i >= 0; i--) {
+    const p = powerups[i];
+    const pw = PERSPECTIVE;
+    p.worldY += currentSpeed * dt / (H() * 0.8);
+    p.screenY = H() * pw.vanishY + p.worldY * (H() * pw.groundBase - H() * pw.vanishY);
+    p.rotation += dt * 3;
+
+    // 磁铁吸引
+    if (PLAYER.magnetActive && p.worldY > 0.4 && p.worldY < 0.85) {
+      const playerLane = PLAYER.currentLaneX;
+      p.lane = lerp(p.lane, playerLane, dt * 2);
+    }
+
+    if (p.worldY > 1.05) {
+      powerups.splice(i, 1);
+      continue;
+    }
+
+    // 收集检测(扩大敏感区域)
+    if (p.worldY > 0.62 && p.worldY < 0.9 && Math.abs(PLAYER.currentLaneX - p.lane) < 0.6) {
+      collectPowerup(p);
+      powerups.splice(i, 1);
+    }
+  }
+
+  // ---- 更新火车 ----
+  for (let i = trains.length - 1; i >= 0; i--) {
+    const t = trains[i];
+    const pw = PERSPECTIVE;
+    t.worldY += currentSpeed * dt / (H() * 0.8);
+    t.screenY = H() * pw.vanishY + t.worldY * (H() * pw.groundBase - H() * pw.vanishY);
+    t.lightTimer += dt;
+    t.lightOn = Math.sin(t.lightTimer * 5) > 0;
+    t.hornTimer -= dt;
+    if (t.hornTimer <= 0 && t.worldY > 0.1 && t.worldY < 0.8) {
+      sfxTrainHorn();
+      t.hornTimer = rand(2, 4);
+    }
+
+    if (t.worldY > 1.15) {
+      if (PLAYER.onTrain === t) PLAYER.onTrain = null;
+      trains.splice(i, 1);
+      continue;
+    }
+
+    // 火车碰撞检测
+    if (t.worldY > 0.66 && t.worldY < 0.88) {
+      const trainLaneDist = Math.abs(PLAYER.currentLaneX - t.lane);
+      if (trainLaneDist < 0.5 && PLAYER.onTrain !== t && PLAYER.invincible <= 0) {
+        // 可攀爬火车: 从高架坡道跳上火车顶(需要正在跳跃且坡道够高)
+        if (t.climbable && PLAYER.isJumping && PLAYER.jumpHeight < -H() * 0.03 && slopeValue > 0.15) {
+          PLAYER.onTrain = t;
+          PLAYER.isJumping = false;
+          PLAYER.jumpHeight = 0;
+          PLAYER.vy = 0;
+          PLAYER.trainRideX = 0;
+          spawnParticles(W() / 2, H() * PLAYER.y, 8, '#f1c40f');
+        } else if (!PLAYER.isJumping || (PLAYER.isJumping && PLAYER.jumpHeight > -H() * 0.02)) {
+          // 被撞! (没跳起来或跳得不够高)
+          if (PLAYER.skateboard) {
+            PLAYER.skateboard = false;
+            PLAYER.skateboardTimer = 0;
+            spawnParticles(W() / 2, H() * PLAYER.y, 20, '#2ecc71');
+          } else {
+            PLAYER.hp -= 2;
+            PLAYER.invincible = 1.5;
+            sfxHit();
+            shakeIntensity = 10;
+            shakeTimer = 0.5;
+            spawnParticles(W() / 2, H() * PLAYER.y, 15, '#ff0000');
+            if (PLAYER.hp <= 0) {
+              gameOver();
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ---- 更新粒子 ----
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.2; // 重力
+    p.life -= dt;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // ---- 抖动衰减 ----
+  if (shakeTimer > 0) shakeTimer -= dt;
+  else shakeIntensity = 0;
+
+  // ---- 生成障碍物 ----
+  spawnTimer -= dt;
+  if (spawnTimer <= 0) {
+    spawnObstacle();
+    spawnTimer = rand(1.0, 2.5) * (1 + totalDistanceTraveled / 5000);
+    spawnTimer = Math.max(0.6, spawnTimer);
+  }
+
+  // ---- 生成道具 ----
+  powerupSpawnTimer -= dt;
+  if (powerupSpawnTimer <= 0) {
+    spawnPowerup();
+    powerupSpawnTimer = rand(1.5, 4);
+    // 偶尔生成多排
+    if (Math.random() < 0.25) {
+      setTimeout(() => { if (gameState === STATE.PLAYING) spawnPowerup(); }, 200);
+    }
+  }
+
+  // ---- 生成火车 ----
+  trainSpawnTimer -= dt;
+  if (trainSpawnTimer <= 0) {
+    spawnTrain();
+    nextTrainTime = rand(6, 12) * (1 - Math.min(totalDistanceTraveled / 15000, 0.5));
+    trainSpawnTimer = nextTrainTime;
+  }
+}
+
+function collectPowerup(p) {
+  sfxCoin();
+  switch (p.effect) {
+    case 'coin':
+      score += PLAYER.doubleCoin ? 100 : 50;
+      spawnParticles(W() / 2, H() * PLAYER.y, 4, '#f1c40f', 1);
+      break;
+    case 'heal':
+      PLAYER.hp = PLAYER.maxHp;
+      sfxHeal();
+      spawnParticles(W() / 2, H() * PLAYER.y, 15, '#e74c3c', 2);
+      break;
+    case 'magnet':
+      PLAYER.magnetActive = true;
+      PLAYER.magnetTimer = 5;
+      sfxPowerup();
+      break;
+    case 'doubleCoin':
+      PLAYER.doubleCoin = true;
+      PLAYER.doubleCoinTimer = 8;
+      sfxPowerup();
+      break;
+    case 'skateboard':
+      PLAYER.skateboard = true;
+      PLAYER.skateboardTimer = 30;
+      sfxPowerup();
+      break;
+  }
+  score += 5;
+}
+
+// ============================================================
+// 主渲染
+// ============================================================
+function render() {
+  ctx.clearRect(0, 0, W(), H());
+
+  // 屏幕抖动
+  let shakeX = 0, shakeY = 0;
+  if (shakeTimer > 0) {
+    shakeX = (Math.random() - 0.5) * shakeIntensity * 2;
+    shakeY = (Math.random() - 0.5) * shakeIntensity * 2;
+  }
+  ctx.save();
+  ctx.translate(shakeX, shakeY);
+
+  if (gameState === STATE.MENU) {
+    drawMenu();
+    ctx.restore();
+    return;
+  }
+
+  // ---- 场景渲染(从远到近) ----
+  drawSky();
+  drawCitySkyline();
+  drawTerrain();
+
+  // ---- 远处物体排序(按Y深度) ----
+  const allObjects = [];
+
+  for (const o of obstacles) {
+    if (o.worldY > 0.0 && o.worldY < 1.05) {
+      allObjects.push({ type: 'obstacle', obj: o, y: o.screenY });
+    }
+  }
+  for (const p of powerups) {
+    if (p.worldY > 0.0 && p.worldY < 1.05) {
+      allObjects.push({ type: 'powerup', obj: p, y: p.screenY });
+    }
+  }
+  for (const t of trains) {
+    if (t.worldY > 0.0 && t.worldY < 1.15) {
+      allObjects.push({ type: 'train', obj: t, y: t.screenY });
+    }
+  }
+  // 排序: 远处(Y小)先画
+  allObjects.sort((a, b) => a.y - b.y);
+
+  // ---- 确定玩家屏幕位置 ----
+  const pw = PERSPECTIVE;
+  let playerSy = H() * PLAYER.y + PLAYER.jumpHeight * H() * 0.12;
+  // 如果在火车上
+  if (PLAYER.onTrain) {
+    playerSy = PLAYER.onTrain.screenY - H() * 0.01;
+  }
+  const playerLaneW = W() * 0.12 * pw.scaleAt(playerSy) * 3;
+  const playerSx = W() * 0.5 + PLAYER.currentLaneX * playerLaneW;
+  const playerSc = pw.scaleAt(playerSy);
+
+  // ---- 绘制物体(在玩家后面的先画) ----
+  let playerDrawn = false;
+  for (const obj of allObjects) {
+    if (!playerDrawn && obj.y > playerSy) {
+      // 在玩家后面绘制玩家
+      let state = 'run';
+      if (PLAYER.isSliding) state = 'slide';
+      else if (PLAYER.isJumping) state = 'jump';
+      else if (PLAYER.invincible > 0 && Math.floor(PLAYER.invincible * 10) % 2 === 0) state = 'hit';
+      drawCharacter(playerSx, playerSy, playerSc, state);
+      playerDrawn = true;
+    }
+
+    switch (obj.type) {
+      case 'obstacle': drawObstacle(obj.obj); break;
+      case 'powerup': drawPowerup(obj.obj); break;
+      case 'train': drawTrain(obj.obj); break;
+    }
+  }
+  if (!playerDrawn) {
+    let state = 'run';
+    if (PLAYER.isSliding) state = 'slide';
+    else if (PLAYER.isJumping) state = 'jump';
+    else if (PLAYER.invincible > 0 && Math.floor(PLAYER.invincible * 10) % 2 === 0) state = 'hit';
+    drawCharacter(playerSx, playerSy, playerSc, state);
+  }
+
+  // ---- 粒子 ----
+  drawParticles();
+
+  // ---- HUD ----
+  drawHUD();
+
+  ctx.restore();
+
+  // ---- 死亡面板 ----
+  if (gameState === STATE.DEAD) {
+    drawDeathPanel();
+  }
+}
+
+// ============================================================
+// 游戏循环
+// ============================================================
+let lastTime = 0;
+function gameLoop(timestamp) {
+  const dt = lastTime ? (timestamp - lastTime) / 1000 : 0.016;
+  lastTime = timestamp;
+
+  update(dt);
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+// ---- 启动 ----
+resize();
+generateScenery();
+lastTime = performance.now();
+requestAnimationFrame(gameLoop);
+
+console.log('🚇 地铁跑酷 - Subway Runner Ready!');
+console.log('操作: ← → 换道 | ↑ 跳跃 | ↓ 滑铲 | 空格 开始');
+console.log('触屏: 左右滑换道 | 上滑跳 | 下滑铲 | 点击开始');
+</script>
+</body>
+</html>

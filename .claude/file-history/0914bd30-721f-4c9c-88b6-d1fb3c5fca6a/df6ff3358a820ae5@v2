@@ -1,0 +1,88 @@
+extends Node2D
+
+func _draw() -> void:
+	var slope: float = 0.0
+	var parent := get_parent()
+	if parent and parent is Node2D and parent.has_method("add_shake"):
+		slope = parent.slope
+
+	var slope_offset: float = slope * get_viewport().get_visible_rect().size.y * 0.1
+	_draw_gravel(slope_offset)
+	_draw_tracks(slope_offset)
+	_draw_ties(slope_offset)
+	_draw_lamps(slope_offset)
+	_draw_distance_markers(slope_offset)
+
+func _draw_gravel(slope_offset: float) -> void:
+	var top_y := Perspective.screen_y(1.0) + slope_offset
+	var bot_y := Perspective.screen_y(0.0)
+	var w := get_viewport().get_visible_rect().size.x
+	draw_rect(Rect2(0, top_y, w, bot_y - top_y), Color("#8a8a7a"))
+
+func _draw_tracks(slope_offset: float) -> void:
+	var lanes := [-1, 0, 1]
+	var w := get_viewport().get_visible_rect().size.x
+	for lane in lanes:
+		for rail in range(2):
+			var offset := (float(rail) - 0.5) * w * 0.018
+			var points: PackedVector2Array = []
+			for i in range(1, 100):
+				var depth := float(i) / 100.0
+				if depth < 0.02 or depth > 0.98:
+					continue
+				var sy := Perspective.screen_y(depth) + slope_offset
+				var sc := Perspective.scale_at_sy(sy)
+				var lx := Perspective.lane_x(float(lane), sy) + offset * sc
+				points.append(Vector2(lx, sy))
+			if points.size() > 1:
+				draw_polyline(points, Color("#8899aa"), 1.2)
+
+func _draw_ties(slope_offset: float) -> void:
+	var bot_y := Perspective.screen_y(0.0)
+	var top_y := Perspective.screen_y(1.0)
+	var w := get_viewport().get_visible_rect().size.x
+	for i in range(1, 83):
+		var depth := float(i) * 0.012
+		if depth >= 0.98:
+			continue
+		var sy := Perspective.screen_y(depth) + slope_offset
+		if sy > bot_y or sy < top_y:
+			continue
+		var sc := Perspective.scale_at_sy(sy)
+		var tie_w := w * 0.09 * sc
+		var tie_h := get_viewport().get_visible_rect().size.y * 0.004 * sc
+		var alpha := clamp((depth - 0.02) / 0.15, 0.0, 1.0)
+		draw_rect(Rect2(w / 2.0 - tie_w / 2, sy - tie_h / 2, tie_w, tie_h), Color(0.314, 0.216, 0.118, 0.7 * alpha))
+
+func _draw_lamps(slope_offset: float) -> void:
+	var bot_y := Perspective.screen_y(0.0)
+	var top_y := Perspective.screen_y(1.0)
+	var w := get_viewport().get_visible_rect().size.x
+	for i in range(1, 7):
+		var depth := float(i) * 0.15
+		if depth >= 0.9:
+			continue
+		var sy := Perspective.screen_y(depth) + slope_offset
+		if sy > bot_y - 10 or sy < top_y + 10:
+			continue
+		var sc := Perspective.scale_at_sy(sy)
+		var pole_x := w / 2.0 + w * 0.21 * sc
+		draw_rect(Rect2(pole_x - w * 0.004 * sc, sy - get_viewport().get_visible_rect().size.y * 0.06 * sc, w * 0.008 * sc, get_viewport().get_visible_rect().size.y * 0.06 * sc), Color("#555555"))
+		draw_circle(Vector2(pole_x, sy - get_viewport().get_visible_rect().size.y * 0.06 * sc), w * 0.005 * sc, Color("#ffeaa7"))
+
+func _draw_distance_markers(slope_offset: float) -> void:
+	var mark_spacing := 0.08
+	var offset := fmod(GameManager.total_distance * 0.01, mark_spacing)
+	var bot_y := Perspective.screen_y(0.0)
+	var top_y := Perspective.screen_y(1.0)
+	var w := get_viewport().get_visible_rect().size.x
+	var mz := offset
+	while mz < 0.95:
+		var msy := Perspective.screen_y(mz) + slope_offset
+		if msy <= bot_y - 3 and msy >= top_y + 3:
+			var msc := Perspective.scale_at_sy(msy)
+			var vx := w / 2.0
+			var mlx := vx - w * 0.14 * msc
+			draw_rect(Rect2(mlx - w * 0.003 * msc, msy - get_viewport().get_visible_rect().size.y * 0.04 * msc, w * 0.006 * msc, get_viewport().get_visible_rect().size.y * 0.04 * msc), Color.WHITE)
+			draw_circle(Vector2(mlx, msy - get_viewport().get_visible_rect().size.y * 0.04 * msc), w * 0.006 * msc, Color("#e74c3c"))
+		mz += mark_spacing

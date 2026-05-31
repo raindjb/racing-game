@@ -1,0 +1,25 @@
+extends CanvasLayer
+
+@onready var final_score_label: Label = $Panel/VBoxContainer/FinalScore
+@onready var high_score_label: Label = $Panel/VBoxContainer/HighScore
+@onready var distance_label: Label = $Panel/VBoxContainer/Distance
+@onready var restart_button: Button = $Panel/VBoxContainer/RestartButton
+
+func _ready() -> void:
+	GameManager.game_ended.connect(_on_game_ended)
+	GameManager.game_started.connect(_on_game_started)
+	restart_button.pressed.connect(_on_restart_pressed)
+	hide()
+
+func _on_game_ended() -> void:
+	await get_tree().create_timer(0.6).timeout
+	final_score_label.text = "Score: %d" % int(GameManager.score)
+	high_score_label.text = "Best: %d" % GameManager.high_score
+	distance_label.text = "Distance: %dm" % int(GameManager.total_distance)
+	show()
+
+func _on_game_started() -> void:
+	hide()
+
+func _on_restart_pressed() -> void:
+	get_tree().reload_current_scene()

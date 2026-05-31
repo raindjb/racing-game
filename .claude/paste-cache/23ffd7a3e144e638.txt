@@ -1,0 +1,15 @@
+19:11:20 [reload] config change detected; evaluating reload (models.providers.xiaomi.models)
+19:11:20 [reload] config hot reload applied (models.providers.xiaomi.models)
+19:11:34 [reload] config change detected; evaluating reload (agents.defaults.model.primary)
+19:11:34 [reload] config hot reload applied (agents.defaults.model.primary)
+19:11:48 [reload] config change detected; evaluating reload (agents.defaults.models.xiaomi/mimo-v2-flash, agents.defaults.models.xiaomi/mimo-v2.5)
+19:11:49 [reload] config hot reload applied (agents.defaults.models.xiaomi/mimo-v2-flash, agents.defaults.models.xiaomi/mimo-v2.5)
+19:12:09 [ws] webchat disconnected code=1001 reason=n/a conn=20aa134b-156c-41da-942a-c806e6e15912
+19:12:19 [ws] webchat connected conn=3506c076-541e-4832-b79f-cb38de801c8e remote=127.0.0.1 client=openclaw-control-ui webchat v2026.5.22
+19:12:20 [ws] ⇄ res ✓ health 343ms cached=true conn=3506c076…1c8e id=34f73b95…0f0f
+19:12:20 [ws] ⇄ res ✓ agents.list 802ms conn=3506c076…1c8e id=958ff12a…0567
+19:12:20 [ws] ⇄ res ✓ models.authStatus 290ms conn=3506c076…1c8e id=6b9a54e6…ec9e
+19:12:21 [ws] ⇄ res ✓ commands.list 589ms conn=3506c076…1c8e id=3347c9d1…6a55
+19:12:21 [ws] ⇄ res ✓ models.list 854ms conn=3506c076…1c8e id=ca60216b…fccf
+19:12:21 [ws] ⇄ res ✓ sessions.list 882ms conn=3506c076…1c8e id=2f4e83fd…158e
+19:12:21 [ws] ⇄ res ✓ chat.history 1277ms conn=3506c076…1c8e id=12d9bb8c…7832

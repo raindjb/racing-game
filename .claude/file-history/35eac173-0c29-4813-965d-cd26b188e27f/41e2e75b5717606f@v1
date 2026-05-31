@@ -1,0 +1,996 @@
+// === player.js — Racing Game ===
+// Player car: physics simulation, rendering, checkpoint/lap logic.
+// All functions attach to window.R. Assumes R.CONFIG, R.canvas, R.ctx,
+// R.input, R.camera, R.track, and R.state already exist.
+
+/* ==========================================================================
+   CONFIG defaults (merged into R.CONFIG if keys are missing)
+   ========================================================================== */
+(function ensurePlayerConfig() {
+  const defaults = {
+
+    // ── Car physics ──────────────────────────────────────────────────
+    MAX_SPEED:           12,        // px/frame at 60 fps (~720 px/s)
+    ACCELERATION:        0.08,      // speed += accel * dt * 60
+    BRAKING:             0.14,      // speed -= brake * dt * 60
+    FRICTION:            0.985,     // multiplicative per-frame drag
+    HANDLING:            0.045,     // steer sensitivity
+    MAX_STEER:           0.6,       // radians, clamp
+    STEER_CENTER_RATE:   0.85,      // per-frame self-centering
+    DRIFT_FACTOR:        0.92,      // forward friction while drifting
+    DRIFT_THRESHOLD:     0.15,      // drift magnitude to trigger
+    OFFROAD_FRICTION:    0.92,      // multiplicative when off track
+    BOOST_MULTIPLIER:    1.6,       // speed multiplier during boost
+    BOOST_DURATION:      1.5,       // seconds
+    BOOST_COOLDOWN:      3.0,       // seconds
+
+    // ── Car dimensions (pixels in world space) ───────────────────────
+    CAR_LENGTH:          48,
+    CAR_WIDTH:           24,
+    WHEELBASE:           30,        // axle-to-axle distance
+    WHEEL_WIDTH:         7,
+    WHEEL_LENGTH:        12,
+
+    // ── Rendering ────────────────────────────────────────────────────
+    SHADOW_OFFSET_X:     4,
+    SHADOW_OFFSET_Y:     2,
+    SHADOW_ALPHA:        0.35,
+    WINDSHIELD_RATIO:    0.22,      // portion of car length
+    REAR_WINDOW_RATIO:   0.18,
+    DOOR_LINE_OFFSET:    0.38,      // door gap from front
+    STRIPE_WIDTH:        4,
+    EXHAUST_BASE_WIDTH:  8,
+    EXHAUST_LENGTH:      14,
+    DRIFT_MARK_LIFETIME: 0.6,       // seconds visible
+    DRIFT_MARK_SPACING:  5,         // px between marks
+
+    // ── Checkpoints ──────────────────────────────────────────────────
+    CHECKPOINT_PROXIMITY: 60,       // px — how close counts as "passed"
+    TOTAL_LAPS:          3,
+  };
+
+  R.CONFIG = R.CONFIG || {};
+  for (const k in defaults) {
+    if (!(k in R.CONFIG)) R.CONFIG[k] = defaults[k];
+  }
+})();
+
+/* ==========================================================================
+   DRIFT MARK POOL — pre-allocated circular buffer
+   ========================================================================== */
+const DRIFT_MARK_CAPACITY = 80;
+const driftMarks = new Array(DRIFT_MARK_CAPACITY);
+for (let i = 0; i < DRIFT_MARK_CAPACITY; i++) {
+  driftMarks[i] = { x: 0, y: 0, alpha: 0, age: 0, alive: false };
+}
+let driftMarkWriteIdx = 0;
+
+function spawnDriftMark(x, y) {
+  const m = driftMarks[driftMarkWriteIdx];
+  m.x = x;
+  m.y = y;
+  m.alpha = 0.55;
+  m.age = 0;
+  m.alive = true;
+  driftMarkWriteIdx = (driftMarkWriteIdx + 1) % DRIFT_MARK_CAPACITY;
+}
+
+/* ==========================================================================
+   EXHAUST PARTICLE POOL
+   ========================================================================== */
+const EXHAUST_CAPACITY = 24;
+const exhaustParticles = new Array(EXHAUST_CAPACITY);
+for (let i = 0; i < EXHAUST_CAPACITY; i++) {
+  exhaustParticles[i] = { x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 0, size: 0, alive: false };
+}
+let exhaustWriteIdx = 0;
+
+function spawnExhaustParticle(x, y, angle) {
+  const p = exhaustParticles[exhaustWriteIdx];
+  const spread = (Math.random() - 0.5) * 0.5;
+  const dir = angle + Math.PI + spread;
+  const spd = 1.5 + Math.random() * 3;
+  p.x = x;
+  p.y = y;
+  p.vx = Math.cos(dir) * spd;
+  p.vy = Math.sin(dir) * spd;
+  p.life = 0.25 + Math.random() * 0.35;
+  p.maxLife = p.life;
+  p.size = 3 + Math.random() * 4;
+  p.alive = true;
+  exhaustWriteIdx = (exhaustWriteIdx + 1) % EXHAUST_CAPACITY;
+}
+
+/* ==========================================================================
+   BOUNCE-BACK MARKERS (visual feedback for collisions)
+   ========================================================================== */
+const BOUNCE_CAPACITY = 8;
+const bounceMarkers = new Array(BOUNCE_CAPACITY);
+for (let i = 0; i < BOUNCE_CAPACITY; i++) {
+  bounceMarkers[i] = { x: 0, y: 0, radius: 0, alpha: 0, alive: false };
+}
+let bounceWriteIdx = 0;
+
+function spawnBounceMarker(x, y) {
+  const m = bounceMarkers[bounceWriteIdx];
+  m.x = x;
+  m.y = y;
+  m.radius = 14;
+  m.alpha = 0.7;
+  m.alive = true;
+  bounceWriteIdx = (bounceWriteIdx + 1) % BOUNCE_CAPACITY;
+}
+
+/* ==========================================================================
+   R.initPlayer()
+   Create the player car at the track start position.
+   ========================================================================== */
+R.initPlayer = function initPlayer() {
+  const cfg = R.CONFIG;
+  const seg0 = (R.track && R.track.segments && R.track.segments.length)
+    ? R.track.segments[0]
+    : { worldX: 0, worldY: 0, worldZ: 0 };
+
+  R.player = {
+    // ── World position ─────────────────────────────────────────────
+    x:        seg0.worldX || 0,
+    y:        seg0.worldY || 0,
+    z:        0,                         // distance along track
+
+    // ── Motion ─────────────────────────────────────────────────────
+    angle:    0,                         // radians, 0 = right
+    speed:    0,
+    steerAngle: 0,
+
+    // ── Drift state ────────────────────────────────────────────────
+    driftFactor: 0,
+    isDrifting: false,
+
+    // ── Boost ──────────────────────────────────────────────────────
+    boosting:       false,
+    boostTimer:     0,
+    boostCooldown:  0,
+
+    // ── Lap / checkpoint ───────────────────────────────────────────
+    lap:           0,
+    checkpointIdx: 0,
+    finished:      false,
+
+    // ── Visual ─────────────────────────────────────────────────────
+    color:       '#00ff88',
+    accentColor: '#00cc66',
+    wheelRot:    0,                      // accumulated wheel rotation
+
+    // ── Physics constants (per-player copy for potential tuning) ───
+    maxSpeed:     cfg.MAX_SPEED,
+    acceleration: cfg.ACCELERATION,
+    braking:      cfg.BRAKING,
+    handling:     cfg.HANDLING,
+  };
+
+  // Reset drift marks
+  for (let i = 0; i < DRIFT_MARK_CAPACITY; i++) {
+    driftMarks[i].alive = false;
+  }
+  // Reset exhaust
+  for (let i = 0; i < EXHAUST_CAPACITY; i++) {
+    exhaustParticles[i].alive = false;
+  }
+  // Reset bounce markers
+  for (let i = 0; i < BOUNCE_CAPACITY; i++) {
+    bounceMarkers[i].alive = false;
+  }
+};
+
+/* ==========================================================================
+   R.updatePlayer(dt) — Full car physics simulation
+   dt = delta time in seconds (unscaled)
+   ========================================================================== */
+R.updatePlayer = function updatePlayer(dt) {
+  const p  = R.player;
+  if (!p || p.finished) return;
+
+  const cfg  = R.CONFIG;
+  const inp  = R.input;
+
+  // Clamp dt to avoid huge jumps (tab-away recovery)
+  const dtClamped = Math.min(dt, 0.05);
+  // Scale factor: physics tuned at 60 fps, so multiply by dt*60
+  const f = dtClamped * 60;
+
+  // ── 1. STEERING ──────────────────────────────────────────────────
+  const steerInput = inp.steer || 0;               // -1..0..1
+
+  // Speed-sensitive steering (tighter at low speed, wider at high)
+  const speedRatio = p.speed / p.maxSpeed;
+  const steerResponse = cfg.HANDLING * (1 + speedRatio * 0.5);
+  p.steerAngle += steerInput * steerResponse * f;
+
+  // Self-centering (stronger when no input)
+  if (Math.abs(steerInput) < 0.05) {
+    p.steerAngle *= Math.pow(cfg.STEER_CENTER_RATE, f);
+  } else {
+    p.steerAngle *= Math.pow(cfg.STEER_CENTER_RATE * 0.97, f);
+  }
+
+  // Clamp
+  if (p.steerAngle > cfg.MAX_STEER) p.steerAngle = cfg.MAX_STEER;
+  if (p.steerAngle < -cfg.MAX_STEER) p.steerAngle = -cfg.MAX_STEER;
+
+  // ── 2. ACCELERATION / BRAKING ────────────────────────────────────
+  const throttle = inp.throttle || 0;
+  const brake    = inp.brake    || 0;
+  const boost    = inp.boost    || 0;
+
+  // Boost activation
+  if (boost && !p.boosting && p.boostCooldown <= 0 && p.speed > 0.5) {
+    p.boosting     = true;
+    p.boostTimer   = cfg.BOOST_DURATION;
+    p.boostCooldown = cfg.BOOST_COOLDOWN + cfg.BOOST_DURATION;
+  }
+
+  // Boost timer
+  if (p.boosting) {
+    p.boostTimer -= dt;
+    if (p.boostTimer <= 0) {
+      p.boosting   = false;
+      p.boostTimer = 0;
+    }
+  }
+
+  // Boost cooldown
+  if (p.boostCooldown > 0 && !p.boosting) {
+    p.boostCooldown -= dt;
+    if (p.boostCooldown < 0) p.boostCooldown = 0;
+  }
+
+  // Apply acceleration
+  if (throttle && !brake) {
+    let accel = p.acceleration * f;
+    if (p.boosting) accel *= cfg.BOOST_MULTIPLIER;
+    p.speed += accel;
+
+    // Low-speed extra torque for startup feel
+    if (p.speed < 1.0) {
+      p.speed += accel * 0.5;
+    }
+  }
+
+  if (brake) {
+    p.speed -= p.braking * f;
+  }
+
+  // Friction (natural deceleration)
+  p.speed *= Math.pow(cfg.FRICTION, f);
+
+  // Clamp speed (allow slight overshoot from boost)
+  const maxNow = p.boosting ? p.maxSpeed * cfg.BOOST_MULTIPLIER : p.maxSpeed;
+  if (p.speed < 0)    p.speed = 0;
+  if (p.speed > maxNow) p.speed = maxNow;
+
+  // ── 3. DRIFT ─────────────────────────────────────────────────────
+  const lateralForce = p.speed * p.steerAngle * 0.3 * f;
+  p.driftFactor += (lateralForce - p.driftFactor) * 0.1 * f;
+  const driftMagnitude = Math.abs(p.driftFactor);
+  const wasDrifting = p.isDrifting;
+  p.isDrifting = driftMagnitude > cfg.DRIFT_THRESHOLD;
+
+  // ── 4. POSITION UPDATE ───────────────────────────────────────────
+  const effectiveAngle = p.angle + p.driftFactor * 0.5;
+  const forwardFriction = p.isDrifting
+    ? Math.pow(cfg.DRIFT_FACTOR, f)
+    : 1.0;
+
+  p.x += Math.cos(p.angle) * p.speed * Math.cos(p.driftFactor) * forwardFriction * f;
+  p.y += Math.sin(p.angle) * p.speed * Math.cos(p.driftFactor) * forwardFriction * f;
+  p.angle += p.steerAngle * p.speed * 0.03 * f;
+
+  // Keep angle in [0, 2π)
+  while (p.angle < 0)            p.angle += Math.PI * 2;
+  while (p.angle >= Math.PI * 2) p.angle -= Math.PI * 2;
+
+  // Accumulate wheel rotation (for visual)
+  p.wheelRot += p.speed * 0.06 * f;
+
+  // ── 5. TRACK CHECK ───────────────────────────────────────────────
+  if (R.isOnTrack && typeof R.isOnTrack === 'function') {
+    if (!R.isOnTrack(p.x, p.z)) {
+      p.speed *= Math.pow(cfg.OFFROAD_FRICTION, f);
+    }
+  }
+
+  // ── 6. LAP / CHECKPOINT LOGIC ────────────────────────────────────
+  if (R.track && R.track.segments && R.track.segments.length) {
+    const segs = R.track.segments;
+    const totalCheckpoints = segs.length;
+
+    // Current checkpoint target
+    const targetSeg = segs[p.checkpointIdx % totalCheckpoints];
+    if (targetSeg) {
+      const dx = p.x - (targetSeg.worldX || 0);
+      const dy = p.y - (targetSeg.worldY || 0);
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < cfg.CHECKPOINT_PROXIMITY) {
+        p.checkpointIdx++;
+
+        // Completed a full lap?
+        if (p.checkpointIdx >= totalCheckpoints) {
+          p.lap++;
+          p.checkpointIdx = 0;
+
+          if (p.lap >= cfg.TOTAL_LAPS) {
+            p.finished = true;
+            p.speed = 0;
+            R.state.phase = 'finished';
+          }
+        }
+      }
+    }
+  }
+
+  // ── 7. Store z as total distance traveled ────────────────────────
+  p.z += p.speed * f;
+
+  // ── 8. Drift marks (spawn every few pixels when drifting) ────────
+  if (p.isDrifting && p.speed > 1.0) {
+    const rearX = p.x - Math.cos(p.angle) * cfg.CAR_LENGTH * 0.4;
+    const rearY = p.y - Math.sin(p.angle) * cfg.CAR_LENGTH * 0.4;
+    const perpX = Math.cos(p.angle + Math.PI / 2);
+    const perpY = Math.sin(p.angle + Math.PI / 2);
+
+    const trackOffset = cfg.CAR_WIDTH * 0.35;
+    // Left rear
+    spawnDriftMark(
+      rearX + perpX * trackOffset,
+      rearY + perpY * trackOffset
+    );
+    // Right rear
+    spawnDriftMark(
+      rearX - perpX * trackOffset,
+      rearY - perpY * trackOffset
+    );
+  }
+
+  // ── 9. Exhaust particles ─────────────────────────────────────────
+  if (throttle && p.speed > 0.3) {
+    const rearX = p.x - Math.cos(p.angle) * cfg.CAR_LENGTH * 0.5;
+    const rearY = p.y - Math.sin(p.angle) * cfg.CAR_LENGTH * 0.5;
+    // Per-tick rate: more particles at higher speed / boost
+    const rate = p.boosting ? 0.55 : 0.3;
+    if (Math.random() < rate * f) {
+      spawnExhaustParticle(rearX, rearY, p.angle);
+    }
+  }
+
+  // ── 10. Update drift marks (age / fade) ──────────────────────────
+  for (let i = 0; i < DRIFT_MARK_CAPACITY; i++) {
+    const m = driftMarks[i];
+    if (!m.alive) continue;
+    m.age += dt;
+    if (m.age > cfg.DRIFT_MARK_LIFETIME) {
+      m.alive = false;
+    } else {
+      m.alpha = 0.55 * (1 - m.age / cfg.DRIFT_MARK_LIFETIME);
+    }
+  }
+
+  // ── 11. Update exhaust particles ─────────────────────────────────
+  for (let i = 0; i < EXHAUST_CAPACITY; i++) {
+    const ep = exhaustParticles[i];
+    if (!ep.alive) continue;
+    ep.life -= dt;
+    if (ep.life <= 0) {
+      ep.alive = false;
+    } else {
+      ep.x += ep.vx * f;
+      ep.y += ep.vy * f;
+    }
+  }
+
+  // ── 12. Update bounce markers ────────────────────────────────────
+  for (let i = 0; i < BOUNCE_CAPACITY; i++) {
+    const bm = bounceMarkers[i];
+    if (!bm.alive) continue;
+    bm.alpha -= dt * 2.5;
+    bm.radius += dt * 60;
+    if (bm.alpha <= 0) bm.alive = false;
+  }
+};
+
+/* ==========================================================================
+   R.playerCollide(obstacleX, obstacleY, obstacleRadius)
+   Called by collision system. Bounces player and spawns visual marker.
+   Returns true if collision was processed.
+   ========================================================================== */
+R.playerCollide = function playerCollide(ox, oy, oRadius) {
+  const p = R.player;
+  if (!p) return false;
+
+  spawnBounceMarker(p.x, p.y);
+
+  // Push player away from obstacle center
+  const dx = p.x - ox;
+  const dy = p.y - oy;
+  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+  const pushDist = (oRadius || 30) + R.CONFIG.CAR_WIDTH * 0.6;
+  p.x = ox + (dx / dist) * pushDist;
+  p.y = oy + (dy / dist) * pushDist;
+
+  // Kill speed
+  p.speed *= 0.4;
+  p.driftFactor *= 0.5;
+
+  return true;
+};
+
+/* ==========================================================================
+   WORLD → SCREEN HELPERS
+   ========================================================================== */
+
+/**
+ * Convert world coordinates to screen coordinates using camera.
+ * @param {number} wx - world x
+ * @param {number} wy - world y
+ * @returns {{ sx: number, sy: number }}
+ */
+function worldToScreen(wx,wy){return R.worldToScreen(wx,wy);}y);}
+
+/* ==========================================================================
+   R.renderPlayerCar() — Detailed top-down car rendering
+   Uses canvas transform stack (save/translate/rotate/restore).
+   ========================================================================== */
+R.renderPlayerCar = function renderPlayerCar() {
+  const p = R.player;
+  if (!p) return;
+
+  const cfg = R.CONFIG;
+  const ctx = R.ctx;
+  const cam = R.camera || { x: 0, y: 0, zoom: 1 };
+  const zoom = cam.zoom;
+
+  // Convert world position to screen
+  const screen = R.worldToScreen(p.x, p.y);
+  const sx = screen.sx;
+  const sy = screen.sy;
+
+  // Culling: skip if far off screen
+  const W = (R.canvas && R.canvas.width)  || 1280;
+  const H = (R.canvas && R.canvas.height) || 720;
+  const margin = 200;
+  if (sx < -margin || sx > W + margin || sy < -margin || sy > H + margin) return;
+
+  const carLen   = cfg.CAR_LENGTH   * zoom;
+  const carHalfW = cfg.CAR_WIDTH    * 0.5 * zoom;
+  const wheelLen = cfg.WHEEL_LENGTH * zoom;
+  const wheelW   = cfg.WHEEL_WIDTH  * zoom;
+  const wheelBase = cfg.WHEELBASE   * zoom;
+
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(p.angle);
+
+  // ── 1. SHADOW ────────────────────────────────────────────────────
+  const shadowOx = cfg.SHADOW_OFFSET_X * zoom;
+  const shadowOy = cfg.SHADOW_OFFSET_Y * zoom;
+  ctx.save();
+  ctx.translate(shadowOx, shadowOy);
+  ctx.fillStyle = `rgba(0, 0, 0, ${cfg.SHADOW_ALPHA})`;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, carLen * 0.52, carHalfW * 1.15, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // ── 2. CAR BODY ──────────────────────────────────────────────────
+  // Main body — rounded rectangle
+  const bodyFront  =  carLen * 0.5;
+  const bodyRear   = -carLen * 0.5;
+  const bodyRadius =  carHalfW * 0.55;
+
+  ctx.fillStyle = p.color;
+  ctx.strokeStyle = p.accentColor;
+  ctx.lineWidth = 2 * zoom;
+  ctx.beginPath();
+  roundedRect(ctx, bodyRear, -carHalfW, carLen, carHalfW * 2, bodyRadius);
+  ctx.fill();
+  ctx.stroke();
+
+  // Body panel lines — hood cut
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1 * zoom;
+  ctx.beginPath();
+  ctx.moveTo(bodyFront * 0.65, -carHalfW * 0.85);
+  ctx.lineTo(bodyFront * 0.65,  carHalfW * 0.85);
+  ctx.stroke();
+
+  // ── 3. WINDSHIELD ────────────────────────────────────────────────
+  const wsFront =  carLen * 0.5  - carLen * 0.06;
+  const wsRear  =  carLen * 0.5  - carLen * cfg.WINDSHIELD_RATIO;
+  ctx.fillStyle = 'rgba(20, 40, 60, 0.7)';
+  ctx.beginPath();
+  ctx.moveTo(wsFront, -carHalfW * 0.84);
+  ctx.lineTo(wsRear,  -carHalfW * 0.88);
+  ctx.lineTo(wsRear,   carHalfW * 0.88);
+  ctx.lineTo(wsFront,  carHalfW * 0.84);
+  ctx.closePath();
+  ctx.fill();
+
+  // Windshield highlight
+  ctx.fillStyle = 'rgba(180, 210, 255, 0.25)';
+  ctx.beginPath();
+  ctx.moveTo(wsFront * 0.85 + wsRear * 0.15, -carHalfW * 0.35);
+  ctx.lineTo(wsRear * 0.7 + wsFront * 0.3,  -carHalfW * 0.55);
+  ctx.lineTo(wsRear * 0.7 + wsFront * 0.3,  -carHalfW * 0.15);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── 4. REAR WINDOW ───────────────────────────────────────────────
+  const rwFront = -carLen * 0.5 + carLen * cfg.REAR_WINDOW_RATIO;
+  const rwRear  = -carLen * 0.5 + carLen * 0.05;
+  ctx.fillStyle = 'rgba(20, 35, 55, 0.6)';
+  ctx.beginPath();
+  ctx.moveTo(rwRear,  -carHalfW * 0.82);
+  ctx.lineTo(rwFront, -carHalfW * 0.85);
+  ctx.lineTo(rwFront,  carHalfW * 0.85);
+  ctx.lineTo(rwRear,   carHalfW * 0.82);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── 5. RACING STRIPE ─────────────────────────────────────────────
+  const stripeW = cfg.STRIPE_WIDTH * 0.5 * zoom;
+  ctx.fillStyle = p.accentColor;
+  ctx.fillRect(-carLen * 0.44, -stripeW, carLen * 0.88, stripeW * 2);
+
+  // Thin pinstripe either side of center
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  const pinY = stripeW * 2.5;
+  ctx.fillRect(-carLen * 0.42, -pinY, carLen * 0.84, 0.8 * zoom);
+  ctx.fillRect(-carLen * 0.42,  pinY, carLen * 0.84, 0.8 * zoom);
+
+  // ── 6. HEADLIGHTS ────────────────────────────────────────────────
+  ctx.fillStyle = '#ffffcc';
+  ctx.shadowColor = 'rgba(255, 255, 180, 0.6)';
+  ctx.shadowBlur = 4 * zoom;
+  ctx.fillRect(bodyFront - 2 * zoom, -carHalfW * 0.72, 5 * zoom, 4 * zoom);
+  ctx.fillRect(bodyFront - 2 * zoom,  carHalfW * 0.72 - 4 * zoom, 5 * zoom, 4 * zoom);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+
+  // ── 7. TAILLIGHTS ────────────────────────────────────────────────
+  // Glow brighter when braking
+  const brakeGlow = (R.input && R.input.brake) ? 1 : 0.4;
+  ctx.fillStyle = `rgba(255, 30, 30, ${0.6 + brakeGlow * 0.4})`;
+  ctx.shadowColor = `rgba(255, 0, 0, ${0.7 * brakeGlow})`;
+  ctx.shadowBlur = 6 * zoom * brakeGlow;
+  ctx.fillRect(bodyRear + 0.5 * zoom, -carHalfW * 0.72, 4.5 * zoom, 3.5 * zoom);
+  ctx.fillRect(bodyRear + 0.5 * zoom,  carHalfW * 0.72 - 3.5 * zoom, 4.5 * zoom, 3.5 * zoom);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+
+  // ── 8. WHEELS ────────────────────────────────────────────────────
+  // Steering rotation for front wheels only
+  const steerVis = p.steerAngle * 0.65; // visual steer reduced for readability
+
+  // Wheel positions (local coords)
+  const wheelPositions = [
+    { x:  wheelBase * 0.5,  y: -carHalfW - wheelW * 0.2, steer: steerVis, tag: 'FL' },
+    { x:  wheelBase * 0.5,  y:  carHalfW + wheelW * 0.2, steer: steerVis, tag: 'FR' },
+    { x: -wheelBase * 0.5,  y: -carHalfW - wheelW * 0.2, steer: 0,        tag: 'RL' },
+    { x: -wheelBase * 0.5,  y:  carHalfW + wheelW * 0.2, steer: 0,        tag: 'RR' },
+  ];
+
+  for (const wp of wheelPositions) {
+    ctx.save();
+    ctx.translate(wp.x, wp.y);
+    ctx.rotate(wp.steer);
+
+    // Tire rubber
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(-wheelLen * 0.5, -wheelW * 0.5, wheelLen, wheelW);
+
+    // Tire tread lines
+    ctx.strokeStyle = '#2a2a2a';
+    ctx.lineWidth = 0.7 * zoom;
+    for (let t = -wheelLen * 0.35; t <= wheelLen * 0.35; t += wheelLen * 0.25) {
+      ctx.beginPath();
+      ctx.moveTo(t, -wheelW * 0.5);
+      ctx.lineTo(t,  wheelW * 0.5);
+      ctx.stroke();
+    }
+
+    // Hub cap (center)
+    ctx.fillStyle = '#444';
+    ctx.beginPath();
+    ctx.arc(0, 0, wheelW * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Hub detail (rotating spoke)
+    const spokeAngle = p.wheelRot * (wp.tag[1] === 'L' ? 1 : -1);
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 1 * zoom;
+    ctx.beginPath();
+    ctx.moveTo(
+      Math.cos(spokeAngle) * wheelW * 0.2,
+      Math.sin(spokeAngle) * wheelW * 0.2
+    );
+    ctx.lineTo(
+      Math.cos(spokeAngle + Math.PI) * wheelW * 0.2,
+      Math.sin(spokeAngle + Math.PI) * wheelW * 0.2
+    );
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // ── 9. DOOR LINE ─────────────────────────────────────────────────
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1 * zoom;
+  const doorX = bodyFront - carLen * cfg.DOOR_LINE_OFFSET;
+  ctx.beginPath();
+  ctx.moveTo(doorX, -carHalfW * 0.86);
+  ctx.lineTo(doorX,  carHalfW * 0.86);
+  ctx.stroke();
+
+  // ── 10. EXHAUST FLAME ────────────────────────────────────────────
+  const throttleOn = R.input && R.input.throttle;
+  if (throttleOn && p.speed > 0.3) {
+    const exhX = bodyRear - 2 * zoom;
+    const exhBaseW = cfg.EXHAUST_BASE_WIDTH * zoom;
+    const exhLen    = cfg.EXHAUST_LENGTH * zoom;
+
+    // Flame flicker
+    const flicker = 0.7 + Math.random() * 0.3;
+    const flameLen = exhLen * flicker * (p.boosting ? 1.8 : 1);
+
+    // Two exhaust pipes
+    for (const side of [-1, 1]) {
+      const exhY = side * carHalfW * 0.5;
+
+      // Outer glow
+      ctx.fillStyle = 'rgba(255, 120, 20, 0.3)';
+      ctx.beginPath();
+      ctx.moveTo(exhX, exhY - exhBaseW * 0.5);
+      ctx.lineTo(exhX - flameLen * 0.4, exhY - exhBaseW * 0.3);
+      ctx.lineTo(exhX - flameLen, exhY);
+      ctx.lineTo(exhX - flameLen * 0.4, exhY + exhBaseW * 0.3);
+      ctx.lineTo(exhX, exhY + exhBaseW * 0.5);
+      ctx.closePath();
+      ctx.fill();
+
+      // Inner flame (brighter core)
+      ctx.fillStyle = 'rgba(255, 220, 60, 0.7)';
+      ctx.beginPath();
+      ctx.moveTo(exhX, exhY - exhBaseW * 0.22);
+      ctx.lineTo(exhX - flameLen * 0.55, exhY);
+      ctx.lineTo(exhX, exhY + exhBaseW * 0.22);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Boost glow ring at rear
+    if (p.boosting) {
+      ctx.fillStyle = 'rgba(100, 180, 255, 0.4)';
+      ctx.beginPath();
+      ctx.arc(bodyRear, 0, carHalfW * 0.9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+
+  // ── 11. DRIFT MARKS (world-space, not car-relative) ──────────────
+  renderDriftMarks();
+
+  // ── 12. EXHAUST PARTICLES (world-space) ──────────────────────────
+  renderExhaustParticles();
+
+  // ── 13. BOUNCE MARKERS (world-space) ─────────────────────────────
+  renderBounceMarkers();
+};
+
+/* ==========================================================================
+   Drift mark rendering (world-space, called from renderPlayerCar)
+   ========================================================================== */
+function renderDriftMarks() {
+  const ctx = R.ctx;
+  for (let i = 0; i < DRIFT_MARK_CAPACITY; i++) {
+    const m = driftMarks[i];
+    if (!m.alive) continue;
+    const sc = R.worldToScreen(m.x, m.y);
+    ctx.fillStyle = `rgba(180, 180, 180, ${m.alpha.toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(sc.sx, sc.sy, 2.5 * (R.camera ? R.camera.zoom : 1), 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+/* ==========================================================================
+   Exhaust particle rendering
+   ========================================================================== */
+function renderExhaustParticles() {
+  const ctx = R.ctx;
+  const cam = R.camera || { zoom: 1 };
+  for (let i = 0; i < EXHAUST_CAPACITY; i++) {
+    const ep = exhaustParticles[i];
+    if (!ep.alive) continue;
+    const sc = R.worldToScreen(ep.x, ep.y);
+    const lifeRatio = ep.life / ep.maxLife;
+    const alpha = lifeRatio * 0.7;
+    const size = ep.size * lifeRatio * cam.zoom;
+
+    ctx.fillStyle = `rgba(255, ${Math.floor(140 + lifeRatio * 80)}, 20, ${alpha.toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(sc.sx, sc.sy, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+/* ==========================================================================
+   Bounce marker rendering
+   ========================================================================== */
+function renderBounceMarkers() {
+  const ctx = R.ctx;
+  const cam = R.camera || { zoom: 1 };
+  for (let i = 0; i < BOUNCE_CAPACITY; i++) {
+    const bm = bounceMarkers[i];
+    if (!bm.alive) continue;
+    const sc = R.worldToScreen(bm.x, bm.y);
+    ctx.strokeStyle = `rgba(255, 255, 255, ${bm.alpha.toFixed(3)})`;
+    ctx.lineWidth = 2 * cam.zoom;
+    ctx.beginPath();
+    ctx.arc(sc.sx, sc.sy, bm.radius * cam.zoom, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Expanding ring
+    ctx.strokeStyle = `rgba(255, 200, 80, ${(bm.alpha * 0.5).toFixed(3)})`;
+    ctx.lineWidth = 1 * cam.zoom;
+    ctx.beginPath();
+    ctx.arc(sc.sx, sc.sy, bm.radius * cam.zoom * 1.4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+/* ==========================================================================
+   R.renderPlayerHUD() — Render HUD elements for player state
+   Speedometer, lap counter, boost gauge.
+   ========================================================================== */
+R.renderPlayerHUD = function renderPlayerHUD() {
+  const p = R.player;
+  if (!p) return;
+  const ctx = R.ctx;
+  const cfg = R.CONFIG;
+  const W = (R.canvas && R.canvas.width)  || 1280;
+  const H = (R.canvas && R.canvas.height) || 720;
+
+  ctx.save();
+
+  // ── Speedometer (bottom-right) ───────────────────────────────────
+  const speedoX = W - 160;
+  const speedoY = H - 110;
+  const speedKmh = Math.round(p.speed * 20); // px/frame → km/h-ish
+
+  // Background panel
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  roundedRect(ctx, speedoX, speedoY, 140, 90, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  // Speed number
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 36px "Segoe UI", "PingFang SC", sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(speedKmh, speedoX + 120, speedoY + 42);
+
+  // KM/H label
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '12px "Segoe UI", "PingFang SC", sans-serif';
+  ctx.fillText('KM/H', speedoX + 120, speedoY + 62);
+
+  // Speed bar
+  const barX = speedoX + 15;
+  const barW = 110;
+  const barY = speedoY + 52;
+  const barH = 5;
+  const speedPct = p.speed / p.maxSpeed;
+
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.fillRect(barX, barY, barW, barH);
+
+  const barColor = p.boosting ? '#4488ff' : '#00ff88';
+  ctx.fillStyle = barColor;
+  ctx.fillRect(barX, barY, barW * speedPct, barH);
+
+  // ── Lap Counter (top-right) ──────────────────────────────────────
+  const lapX = W - 50;
+  const lapY = 40;
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  roundedRect(ctx, lapX - 85, lapY - 5, 75, 50, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '11px "Segoe UI", "PingFang SC", sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('LAP', lapX, lapY + 14);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px "Segoe UI", "PingFang SC", sans-serif';
+  const lapDisplay = Math.min(p.lap + 1, cfg.TOTAL_LAPS);
+  ctx.fillText(lapDisplay + '/' + cfg.TOTAL_LAPS, lapX, lapY + 40);
+
+  // ── Boost Gauge (bottom-right, above speedo) ─────────────────────
+  const boostX = W - 160;
+  const boostY = speedoY - 45;
+  const boostReady = p.boostCooldown <= 0 && !p.boosting;
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.strokeStyle = boostReady ? 'rgba(100, 180, 255, 0.7)' : 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = boostReady ? 2 : 1;
+  ctx.beginPath();
+  roundedRect(ctx, boostX, boostY, 140, 28, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  if (p.boosting) {
+    // Active boost — pulsing bar
+    const pulse = 0.6 + Math.sin(R.state.time * 20) * 0.4;
+    const boostPct = p.boostTimer / R.CONFIG.BOOST_DURATION;
+    ctx.fillStyle = `rgba(68, 136, 255, ${pulse.toFixed(2)})`;
+    ctx.fillRect(boostX + 3, boostY + 3, 134 * boostPct, 22);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px "Segoe UI", "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('BOOST!', boostX + 70, boostY + 19);
+  } else if (!boostReady) {
+    // Cooldown
+    const cdPct = 1 - (p.boostCooldown / (R.CONFIG.BOOST_COOLDOWN + R.CONFIG.BOOST_DURATION));
+    ctx.fillStyle = 'rgba(100, 100, 120, 0.6)';
+    ctx.fillRect(boostX + 3, boostY + 3, 134 * cdPct, 22);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '11px "Segoe UI", "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.ceil(p.boostCooldown) + 's', boostX + 70, boostY + 18);
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = '12px "Segoe UI", "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('BOOST READY', boostX + 70, boostY + 18);
+  }
+
+  // ── Drift indicator ──────────────────────────────────────────────
+  if (p.isDrifting) {
+    const driftX = W / 2;
+    const driftY = H - 60;
+    ctx.fillStyle = 'rgba(255, 150, 30, 0.8)';
+    ctx.font = 'bold italic 16px "Segoe UI", "PingFang SC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('DRIFT', driftX, driftY);
+  }
+
+  ctx.restore();
+};
+
+/* ==========================================================================
+   R.getPlayerWorldZ()
+   Returns player.z (distance along track). Used by other systems.
+   ========================================================================== */
+R.getPlayerWorldZ = function getPlayerWorldZ() {
+  return R.player ? R.player.z : 0;
+};
+
+/* ==========================================================================
+   R.getPlayerSpeed()
+   Convenience accessor for AI / HUD / other systems.
+   ========================================================================== */
+R.getPlayerSpeed = function getPlayerSpeed() {
+  return R.player ? R.player.speed : 0;
+};
+
+/* ==========================================================================
+   R.getPlayerPosition()
+   Returns { x, y, z, angle } — used by camera and AI systems.
+   ========================================================================== */
+R.getPlayerPosition = function getPlayerPosition() {
+  const p = R.player;
+  if (!p) return { x: 0, y: 0, z: 0, angle: 0 };
+  return { x: p.x, y: p.y, z: p.z, angle: p.angle };
+};
+
+/* ==========================================================================
+   R.resetPlayerForRetry()
+   Reset player state for restart without full re-initialization.
+   ========================================================================== */
+R.resetPlayerForRetry = function resetPlayerForRetry() {
+  const p = R.player;
+  if (!p) { R.initPlayer(); return; }
+
+  const seg0 = (R.track && R.track.segments && R.track.segments.length)
+    ? R.track.segments[0]
+    : { worldX: 0, worldY: 0, worldZ: 0 };
+
+  p.x             = seg0.worldX || 0;
+  p.y             = seg0.worldY || 0;
+  p.z             = 0;
+  p.angle         = 0;
+  p.speed         = 0;
+  p.steerAngle    = 0;
+  p.driftFactor   = 0;
+  p.isDrifting    = false;
+  p.boosting      = false;
+  p.boostTimer    = 0;
+  p.boostCooldown = 0;
+  p.lap           = 0;
+  p.checkpointIdx = 0;
+  p.finished      = false;
+  p.wheelRot      = 0;
+
+  // Clear visual pools
+  for (let i = 0; i < DRIFT_MARK_CAPACITY; i++) driftMarks[i].alive = false;
+  for (let i = 0; i < EXHAUST_CAPACITY;  i++) exhaustParticles[i].alive = false;
+  for (let i = 0; i < BOUNCE_CAPACITY;   i++) bounceMarkers[i].alive = false;
+};
+
+/* ==========================================================================
+   R.isPlayerFinished()
+   Returns true if the player has completed all laps.
+   ========================================================================== */
+R.isPlayerFinished = function isPlayerFinished() {
+  return R.player ? R.player.finished : false;
+};
+
+/* ==========================================================================
+   UTILITY: roundedRect helper
+   ========================================================================== */
+
+/**
+ * Draw a rounded rectangle path on the current context.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x - left
+ * @param {number} y - top
+ * @param {number} w - width
+ * @param {number} h - height
+ * @param {number} r - corner radius
+ */
+function roundedRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+/* ==========================================================================
+   EXPORTS
+   ==========================================================================
+   Attached to window.R:
+     R.initPlayer()
+     R.updatePlayer(dt)
+     R.renderPlayerCar()
+     R.renderPlayerHUD()
+     R.getPlayerWorldZ()
+     R.getPlayerSpeed()
+     R.getPlayerPosition()
+     R.playerCollide(ox, oy, oRadius)
+     R.resetPlayerForRetry()
+     R.isPlayerFinished()
+     R.player            — car state object
+   Internal:
+     roundedRect(ctx, x, y, w, h, r)
+     R.worldToScreen(wx, wy)
+     driftMarks[]        — circular buffer
+     exhaustParticles[]  — circular buffer
+     bounceMarkers[]     — circular buffer
+   ========================================================================== */

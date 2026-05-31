@@ -1,0 +1,17 @@
+class_name PickupData
+extends Resource
+
+enum Effect { COIN = 0, HEAL = 1, MAGNET = 2, DOUBLE_COIN = 3, SKATE = 4 }
+
+@export var type_name: String
+@export var effect: Effect
+@export var color: Color
+
+static func all_types() -> Array[Dictionary]:
+	return [
+		{name="coin", effect=0, color="#f1c40f"},
+		{name="medkit", effect=1, color="#e74c3c"},
+		{name="magnet", effect=2, color="#3498db"},
+		{name="double", effect=3, color="#f39c12"},
+		{name="skate", effect=4, color="#2ecc71"},
+	]

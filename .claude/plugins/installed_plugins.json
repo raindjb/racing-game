@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "plugins": {
+    "superpowers@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "C:\\Users\\13751\\.claude\\plugins\\cache\\claude-plugins-official\\superpowers\\5.1.0",
+        "version": "5.1.0",
+        "installedAt": "2026-05-16T17:09:38.059Z",
+        "lastUpdated": "2026-05-16T17:09:38.059Z",
+        "gitCommitSha": "f2cbfbefebbfef77321e4c9abc9e949826bea9d7"
+      }
+    ],
+    "academic-writing-skills@ai-research-skills": [
+      {
+        "scope": "user",
+        "installPath": "C:\\Users\\13751\\.claude\\plugins\\cache\\ai-research-skills\\academic-writing-skills\\0.1.0",
+        "version": "0.1.0",
+        "installedAt": "2026-05-18T14:41:48.930Z",
+        "lastUpdated": "2026-05-18T14:41:48.930Z",
+        "gitCommitSha": "a04dee7fc0bc1e31e43714d4b7887d99d5475bf8"
+      }
+    ],
+    "research-workspace@ai-research-skills": [
+      {
+        "scope": "user",
+        "installPath": "C:\\Users\\13751\\.claude\\plugins\\cache\\ai-research-skills\\research-workspace\\0.1.0",
+        "version": "0.1.0",
+        "installedAt": "2026-05-18T14:41:55.776Z",
+        "lastUpdated": "2026-05-18T14:41:55.776Z",
+        "gitCommitSha": "168c761a41be0b2b7bf4128406f09deec78e6ac8"
+      }
+    ]
+  }
+}

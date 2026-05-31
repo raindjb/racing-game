@@ -1,0 +1,245 @@
+extends CharacterBody2D
+
+enum Action { RUN, JUMP, SLIDE }
+
+@export var lane_change_speed: float = 11.0
+@export var jump_velocity: float = -380.0
+@export var gravity: float = 980.0
+@export var slide_duration: float = 0.5
+@export var max_hp: int = 3
+@export var invincible_duration: float = 1.5
+
+var target_lane: int = 0
+var current_lane: float = 0.0
+var action: Action = Action.RUN
+var jump_height: float = 0.0
+var slide_timer: float = 0.0
+var hp: int = max_hp
+var invincible_timer: float = 0.0
+var on_train: Node2D
+
+var magnet_active: bool = false
+var magnet_timer: float = 0.0
+var double_coin_active: bool = false
+var double_coin_timer: float = 0.0
+var skate_active: bool = false
+var skate_timer: float = 0.0
+var combo_count: int = 0
+var combo_timer: float = 0.0
+
+signal health_changed(new_hp: int)
+signal died
+signal power_up_changed
+
+func _ready() -> void:
+	add_to_group("player")
+	reset()
+
+func reset() -> void:
+	target_lane = 0
+	current_lane = 0.0
+	action = Action.RUN
+	jump_height = 0.0
+	slide_timer = 0.0
+	hp = max_hp
+	invincible_timer = 0.0
+	on_train = null
+	magnet_active = false
+	magnet_timer = 0.0
+	double_coin_active = false
+	double_coin_timer = 0.0
+	skate_active = false
+	skate_timer = 0.0
+	combo_count = 0
+	combo_timer = 0.0
+	health_changed.emit(hp)
+
+func _physics_process(delta: float) -> void:
+	_update_position()
+	queue_redraw()
+
+	if GameManager.state != GameManager.State.PLAY:
+		return
+
+	_update_power_up_timers(delta)
+	_update_invincibility(delta)
+	_update_lane_position(delta)
+	_update_jump(delta)
+	_update_slide(delta)
+	_check_combo(delta)
+
+func _update_power_up_timers(delta: float) -> void:
+	var changed := false
+	if magnet_timer > 0:
+		magnet_timer -= delta
+		if magnet_timer <= 0:
+			magnet_active = false
+			changed = true
+	if double_coin_timer > 0:
+		double_coin_timer -= delta
+		if double_coin_timer <= 0:
+			double_coin_active = false
+			changed = true
+	if skate_timer > 0:
+		skate_timer -= delta
+		if skate_timer <= 0:
+			skate_active = false
+			changed = true
+	if changed:
+		power_up_changed.emit()
+
+func _update_invincibility(delta: float) -> void:
+	if invincible_timer > 0:
+		invincible_timer -= delta
+
+func _update_lane_position(delta: float) -> void:
+	current_lane = move_toward(current_lane, float(target_lane), lane_change_speed * delta)
+
+func _update_jump(delta: float) -> void:
+	if action == Action.JUMP:
+		jump_height += velocity.y * delta
+		velocity.y += gravity * delta
+		if jump_height >= 0:
+			jump_height = 0.0
+			velocity.y = 0.0
+			action = Action.RUN
+
+func _update_slide(delta: float) -> void:
+	if action == Action.SLIDE:
+		slide_timer -= delta
+		if slide_timer <= 0:
+			action = Action.RUN
+
+func _update_position() -> void:
+	var pos := Perspective.depth_to_position(current_lane, 0.62)
+	position.x = pos["x"]
+	position.y = pos["y"] + jump_height * 0.3
+
+func _draw() -> void:
+	var u: float = get_viewport().get_visible_rect().size.x * 0.028
+	var body_color := Color(0.18, 0.55, 0.91, 1.0)
+	var invincible := fmod(Time.get_ticks_msec() * 0.01, 1.0) > 0.5 if invincible_timer > 0 else false
+
+	if invincible:
+		return
+
+	match action:
+		Action.RUN:
+			var leg_swing := sin(Time.get_ticks_msec() * 0.012) * u * 0.8
+			draw_rect(Rect2(-u * 1.2, -u * 2.8, u * 2.4, u * 2.0), body_color)
+			draw_circle(Vector2(0, -u * 3.2), u * 1.1, Color(1.0, 0.85, 0.73, 1.0))
+			draw_rect(Rect2(-u * 0.8, u * 0.4, u * 0.5, u * 1.8), Color(0.2, 0.2, 0.25, 1.0))
+			draw_rect(Rect2(u * 0.3, u * 0.4, u * 0.5, u * 1.8), Color(0.2, 0.2, 0.25, 1.0))
+			draw_rect(Rect2(-u * 1.0, -u * 1.5 + leg_swing, u * 0.5, u * 1.5), Color(0.2, 0.2, 0.25, 1.0))
+			draw_rect(Rect2(u * 0.5, -u * 1.5 - leg_swing, u * 0.5, u * 1.5), Color(0.2, 0.2, 0.25, 1.0))
+		Action.JUMP:
+			draw_rect(Rect2(-u * 1.2, -u * 2.8, u * 2.4, u * 1.8), body_color)
+			draw_circle(Vector2(0, -u * 3.2), u * 1.1, Color(1.0, 0.85, 0.73, 1.0))
+			draw_rect(Rect2(-u * 1.5, -u * 2.0, u * 0.5, u * 1.2), Color(0.2, 0.2, 0.25, 1.0))
+			draw_rect(Rect2(u * 1.0, -u * 2.0, u * 0.5, u * 1.2), Color(0.2, 0.2, 0.25, 1.0))
+			draw_rect(Rect2(-u * 0.6, -u * 0.5, u * 1.2, u * 1.2), Color(0.2, 0.2, 0.25, 1.0))
+		Action.SLIDE:
+			draw_rect(Rect2(-u * 1.5, -u * 1.5, u * 3.0, u * 1.5), body_color)
+			draw_circle(Vector2(u * 0.5, -u * 2.0), u * 0.9, Color(1.0, 0.85, 0.73, 1.0))
+
+	if skate_active:
+		draw_rect(Rect2(-u * 1.8, u * 0.2, u * 3.6, u * 0.3), Color(0.9, 0.3, 0.3, 0.8))
+
+func _check_combo(delta: float) -> void:
+	if combo_timer > 0:
+		combo_timer -= delta
+		if combo_timer <= 0:
+			combo_count = 0
+
+func move_left() -> void:
+	if on_train:
+		return
+	target_lane = max(-1, target_lane - 1)
+
+func move_right() -> void:
+	if on_train:
+		return
+	target_lane = min(1, target_lane + 1)
+
+func do_jump() -> void:
+	if action != Action.RUN or on_train:
+		return
+	action = Action.JUMP
+	velocity.y = jump_velocity
+	jump_height = -0.1
+
+func do_slide() -> void:
+	if action != Action.RUN or on_train:
+		return
+	action = Action.SLIDE
+	slide_timer = slide_duration
+
+func can_dodge_obstacle(required_action: int, obstacle_lane: int) -> bool:
+	var lane_diff := absf(current_lane - float(obstacle_lane))
+	if required_action == 0:
+		return action == Action.SLIDE
+	elif required_action == 1:
+		return action == Action.JUMP and jump_height < -0.3
+	elif required_action == 2:
+		return lane_diff > 0.3
+	return false
+
+func take_damage(amount: int) -> void:
+	if invincible_timer > 0 or on_train:
+		return
+	if skate_active:
+		skate_active = false
+		skate_timer = 0.0
+		power_up_changed.emit()
+		return
+	hp -= amount
+	invincible_timer = invincible_duration
+	health_changed.emit(hp)
+	if hp <= 0:
+		died.emit()
+
+func heal(amount: int) -> void:
+	hp = min(hp + amount, max_hp)
+	health_changed.emit(hp)
+
+func activate_magnet(duration: float) -> void:
+	magnet_active = true
+	magnet_timer = duration
+	power_up_changed.emit()
+
+func activate_double_coin(duration: float) -> void:
+	double_coin_active = true
+	double_coin_timer = duration
+	power_up_changed.emit()
+
+func activate_skate(duration: float) -> void:
+	skate_active = true
+	skate_timer = duration
+	power_up_changed.emit()
+
+func add_combo() -> void:
+	combo_count += 1
+	combo_timer = 1.0
+
+func _input(event: InputEvent) -> void:
+	if GameManager.state == GameManager.State.MENU:
+		if event.is_action_pressed("jump") or event.is_action_pressed("slide") or event.is_action_pressed("start"):
+			GameManager.start_game()
+			return
+
+	if GameManager.state == GameManager.State.DEAD:
+		if event.is_action_pressed("jump") or event.is_action_pressed("start"):
+			get_tree().reload_current_scene()
+			return
+
+	if GameManager.state != GameManager.State.PLAY:
+		return
+
+	if event.is_action_pressed("move_left"):
+		move_left()
+	elif event.is_action_pressed("move_right"):
+		move_right()
+	elif event.is_action_pressed("jump"):
+		do_jump()
+	elif event.is_action_pressed("slide"):
+		do_slide()

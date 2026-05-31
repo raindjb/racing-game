@@ -1,0 +1,84 @@
+extends Node2D
+
+func _draw() -> void:
+	var slope: float = 0.0
+	var p := get_parent()
+	if p and p.get_parent() and p.get_parent().has_method("add_shake"):
+		slope = p.get_parent().slope
+
+	var viewport := get_viewport().get_visible_rect().size
+	var slope_offset: float = slope * viewport.y * 0.1
+	_draw_gravel(viewport, slope_offset)
+	_draw_tracks(viewport, slope_offset)
+	_draw_ties(viewport, slope_offset)
+	_draw_lamps(viewport, slope_offset)
+	_draw_distance_markers(viewport, slope_offset)
+
+func _draw_gravel(size: Vector2, slope_offset: float) -> void:
+	var top_y := Perspective.screen_y(1.0) + slope_offset
+	var bot_y := Perspective.screen_y(0.0)
+	draw_rect(Rect2(0.0, top_y, size.x, bot_y - top_y), Color(0.541, 0.541, 0.478, 1.0))
+
+func _draw_tracks(size: Vector2, slope_offset: float) -> void:
+	var lanes := [-1, 0, 1]
+	for lane in lanes:
+		for rail in range(2):
+			var offset := (float(rail) - 0.5) * size.x * 0.018
+			var points := PackedVector2Array()
+			for i in range(1, 100):
+				var depth := float(i) / 100.0
+				if depth < 0.02 or depth > 0.98:
+					continue
+				var sy := Perspective.screen_y(depth) + slope_offset
+				var sc := Perspective.scale_at_sy(sy)
+				var lx := Perspective.lane_x(float(lane), sy) + offset * sc
+				points.append(Vector2(lx, sy))
+			if points.size() > 1:
+				draw_polyline(points, Color(0.533, 0.600, 0.667, 1.0), 1.2)
+
+func _draw_ties(size: Vector2, slope_offset: float) -> void:
+	var bot_y := Perspective.screen_y(0.0)
+	var top_y := Perspective.screen_y(1.0)
+	for i in range(1, 83):
+		var depth := float(i) * 0.012
+		if depth >= 0.98:
+			continue
+		var sy := Perspective.screen_y(depth) + slope_offset
+		if sy > bot_y or sy < top_y:
+			continue
+		var sc := Perspective.scale_at_sy(sy)
+		var tie_w := size.x * 0.09 * sc
+		var tie_h := size.y * 0.004 * sc
+		var alpha := clampf((depth - 0.02) / 0.15, 0.0, 1.0)
+		draw_rect(Rect2(size.x / 2.0 - tie_w / 2.0, sy - tie_h / 2.0, tie_w, tie_h), Color(0.314, 0.216, 0.118, 0.7 * alpha))
+
+func _draw_lamps(size: Vector2, slope_offset: float) -> void:
+	var bot_y := Perspective.screen_y(0.0)
+	var top_y := Perspective.screen_y(1.0)
+	for i in range(1, 7):
+		var depth := float(i) * 0.15
+		if depth >= 0.9:
+			continue
+		var sy := Perspective.screen_y(depth) + slope_offset
+		if sy > bot_y - 10.0 or sy < top_y + 10.0:
+			continue
+		var sc := Perspective.scale_at_sy(sy)
+		var pole_x := size.x / 2.0 + size.x * 0.21 * sc
+		draw_rect(Rect2(pole_x - size.x * 0.004 * sc, sy - size.y * 0.06 * sc, size.x * 0.008 * sc, size.y * 0.06 * sc), Color(0.333, 0.333, 0.333, 1.0))
+		draw_circle(Vector2(pole_x, sy - size.y * 0.06 * sc), size.x * 0.005 * sc, Color(1.0, 0.914, 0.655, 1.0))
+
+func _draw_distance_markers(size: Vector2, slope_offset: float) -> void:
+	var mark_spacing := 0.08
+	var offset := fmod(GameManager.total_distance * 0.01, mark_spacing)
+	var bot_y := Perspective.screen_y(0.0)
+	var top_y := Perspective.screen_y(1.0)
+	var mz := offset
+	while mz < 0.95:
+		var msy := Perspective.screen_y(mz) + slope_offset
+		if msy <= bot_y - 3.0 and msy >= top_y + 3.0:
+			var msc := Perspective.scale_at_sy(msy)
+			var vx := size.x / 2.0
+			var mlx := vx - size.x * 0.14 * msc
+			draw_rect(Rect2(mlx - size.x * 0.003 * msc, msy - size.y * 0.04 * msc, size.x * 0.006 * msc, size.y * 0.04 * msc), Color.WHITE)
+			draw_circle(Vector2(mlx, msy - size.y * 0.04 * msc), size.x * 0.006 * msc, Color(0.906, 0.298, 0.235, 1.0))
+		mz += mark_spacing

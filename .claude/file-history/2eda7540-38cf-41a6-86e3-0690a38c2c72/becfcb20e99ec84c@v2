@@ -1,0 +1,45 @@
+@echo off
+title CS Optimization - Admin Required
+echo ============================================
+echo   CS Optimization (Run as Admin)
+echo ============================================
+echo.
+
+echo [1/4] Disabling HAGS (Hardware GPU Scheduling)...
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v HwSchMode /t REG_DWORD /d 0 /f
+if %errorlevel%==0 (echo   OK) else (echo   FAILED)
+
+echo [2/4] Disabling MPO (Multi-Plane Overlay)...
+reg add "HKLM\SOFTWARE\Microsoft\Windows\Dwm" /v OverlayTestMode /t REG_DWORD /d 5 /f
+if %errorlevel%==0 (echo   OK) else (echo   FAILED)
+
+echo [3/4] Optimizing TCP...
+netsh int tcp set global timestamps=disabled
+netsh int tcp set global initialRto=300
+echo   OK
+
+echo [4/4] Setting DNS to 223.5.5.5 + 119.29.29.29...
+for /f "tokens=*" %%a in ('powershell -Command "Get-NetAdapter | Where-Object {$_.Status -eq 'Up' -and $_.Name -match '以太'} | Select-Object -ExpandProperty InterfaceIndex"') do set IF_INDEX=%%a
+if defined IF_INDEX (
+    netsh interface ip set dns "以太网" static 223.5.5.5
+    netsh interface ip add dns "以太网" 119.29.29.29 index=2
+    echo   Ethernet DNS set
+) else (
+    netsh interface ip set dns "以太网" static 223.5.5.5
+    netsh interface ip add dns "以太网" 119.29.29.29 index=2
+    echo   Done (using interface name)
+)
+
+echo.
+echo ============================================
+echo   ALL DONE. REBOOT REQUIRED.
+echo ============================================
+echo.
+echo Changes applied:
+echo   HAGS - OFF (reboot to take effect)
+echo   MPO - OFF (reboot to take effect)
+echo   TCP Timestamps - disabled
+echo   TCP Initial RTO - 300ms
+echo   DNS - 223.5.5.5 / 119.29.29.29
+echo.
+pause

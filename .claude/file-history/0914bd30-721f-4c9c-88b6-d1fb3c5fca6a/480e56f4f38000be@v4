@@ -1,0 +1,62 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Subway Runner"
+config/version="1.0.0"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.5")
+
+[autoload]
+
+GameManager="*res://scripts/autoload/game_manager.gd"
+Perspective="*res://scripts/autoload/perspective.gd"
+AudioManager="*res://scripts/autoload/audio_manager.gd"
+
+[display]
+
+window/size/viewport_width=360
+window/size/viewport_height=640
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[input]
+
+move_left={
+"deadzone": null,
+"events": null,
+"key": "Left"
+}
+move_right={
+"deadzone": null,
+"events": null,
+"key": "Right"
+}
+jump={
+"deadzone": null,
+"events": null,
+"key": "Up"
+}
+slide={
+"deadzone": null,
+"events": null,
+"key": "Down"
+}
+start={
+"deadzone": null,
+"events": null,
+"key": "Space"
+}
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="mobile"

@@ -1,0 +1,17 @@
+---
+name: user-preferences
+description: "User profile — Chinese-speaking, currently focused on 考公+证券双线备考, prefers rapid execution and direct action"
+metadata:
+  node_type: memory
+  type: user
+  originSessionId: 79e93986-b072-406e-813b-899b6c309869
+---
+
+The user is a Chinese-speaking university student (2026应届毕业生, 经济学专业). Currently focused on 考公 (国考+京考) and 证券从业资格证 双线备考. They also do game development as a side project.
+
+- **Direct action**: Wants things done, not discussed. Prefers me to handle all tasks rather than ask permission for each step.
+- **DeepSeek API backend**: Uses `api.deepseek.com/anthropic` as the model backend (Claude Code configured as Anthropic compatibility layer). Model: `deepseek-v4-pro` with `[1M]` context variant for Opus/Sonnet slots.
+- **Chinese + English**: Communication in Chinese with English code when relevant.
+- **No process overhead**: Direct implementation preferred. No formal workflows.
+- **High agency**: Wants comprehensive solutions, not incremental hand-holding.
+- **当前主任务**: 考公+证券双线备考，完整计划在 `docs/superpowers/plans/2026-05-24-exam-study-plan.md`

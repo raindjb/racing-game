@@ -1,0 +1,19 @@
+extends GPUParticles2D
+
+func emit_at(pos: Vector2, count: int, particle_color: Color, speed: float = 2.0) -> void:
+	position = pos
+	amount = count
+	var mat := process_material as ParticleProcessMaterial
+	if mat:
+		mat.color = particle_color
+		mat.initial_velocity_min = speed * 0.4
+		mat.initial_velocity_max = speed
+	emitting = true
+	await get_tree().create_timer(lifetime + 0.1).timeout
+	queue_free()
+
+static func burst(parent: Node, pos: Vector2, count: int, color: Color, speed: float = 2.0) -> void:
+	var scene := load("res://scenes/effects/particle_burst.tscn")
+	var inst := scene.instantiate()
+	parent.add_child(inst)
+	inst.emit_at(pos, count, color, speed)

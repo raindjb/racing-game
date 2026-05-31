@@ -1,0 +1,12 @@
+{
+  "id": "2",
+  "subject": "Migrate player system",
+  "description": "Migrate player movement, lane switching, jump, slide from HTML to Godot CharacterBody2D",
+  "status": "completed",
+  "blocks": [
+    "3"
+  ],
+  "blockedBy": [
+    "1"
+  ]
+}

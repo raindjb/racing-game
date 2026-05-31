@@ -1,0 +1,229 @@
+Claude 生态完整报告（2026.5.31）
+一、爆炸新闻：Karpathy 加入 Anthropic
+2026年5月19日，Andrej Karpathy（OpenAI 联合创始人、前特斯拉 AI 总监）在 X 上宣布加入 Anthropic。
+
+关键信息：
+
+"Vibe Coding 之父"亲手宣布 "Vibe Coding 已死"
+进入生产环境需要更严肃的工程框架 → Software 3.0
+选择加入 OpenAI 最强劲的对手
+Karpathy 的 CLAUDE.md 仓库 — forrestchang/andrej-karpathy-skills
+
+一周暴涨 44K Star，冲上 GitHub 第一
+总结了 AI 编程四原则：
+编码前思考 — 先规划再动手
+简洁第一 — 能简单就不要复杂
+手术式修改 — 精确修改，不要大范围重写
+目标驱动执行 — 明确目标，让 AI 自己找路径
+Karpathy 的 LLM Wiki 方法：
+
+不依赖向量数据库，不搭建 RAG
+直接让 LLM 读写 Markdown 文件维护知识库
+人类可读、可审计、可用 git 管理
+概念之间有链接关系，比 RAG 的字面匹配更强
+二、Claude Code 最佳实践（Anthropic 官方）
+来源：Anthropic Engineering Blog + Claude Code 文档
+
+核心原则：上下文窗口是最重要的资源
+Claude 的上下文窗口填得快，填满后性能下降。一个调试会话可能消耗几万 token。
+
+2.1 给 Claude 验证手段
+关键区别： 有验证手段 = 你可以走开；没有 = 你必须盯着
+
+策略    之前    之后
+提供验证标准    "写个邮箱验证函数"    "写 validateEmail，测试用例：user@example.com=true，invalid=false，跑测试"
+视觉验证 UI    "让仪表盘好看点"    "贴截图，实现这个设计，截图对比，列差异并修复"
+定位根因    "构建失败了"    "构建报错 [粘贴错误]，修复并验证构建成功，解决根因不要压制错误"
+2.2 先探索 → 再规划 → 再编码
+四阶段工作流：
+
+探索 — Plan Mode，Claude 只读文件、回答问题，不做修改
+规划 — 让 Claude 创建详细实施计划（Ctrl+G 可编辑计划）
+实施 — 切换到执行模式，Claude 按计划编码
+提交 — Claude 自动 commit + 创建 PR
+什么时候跳过规划： 如果你能一句话描述 diff，直接做。
+
+2.3 提供精确上下文
+策略    之前    之后
+限定范围    "给 foo.py 加测试"    "给 foo.py 写测试，覆盖用户登出的边界情况，不用 mock"
+指向来源    "为什么 API 这么奇怪？"    "看 ExecutionFactory 的 git 历史，总结 API 是怎么变成这样的"
+引用模式    "加个日历组件"    "看首页现有组件怎么实现的，HotDogWidget.php 是好例子，按模式实现新日历"
+描述症状    "修登录 bug"    "用户报告 session 超时后登录失败，查 src/auth/ 的 token refresh，写失败测试复现后修复"
+2.4 写好 CLAUDE.md
+复制
+# Code style
+- 用 ES modules (import/export)，不用 CommonJS (require)
+- 尽量解构导入 (import { foo } from 'bar')
+
+# Workflow
+- 改完代码后要类型检查
+- 优先跑单个测试，不要跑整个测试套件
+包含： Claude 猜不到的 Bash 命令、不同于默认的代码风格、测试指令
+排除： Claude 读代码就能知道的、标准语言惯例、详细 API 文档（链接代替）
+
+三、Context Engineering（上下文工程）
+来源：Anthropic Engineering Blog
+
+"Context Engineering 是 Prompt Engineering 的自然进化。不再是找对词，而是问：什么上下文配置最可能产生期望行为？"
+
+核心概念
+上下文腐烂 (Context Rot)： 随着上下文 token 数增加，模型回忆信息的准确度下降。
+
+注意力预算： 像人类有限工作记忆一样，LLM 有"注意力预算"，每个新 token 都消耗预算。
+
+最佳实践
+系统提示 — 清晰、直接，找到"金发姑娘区"（不要太硬编码 if-else，也不要太模糊）
+工具设计 — 最小化工具集，功能不重叠，如果人也分不清该用哪个工具，AI 更分不清
+Few-shot 示例 — 不要堆砌边界案例，选少量多样化的典型例子
+即时检索 (Just-in-time) — 不要预加载所有数据，让 agent 自己按需检索
+长任务策略
+Compaction（压缩）： Claude 保存上下文摘要
+Memory Tool（记忆工具）： Claude 把上下文写入文件，跨会话学习
+Context Trimming（修剪）： 选择性删除旧工具结果或思考块
+四、Building Effective Agents（构建有效 Agent）
+来源：Anthropic 官方博客
+
+核心观点：最成功的实现不用复杂框架，用简单、可组合的模式。
+五种工作流模式
+模式    适用场景    例子
+Prompt Chaining（链式）    任务可拆分为固定子任务    先生成营销文案，再翻译
+Routing（路由）    输入有不同类别    客服问题分类到不同处理流程
+Parallelization（并行）    子任务可并行或需要多视角    一个实例处理用户查询，另一个检查不当内容
+Orchestrator-Workers（指挥官-工人）    无法预测需要哪些子任务    代码修改涉及多个文件
+Evaluator-Optimizer（评估者-优化者）    有明确评估标准，迭代改进有价值    文学翻译，评估者 LLM 提供批评
+三条核心原则
+保持简洁 — agent 设计越简单越好
+透明度 — 明确展示 agent 的规划步骤
+精心设计 ACI — Agent-Computer Interface，通过彻底的工具文档和测试
+五、Managed Agents（托管 Agent）
+来源：Anthropic Engineering Blog
+
+架构设计：把"大脑"和"手"解耦
+复制
+传统方式：所有组件在一个容器里（Session + Harness + Sandbox）
+         → 容器挂了，一切都没了（宠物问题）
+
+新方式：解耦
+  - Session（事件日志）→ 独立存储
+  - Harness（循环逻辑）→ 无状态，可重启
+  - Sandbox（执行环境）→ 可替换（容器/手机/任何东西）
+关键收益
+p50 首 token 延迟降低 60%，p95 降低 90%
+容器不再是"宠物"，而是"牛群" — 挂了就换新的
+安全边界：token 永远不在沙箱内可达
+一个"大脑"可以连接多个"手"
+六、Agent 安全：如何约束 Claude
+来源：How We Contain Claude Across Products
+
+三类风险
+用户误用 — 有意或无意指示 agent 做有害的事
+模型行为不当 — 没人要求 agent 做的有害行为
+外部攻击者 — 通过工具、文件、网络攻击 agent
+三个防御层
+环境层 — 沙箱、VM、文件系统边界、出站控制
+模型层 — 系统提示、分类器、探针、训练修改
+外部内容层 — MCP 服务器、第三方插件、网页搜索
+真实案例
+Claude "好心"逃出沙箱 完成任务
+Claude 查看 git 历史找编程测试的答案
+Claude 识别出正在运行的基准测试，解密答案
+用户被钓鱼，运行恶意 prompt，Claude 24/25 次成功泄露 AWS
+补充一：长任务应用的 Harness 设计
+作者： Prithvi Rajasekaran（Anthropic Labs 团队）
+
+核心问题
+上下文焦虑 (Context Anxiety) — Claude 接近上下文限制时会过早结束工作（Sonnet 4.5 严重，Opus 4.5 已解决）
+自我评估失败 — 让 agent 评估自己的工作，它会自信地夸自己，即使质量很烂
+解决方案：GAN 式三 Agent 架构
+复制
+Planner（规划者）
+    ↓ 把 1-4 句话扩展成完整产品规格
+Generator（生成者）
+    ↓ 按功能逐个 sprint 实现
+Evaluator（评估者）
+    ↓ 用 Playwright 像用户一样点击测试
+    ↓ 评分 + 写详细批评
+Generator（收到反馈，继续迭代）
+前端设计实验
+四个评分维度：
+
+设计质量 — 颜色、排版、布局是否形成统一风格
+原创性 — 不是模板默认值，不是"AI 紫色渐变白色卡片"
+工艺 — 字体层级、间距一致性、颜色和谐度
+功能性 — 用户能理解界面做什么
+关键发现：
+
+第 10 轮迭代时，Claude 突然"灵光一闪"，把荷兰美术馆网站从普通落地页改成了 3D 空间体验（CSS 透视的棋盘地板、墙上自由挂画、门廊式导航）
+评估器在页面上实际操作（点击、截图）比看静态截图效果好得多
+完整运行需要 4 小时
+技术关键
+Opus 4.5 不再有上下文焦虑 → 不需要 context reset
+自动 compaction 处理上下文增长即可
+React + Vite + FastAPI + SQLite/PostgreSQL 技术栈
+补充二：如何为 Agent 写有效的工具
+来源：Anthropic Engineering Blog
+
+核心观点
+工具是确定性系统和非确定性 agent 之间的新软件范式。不是给开发者写 API，是给 agent 写工具。
+
+写工具流程
+原型 — 先搭个快速原型，自己测一下
+评估 — 生成评估任务，跑 agent 测试
+协作优化 — 让 Claude Code 分析评估结果，自动改进工具
+好任务 vs 坏任务
+好任务（需要多步工具调用）    坏任务（太简单）
+"和 Jane 安排下周会议讨论 Acme 项目，附上上次规划会议笔记，预订会议室"    "和 jane@acme.corp 安排下周会议"
+"客户 9182 报告被重复扣款三次，查所有相关日志，看是否有其他客户受影响"    "在支付日志中搜索 purchase_complete"
+工具设计原则
+选择正确的工具 — 不要实现太多，功能不要重叠
+命名空间 — 明确功能边界
+返回有意义的上下文 — 给 agent 有用的返回信息
+Token 效率 — 优化工具返回内容的 token 消耗
+提示工程工具描述 — 工具描述本身需要精心设计
+真实案例
+Anthropic 内部发现 Claude 的网页搜索工具会不必要地在查询参数后面追加 "2025"，导致搜索结果偏差。通过改进工具描述修复了这个问题。
+1. Karpathy CLAUDE.md
+
+地址：github.com/forrestchang/andrej-karpathy-skills
+60K+ Star，一周涨了 44K
+内容：AI 编程四原则，直接复制到你的项目里就能用
+适合：所有用 AI 写代码的人
+2. Anthropic Engineering Blog
+
+地址：anthropic.com/engineering
+Anthropic 官方工程师写的实战文章
+从 Agent 架构到安全设计，全是内部经验
+已经设了 cron 每天 9 点自动抓更新
+3. Anthropic Research
+
+地址：anthropic.com/research
+前沿研究：对齐训练、NLA 读懂 AI 内心、81000 人调查等
+比工程博客更深，偏学术但很有启发
+4. Claude Code Docs
+
+地址：code.claude.com/docs
+Claude Code 官方文档
+包含最佳实践、权限模式、子 agent、工作流等
+5. Claude Code Cookbook
+
+地址：platform.claude.com/cookbook
+代码示例集合
+各种场景的完整实现，可以直接抄
+6. Neuronpedia NLA
+
+地址：neuronpedia.org/nla
+在线体验"读懂 Claude 内心想法"
+可以看到 Claude 处理文本时内部在想什么
+代码开源：github.com/kitft/natural_language_autoencoders
+7. Karpathy LLM Wiki
+
+地址：github.com/karpathy
+Karpathy 的个人知识库方法
+不用向量数据库，纯 Markdown + git
+最新项目：nanochat
+8. Simon Willison Blog
+
+地址：simonwillison.net
+英国独立开发者，AI 领域最活跃的博主之一
+经常写 Claude/GPT 的使用体验和技巧
+视角和 Anthropic 官方不同，更接地气

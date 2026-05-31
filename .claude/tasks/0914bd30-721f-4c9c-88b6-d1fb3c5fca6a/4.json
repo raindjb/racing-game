@@ -1,0 +1,12 @@
+{
+  "id": "4",
+  "subject": "Migrate pickup system",
+  "description": "Migrate 5 pickup types (coin, medkit, magnet, double, skate) to Godot",
+  "status": "completed",
+  "blocks": [
+    "5"
+  ],
+  "blockedBy": [
+    "3"
+  ]
+}

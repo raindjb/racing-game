@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "usageStats": {
+    "xiaomi:default": {
+      "disabledUntil": 1779897984852,
+      "disabledReason": "billing",
+      "errorCount": 1,
+      "failureCounts": {
+        "billing": 1
+      },
+      "lastFailureAt": 1779879984852
+    }
+  }
+}

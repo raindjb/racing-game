@@ -1,0 +1,12 @@
+{
+  "id": "3",
+  "subject": "Migrate obstacle system",
+  "description": "Migrate 3-category obstacle system with 9 obstacle types to Godot scenes",
+  "status": "completed",
+  "blocks": [
+    "6"
+  ],
+  "blockedBy": [
+    "2"
+  ]
+}

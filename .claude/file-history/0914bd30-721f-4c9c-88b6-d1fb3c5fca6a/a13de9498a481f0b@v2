@@ -1,0 +1,61 @@
+extends Node
+
+enum State { MENU, PLAY, DEAD }
+
+var state: State = State.MENU
+var score: float = 0.0
+var high_score: int = 0
+var distance: float = 0.0
+var total_distance: float = 0.0
+var base_speed: float = 200.0
+var current_speed: float = 200.0
+var combo: int = 0
+var combo_timer: float = 0.0
+
+const SAVE_FILE := "user://subway_save.dat"
+
+signal game_started
+signal game_ended
+signal score_changed(new_score: float)
+
+func _ready() -> void:
+	load_high_score()
+
+func reset() -> void:
+	score = 0.0
+	distance = 0.0
+	total_distance = 0.0
+	base_speed = 200.0
+	current_speed = 200.0
+	combo = 0
+	combo_timer = 0.0
+
+func add_score(amount: float) -> void:
+	score += amount
+	if score > high_score:
+		high_score = int(score)
+	score_changed.emit(score)
+
+func load_high_score() -> void:
+	if not FileAccess.file_exists(SAVE_FILE):
+		return
+	var file := FileAccess.open(SAVE_FILE, FileAccess.READ)
+	if file:
+		high_score = file.get_32()
+		file.close()
+
+func save_high_score() -> void:
+	var file := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
+	if file:
+		file.store_32(high_score)
+		file.close()
+
+func start_game() -> void:
+	reset()
+	state = State.PLAY
+	game_started.emit()
+
+func end_game() -> void:
+	state = State.DEAD
+	save_high_score()
+	game_ended.emit()

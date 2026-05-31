@@ -1,0 +1,93 @@
+extends Area2D
+
+@export var pickup_type: String = "coin"
+@export var effect: int = 0
+@export var lane: int = 0
+@export var color: Color = Color.GOLD
+
+var depth: float = 0.02
+var bob_offset: float = randf() * PI * 2
+
+func _ready() -> void:
+	body_entered.connect(_on_body_entered)
+	queue_redraw()
+
+func _process(delta: float) -> void:
+	if GameManager.state != GameManager.State.PLAY:
+		return
+
+	depth += GameManager.current_speed * delta / (get_viewport().get_visible_rect().size.y * 0.75)
+
+	var player := get_tree().get_first_node_in_group("player")
+	if player and player.magnet_active and depth > 0.15 and depth < 0.5:
+		lane = randi_range(-1, 1) if absf(float(lane) - player.current_lane) > 1.0 else lane
+
+	if depth > 1.05:
+		queue_free()
+		return
+
+	_update_position(delta)
+	queue_redraw()
+
+func _update_position(delta: float) -> void:
+	var pos := Perspective.depth_to_position(float(lane), depth)
+	position = Vector2(pos.x, pos.y)
+	scale = Vector2(pos.scale, pos.scale)
+	bob_offset += delta * 2.5
+	position.y += sin(Time.get_ticks_msec() * 0.007 + bob_offset) * pos.scale * 3.0
+
+func _on_body_entered(body: Node2D) -> void:
+	if not body.is_in_group("player"):
+		return
+	if depth < 0.52 or depth > 0.7:
+		return
+	if absf(body.current_lane - float(lane)) > 0.55:
+		return
+	_apply_effect(body)
+	queue_free()
+
+func _apply_effect(player: CharacterBody2D) -> void:
+	match effect:
+		0:
+			var amount := 100 if player.double_coin_active else 50
+			GameManager.add_score(amount)
+		1:
+			player.heal(player.max_hp)
+		2:
+			player.activate_magnet(5.0)
+		3:
+			player.activate_double_coin(8.0)
+		4:
+			player.activate_skate(30.0)
+	GameManager.add_score(5)
+
+func _draw() -> void:
+	var u: float = get_viewport().get_visible_rect().size.x * 0.028
+	match pickup_type:
+		"coin":
+			draw_circle(Vector2.ZERO, u * 1.8, Color("#f1c40f"))
+			draw_circle(Vector2.ZERO, u * 1.3, Color("#f39c12"))
+		"medkit":
+			draw_rect(Rect2(-u * 2, -u * 2, u * 4, u * 4), Color.WHITE)
+			draw_rect(Rect2(-u * 0.5, -u * 1.5, u, u * 3), Color.RED)
+			draw_rect(Rect2(-u * 1.5, -u * 0.5, u * 3, u), Color.RED)
+		"magnet":
+			draw_arc(Vector2(0, u * 0.5), u * 2, PI, 2 * PI, 32, Color("#3498db"), u * 0.8)
+			draw_rect(Rect2(-u * 2.2, -u, u * 0.8, u * 1.5), Color.RED)
+			draw_rect(Rect2(u * 1.4, -u, u * 0.8, u * 1.5), Color("#3498db"))
+		"double":
+			_draw_star(Vector2.ZERO, u * 2.2, u * 0.9, 5)
+		"skate":
+			draw_rect(Rect2(-u * 3, -u * 0.6, u * 6, u * 1.2), color)
+			draw_circle(Vector2(-u * 1.8, u * 0.7), u * 0.5, Color.BLACK)
+			draw_circle(Vector2(u * 1.8, u * 0.7), u * 0.5, Color.BLACK)
+
+func _draw_star(center: Vector2, outer_r: float, inner_r: float, points: int) -> void:
+	var vertices := PackedVector2Array()
+	var colors_arr := PackedColorArray()
+	for i in range(points * 2):
+		var r := outer_r if i % 2 == 0 else inner_r
+		var a := i * PI / points - PI / 2.0
+		vertices.append(center + Vector2(cos(a) * r, sin(a) * r))
+		colors_arr.append(Color("#f39c12"))
+	draw_polygon(vertices, colors_arr)

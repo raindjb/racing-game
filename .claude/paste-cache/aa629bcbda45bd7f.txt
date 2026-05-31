@@ -1,0 +1,97 @@
+不全。我漏了几个重要的 bug。继续补充：
+补充诊断
+🔴 P0 — AI 路径完全不跟随赛道形状
+ai.js getTrackCenterAt 把赛道当作直线处理：
+function getTrackCenterAt(worldZ, lookaheadZ) {
+    var zTarget = worldZ + lookaheadZ;           // ← 直线累加 Z
+    var segInfo = getSegmentAtZ(zTarget);         // ← 假设 seg 按 Z 排序
+    // ...
+    return { x: segX + totalCurveOffset * 0.5, curvature: totalCurvature };
+}
+Catmull-Rom 闭合赛道的 segment 不按 Z 单调递增（赛道可能回头、交叉）。getSegmentAtZ 用线性搜索找 worldZ 落在哪个 segment，结果完全错误。
+同样的问题： getUpcomingCurvature、handleOffTrack、updateAILapProgress 全部假设 Z 单调递增。
+影响： AI 车辆在错误的赛道位置导航，可能开到赛道外或走奇怪的路线。
+修复： AI 应使用 R.getTrackDistanceAt(wx, wz) + R.getTrackPosition(dist) 系统，而不是直接操作 worldZ。
+🔴 P0 — AI 圈数检测与玩家完全不同
+ai.js updateAILapProgress：
+if (ai.z >= tLen) {      // ← Z 超过赛道总长就完成一圈
+    ai.lap = (ai.lap || 0) + 1;
+    ai.z -= tLen;
+}
+player.js updatePlayer：
+const targetSeg = segs[p.checkpointIdx % totalCheckpoints]; // ← 必须经过每个 segment
+if (dist < cfg.CHECKPOINT_PROXIMITY) {
+    p.checkpointIdx++;
+    if (p.checkpointIdx >= totalCheckpoints) {
+        p.lap++;    // ← 经过 200+ 个 segment 才完成一圈
+    }
+}
+玩家必须依次经过所有 segment（约 210 个），AI 只需 Z 坐标超过总长度。两套系统完全不兼容，导致排名计算混乱。
+修复： 统一使用 R.track.checkpoints（4 个均匀分布的检查点）进行圈数检测。
+🟠 P1 — 赛道渲染与车辆/场景的 Y 投影公式不一致
+track.js _projectSegment：
+var dy = (seg.worldZ || 0) - cam.y + (seg.worldY || 0);
+var sy = H / 2 + dy * scale - dz * cfg.ROAD_V_OFFSET * scale;
+//                                 ↑ 额外的深度偏移项
+track.js R.worldToScreen：
+var sy = cy + (wy - cam.y || 0) * scale;
+//               ↑ 没有 ROAD_V_OFFSET 修正
+赛道 segment 用 ROAD_V_OFFSET 做透视修正，但车辆和场景用 worldToScreen 没有这个修正。赛道和车辆的垂直位置不对齐，尤其在远处更明显。
+🟠 P1 — renderTrack 每帧扫描全部 segment 找相机位置
+track.js R.renderTrack：
+for (var pidx = 0; pidx < n; pidx++) {
+    var pseg = segs[pidx];
+    var pdx  = pseg.worldX - R.player.x;
+    var pdz  = pseg.worldZ - R.player.z;
+    var pd2  = pdx * pdx + pdz * pdz;
+    if (pd2 < bestD2) { bestD2 = pd2; playerSegIdx = pidx; }
+}
+cam.trackDist = segs[playerSegIdx].dist;
+每帧 O(n) 扫描 200+ segment。应该用 R.getTrackDistanceAt(player.x, player.z)（已有此函数）。
+🟠 P1 — 玩家 p.traveled 累加但从未使用
+player.js：
+p.traveled = (p.traveled || 0) + p.speed * f;
+累加了但 R.sortCarsByPosition 用的是 lap + checkpointIdx + x，不用 traveled。这是死代码。
+🟠 P1 — R.state.time 从未被递增
+engine.js R.updateStateMachine 只在 racing 阶段递增 raceTime：
+case 'racing':
+    state.raceTime += dt;
+但 R.state.time（用于 HUD 计时器、菜单动画）从未被更新：
+R.state = {
+    time: 0,  // ← 永远是 0
+    // ...
+};
+影响： R.renderRaceTimer 显示 0:00.000，菜单闪烁动画 Math.sin(R.state.time * 3) 不动，倒计时 R.state.time 不变。
+修复： 在 R.loop 中添加 R.state.time += dt;
+🟡 P2 — R.sortCarsByPosition 被定义两次
+hud.js 定义一次，ai.js 又定义一次。由于 HTML 加载顺序 ai.js 在后，ai.js 版本覆盖 hud.js 版本。两个版本排序逻辑不同：
+- hud.js：按 _finished → _lap → _checkpointIdx → _x
+- ai.js：按 getTotalDistance(car) = lap * trackLength + z
+ai.js 的 getTotalDistance 依赖错误的 Z 线性假设。
+🟡 P2 — 玩家 checkpoint 用全部 segment，track 只预设 4 个
+track.js：
+R.track.checkpoints = [];
+var cpCount = R.track.checkpointCount; // = 4
+for (var c = 0; c < cpCount; c++) {
+    R.track.checkpoints.push({ dist: cpDist, ... });
+}
+生成了 4 个均匀检查点，但 player.js 完全不用 R.track.checkpoints，而是遍历所有 segment。R.track.checkpoints 是死数据。
+🟡 P2 — R.state.playerLap 从未被更新
+engine.js 初始化：
+R.state = { playerLap: 0, ... };
+在 countdown 结束时重置为 0，但 从未被递增。玩家圈数只在 R.player.lap 上跟踪。R.state.playerLap 是死字段。
+更新后的完整 Bug 清单
+优先级    Bug    模块    症状
+🔴 P0    碰撞系统用 XY 平面而非 XZ    collision.js    车辆互相穿过，边界检测失效
+🔴 P0    worldToScreen 忽略高程 wz    track.js    山坡不影响车辆渲染
+🔴 P0    AI worldToScreen 参数顺序反了    ai.js    AI 车辆渲染在完全错误的位置
+🔴 P0    AI 路径不跟随赛道形状    ai.js    AI 走直线，不走弯道
+🔴 P0    AI 和玩家圈数检测逻辑不兼容    ai.js / player.js    排名计算混乱
+🟠 P1    赛道与车辆 Y 投影公式不一致    track.js    远处车辆与道路垂直偏移
+🟠 P1    cam.y 存的是 player.z    engine.js    命名混淆，维护隐患
+🟠 P1    R.state.time 从未递增    engine.js    HUD 计时器永远 0:00，动画不动
+🟠 P1    漂移标记/尾气丢弃高程    player.js    平地赛道无影响
+🟡 P2    sortCarsByPosition 重复定义    hud.js / ai.js    排序逻辑被覆盖
+🟡 P2    玩家 checkpoint 遍历全部 segment    player.js    与 track.checkpoints 脱节
+🟡 P2    菜单双重渲染    engine.js + hud.js    菜单画面叠加
+🟡 P2    p.traveled / R.state.playerLap 死代码    player.js / engine.js    无功能影响

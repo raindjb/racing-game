@@ -1,0 +1,51 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/ground_renderer.gd" id="3_ground"]
+[ext_resource type="Script" path="res://scripts/obstacles/obstacle_spawner.gd" id="4_obstacle"]
+[ext_resource type="Script" path="res://scripts/pickups/pickup_spawner.gd" id="5_pickup"]
+[ext_resource type="Script" path="res://scripts/trains/train_spawner.gd" id="6_train"]
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="7_hud"]
+[ext_resource type="Script" path="res://scripts/ui/menu_screen.gd" id="8_menu"]
+[ext_resource type="Script" path="res://scripts/ui/death_screen.gd" id="9_death"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_base.tscn" id="10_obs_scene"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/pickup_base.tscn" id="11_pickup_scene"]
+[ext_resource type="PackedScene" path="res://scenes/trains/train.tscn" id="12_train_scene"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="13_player"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="World" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Sky" type="ColorRect" parent="World"]
+offset_right = 360.0
+offset_bottom = 128.0
+color = Color(0.102, 0.102, 0.306, 1)
+
+[node name="Ground" type="Node2D" parent="World"]
+script = ExtResource("3_ground")
+
+[node name="Player" parent="World" instance=ExtResource("13_player")]
+
+[node name="ObstacleSpawner" type="Node2D" parent="World"]
+script = ExtResource("4_obstacle")
+obstacle_scene = ExtResource("10_obs_scene")
+
+[node name="PickupSpawner" type="Node2D" parent="World"]
+script = ExtResource("5_pickup")
+pickup_scene = ExtResource("11_pickup_scene")
+
+[node name="TrainSpawner" type="Node2D" parent="World"]
+script = ExtResource("6_train")
+train_scene = ExtResource("12_train_scene")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("7_hud")
+
+[node name="MenuScreen" type="CanvasLayer" parent="."]
+script = ExtResource("8_menu")
+
+[node name="DeathScreen" type="CanvasLayer" parent="."]
+script = ExtResource("9_death")

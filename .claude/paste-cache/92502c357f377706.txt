@@ -1,0 +1,289 @@
+# ccswarm 代码地图
+
+> 基于 249 个文件的完整源码分析生成。供 AI agent 快速理解项目结构。
+
+## 项目概览
+
+- **语言**: Rust (Edition 2024)
+- **许可证**: MIT
+- **版本**: v0.5.0 (Cargo.toml)
+- **架构**: Cargo workspace，两个 crate：`ccswarm`（编排）+ `ai-session`（终端管理）
+- **状态**: 核心模块可跑，协调循环和并行执行器未接通
+
+## Workspace 结构
+
+```
+ccswarm/
+├── Cargo.toml                    # workspace root，edition = "2024"
+├── crates/
+│   ├── ccswarm/                  # 主编排 crate（bin + lib）
+│   │   ├── Cargo.toml            # v0.5.0, 依赖 ai-session 0.5.0
+│   │   ├── src/
+│   │   │   ├── main.rs (91行)    # CLI 入口，clap 解析
+│   │   │   ├── lib.rs (30行)     # 模块导出
+│   │   │   ├── error.rs (382行)  # CCSwarmError，thiserror struct variants
+│   │   │   ├── acp_claude/       # Claude ACP 集成（CLI wrapper，非 WebSocket）
+│   │   │   ├── agent/            # Agent 系统（最大模块）
+│   │   │   ├── auto_accept/      # 自动接受策略（618行）
+│   │   │   ├── cli/              # CLI 命令和处理器（最大模块之一）
+│   │   │   ├── config/           # 配置管理（422行）
+│   │   │   ├── coordination/     # Agent 间协调
+│   │   │   ├── execution/        # 任务执行引擎
+│   │   │   ├── git/              # Git worktree 管理
+│   │   │   ├── hooks/            # Hook 系统
+│   │   │   ├── identity/         # Agent 身份和边界
+│   │   │   ├── ipc/              # HTTP IPC 服务器
+│   │   │   ├── mcp/              # MCP 客户端
+│   │   │   ├── orchestrator/     # 编排器（ProactiveMaster 等）
+│   │   │   ├── providers/        # AI Provider 实现
+│   │   │   ├── resource/         # 资源监控
+│   │   │   ├── session/          # 会话管理
+│   │   │   ├── subagent/         # 子 agent 系统
+│   │   │   ├── template/         # 模板系统
+│   │   │   ├── tui/              # TUI 界面
+│   │   │   ├── utils/            # 工具函数
+│   │   │   ├── workflow/         # 工作流引擎
+│   │   │   └── workspace/        # 工作区管理
+│   │   ├── tests/                # 7 个测试文件
+│   │   ├── examples/             # 3 个示例
+│   │   └── templates/            # 9 个 agent 指令模板
+│   └── ai-session/               # 终端会话管理 crate
+│       ├── Cargo.toml            # v0.5.0, portable-pty, zstd
+│       ├── src/
+│       │   ├── lib.rs (218行)    # 主要类型导出
+│       │   ├── core/             # 核心会话管理
+│       │   ├── context/          # AI 上下文（zstd 压缩）
+│       │   ├── coordination/     # 多 agent 协调
+│       │   ├── integration/      # tmux/screen 兼容层
+│       │   ├── mcp/              # MCP 协议实现
+│       │   ├── native/           # Unix PTY 实现
+│       │   ├── native_portable.rs # portable-pty 实现
+│       │   ├── output/           # 输出解析
+│       │   ├── persistence/      # 会话持久化
+│       │   ├── session_persistence.rs # 持久化会话管理器
+│       │   └── bin/              # CLI 和 HTTP 服务器
+│       ├── tests/                # 3 个测试文件
+│       ├── examples/             # 7 个示例
+│       └── bin/claude-chat       # Claude 快速聊天脚本
+├── docs/                         # 架构文档和应用规范
+├── sample/                       # 示例配置和脚本
+└── .claude/                      # Claude Code 配置（agents, hooks, rules, skills, commands）
+```
+
+## 核心模块详解
+
+### Agent 系统 (`crates/ccswarm/src/agent/`, 共 ~5000 行)
+
+| 文件 | 行数 | 功能 |
+|------|------|------|
+| `mod.rs` | 1495 | Agent trait 定义、类型、枚举 |
+| `persistent.rs` | 1148 | 持久化 Claude Code agent（token 效率优化） |
+| `pool.rs` | 791 | Agent 池，负载均衡 |
+| `task_builder_typestate.rs` | 408 | Type-state 模式 TaskBuilder |
+| `simple_orchestrator.rs` | 384 | 简单编排器 |
+| `whiteboard.rs` | 364 | 可视化 agent 思维过程 |
+| `claude.rs` | 304 | Claude Code agent 实现 |
+| `simple.rs` | 255 | 基础 agent |
+| `task.rs` | 204 | Task 类型定义 |
+| `phronesis.rs` | 143 | 实践智慧模块 |
+| `personality.rs` | 128 | Agent 人格配置 |
+| `interleaved_thinking.rs` | 136 | 交错思维模式 |
+| `type_state.rs` | 120 | Agent 生命周期 type-state |
+| `isolation.rs` | 109 | Agent 隔离模式 |
+| `search_agent.rs` | 108 | 搜索 agent |
+
+### 编排器 (`crates/ccswarm/src/orchestrator/`, 共 ~5500 行)
+
+| 文件 | 行数 | 功能 |
+|------|------|------|
+| `proactive_master.rs` | 1551 | 主动式 master，任务分析+委派 |
+| `auto_create.rs` | 1245 | 从自然语言生成完整应用 |
+| `verification.rs` | 667 | 自动验证生成的应用 |
+| `llm_quality_judge.rs` | 666 | LLM 代码质量评审（8 维度） |
+| `master_delegation.rs` | 477 | Master 任务委派系统 |
+| `team.rs` | 271 | Agent 团队管理（lead + teammates） |
+| `plan_approval.rs` | 202 | 计划审批工作流 |
+| `channel_based.rs` | 213 | Channel-based 编排 |
+| `task_converter.rs` | 126 | Task 类型转换 |
+| `delegate.rs` | 146 | 委派模式 |
+| `agent_access.rs` | 80 | Agent 属性访问辅助 |
+
+### 子 Agent 系统 (`crates/ccswarm/src/subagent/`, 共 ~3280 行)
+
+| 文件 | 行数 | 功能 |
+|------|------|------|
+| `parallel_executor.rs` | 883 | 并行执行器（信号量控制并发） |
+| `dynamic_generation.rs` | 489 | 动态生成专用子 agent |
+| `workload_balancer.rs` | 478 | 智能负载均衡 |
+| `spawner.rs` | 462 | 动态子 agent 生成系统 |
+| `delegation.rs` | 401 | 任务委派 |
+| `manager.rs` | 312 | 子 agent 管理器 |
+| `converter.rs` | 304 | 配置格式转换 |
+| `parser.rs` | 105 | YAML frontmatter 解析 |
+
+### 工作流引擎 (`crates/ccswarm/src/workflow/`, 共 ~7800 行)
+
+| 文件 | 行数 | 功能 |
+|------|------|------|
+| `piece.rs` | 1469 | Piece/Movement 工作流系统（takt 风格） |
+| `pipeline.rs` | 853 | CI/CD 流水线模式 |
+| `ui.rs` | 1579 | TUI 界面渲染 |
+| `facets.rs` | 691 | 分面提示系统 |
+| `execution.rs` | 697 | 工作流执行引擎 |
+| `judge.rs` | 647 | AI 评审 + 标签条件 |
+| `watch.rs` | 589 | 文件监控自动触发 |
+| `node.rs` | 558 | 工作流节点定义 |
+| `interactive.rs` | 535 | 交互模式 |
+| `permissions.rs` | 428 | 权限模型 |
+| `graph.rs` | 607 | DAG 图定义和验证 |
+| `cycle.rs` | 548 | 循环检测 |
+| `arpeggio.rs` | 374 | 批处理 |
+| `github_issue.rs` | 360 | GitHub Issue 集成 |
+| `repertoire.rs` | 274 | 外部工作流包管理 |
+
+### 会话管理 (`crates/ccswarm/src/session/`, 共 ~3300 行)
+
+| 文件 | 行数 | 功能 |
+|------|------|------|
+| `memory.rs` | 760 | Agent 记忆系统（工作/情景/语义/程序记忆） |
+| `worktree_session.rs` | 634 | Git worktree + 持久化会话 |
+| `persistent_session.rs` | 541 | 持久化 Claude Code 会话 |
+| `checkpoint.rs` | 354 | 会话检查点 |
+| `bridge.rs` | 290 | ai-session 桥接层 |
+| `claude_session.rs` | 176 | Claude 会话配置 |
+
+### ai-session Crate (`crates/ai-session/src/`, 共 ~6000 行)
+
+| 模块 | 关键文件 | 功能 |
+|------|----------|------|
+| `core/` | `mod.rs`(754行), `pty.rs`(379行), `lifecycle.rs`(155行), `headless.rs`(147行), `terminal.rs`(56行), `process.rs`(63行) | PTY 管理、会话生命周期、headless 回退 |
+| `context/` | `mod.rs`(944行) | zstd 压缩的 token 高效上下文管理 |
+| `coordination/` | `mod.rs`(1075行) | 消息总线、任务分发、资源管理、速率限制 |
+| `persistence/` | `mod.rs`(341行), `session_store.rs`(192行) | 会话持久化、快照管理 |
+| `output/` | `mod.rs`(416行) | 语义输出解析 |
+| `integration/` | `mod.rs`(353行) | tmux/screen 兼容、VS Code 集成 |
+| `mcp/` | `server.rs`(217行), `tools.rs`(437行), `transport.rs`(278行), `jsonrpc.rs`(255行) | MCP 协议完整实现 |
+| `native/` | `mod.rs`(387行) | Unix 原生 PTY |
+| `native_portable.rs` | 383行 | portable-pty 跨平台实现 |
+| `bin/ai-session.rs` | 1130行 | CLI 工具（create/list/exec/kill/migrate/claude-chat） |
+| `bin/server.rs` | 506行 | HTTP API 服务器（Axum） |
+
+## 关键架构模式
+
+### 1. Type-State Pattern
+- `agent/type_state.rs`: Agent 生命周期编译时验证
+- `agent/task_builder_typestate.rs`: TaskBuilder 编译时验证
+- 零运行时开销，状态转换在编译期检查
+
+### 2. Channel-Based Orchestration
+- 使用 `tokio::sync::mpsc` 和 `async-channel`
+- `coordination/mod.rs`: Agent 间消息传递
+- 避免 `Arc<Mutex>`，用 actor 模型替代
+
+### 3. Actor Model
+- 每个 agent 是独立 actor
+- 通过 channel 接收消息
+- `agent/pool.rs`: Agent 池管理
+
+### 4. Error Handling
+- `error.rs`: `CCSwarmError` 使用 struct variants（不是 tuple）
+- 所有错误带上下文：`Agent { agent_id, message, source }`
+- `utils/error_recovery.rs`: 错误恢复策略
+
+### 5. Hook System
+- `hooks/mod.rs`: PreToolUse/PostToolUse 模式
+- `hooks/registry.rs`: 优先级注册表
+- `hooks/builtin.rs`: 内置日志和安全验证 hook
+
+## Provider 系统 (`providers/`, 共 ~3150 行)
+
+| Provider | 行数 | 状态 |
+|----------|------|------|
+| `mod.rs` | 797 | Provider trait + ProviderExecutor |
+| `aider.rs` | 602 | Aider 集成 |
+| `codex.rs` | 583 | OpenAI Codex 集成 |
+| `claude_code.rs` | 544 | Claude Code CLI 集成 |
+| `custom.rs` | 468 | 自定义 provider |
+| `claude_api.rs` | 153 | Claude API 直接调用 |
+
+## 已知限制
+
+1. **`start` 命令退出立即**: 协调循环未实现，启动后不持续运行
+2. **ParallelExecutor 未接通**: 结构存在但没接到 orchestrator
+3. **ACP WebSocket 未实现**: 只有 CLI wrapper
+4. **ai-session MessageBus 未集成**: agent 间无法通过 ai-session 通信
+5. **无 IPC**: 命令间隔离，每个命令独立运行
+6. **不支持 Windows**: 用了 Unix PTY（nix crate），需 WSL
+
+## 测试覆盖
+
+- ccswarm: 7 个测试文件（cli_unit_tests 611行, e2e_cli_test 566行, mockall_tests 547行, workflow_integration_test 653行 等）
+- ai-session: 3 个测试文件（comprehensive_integration_test 306行, integration_tests 258行, mockall_tests 545行）
+- 总计 267+ 个测试
+
+## 依赖关系
+
+```
+ccswarm (编排层)
+  ├── ai-session (终端管理)
+  │   ├── portable-pty (跨平台 PTY)
+  │   ├── zstd (压缩)
+  │   ├── crossbeam-channel (消息通道)
+  │   └── dashmap (并发 HashMap)
+  ├── tokio (异步运行时)
+  ├── clap (CLI)
+  ├── ratatui + crossterm (TUI)
+  ├── axum (HTTP 服务器)
+  ├── serde + serde_json (序列化)
+  ├── thiserror (错误处理)
+  ├── dashmap (并发状态)
+  ├── secrecy (密钥管理)
+  └── sysinfo (资源监控)
+```
+
+## 与当前架构的匹配度
+
+当前架构: Claude Code + DeepSeek + opencode + Git worktree + Windows 11
+
+| 维度 | 匹配度 | 说明 |
+|------|--------|------|
+| 架构理念 | 极高 | Channel-based + actor model + worktree 隔离，正是你在做的 |
+| Provider 支持 | 高 | 5 个 provider，Custom provider 可接入 DeepSeek |
+| Windows | 不匹配 | 需 WSL，无法原生运行 |
+| 成熟度 | 中高 | 核心模块可跑，协调循环未完成 |
+| 代码质量 | 高 | Rust best practices，错误处理完善，测试覆盖 |
+
+## 快速参考
+
+### 关键入口点
+- CLI 入口: `crates/ccswarm/src/main.rs`
+- 编排器: `crates/ccswarm/src/orchestrator/proactive_master.rs`
+- Agent 系统: `crates/ccswarm/src/agent/mod.rs`
+- 工作流: `crates/ccswarm/src/workflow/piece.rs`
+- 会话管理: `crates/ccswarm/src/session/mod.rs`
+- ai-session 入口: `crates/ai-session/src/lib.rs`
+- PTY 管理: `crates/ai-session/src/core/pty.rs`
+- 消息总线: `crates/ai-session/src/coordination/mod.rs`
+
+### 配置文件
+- 项目配置: `ccswarm.json`
+- Claude 配置: `.claude/settings.json`
+- Agent 定义: `.claude/agents/*.md`
+- Hook 脚本: `.claude/hooks/*.sh`
+- Skill 定义: `.claude/skills/*/SKILL.md`
+
++ Thought: 774ms
+写好了 ~/repos/ccswarm/CODEMAP.md。
+内容：
+完整目录结构（每个模块的行数和功能）
+6 大核心模块的逐文件分析（agent、orchestrator、subagent、workflow、session、ai-session）
+关键架构模式（type-state、channel-based、actor model）
+Provider 系统对比
+已知限制
+依赖关系图
+快速参考入口点
+Claude Code 怎么用：
+1. 直接读 ~/repos/ccswarm/CODEMAP.md，一个文件掌握全局
+2. 根据入口点索引，精准定位需要的模块
+3. 不需要重新读 249 个文件
+你把这个文件路径告诉 Claude Code，它就能快速理解整个项目。

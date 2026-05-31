@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>轨道跑者 — Rail Runner</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#1a1a2e; }
+  body {
+    display:flex; justify-content:center; align-items:center;
+    font-family:'Segoe UI','PingFang SC',sans-serif;
+  }
+  #game-container {
+    position:relative;
+    width:100vmin; max-width:600px;
+    height:100vmin; max-height:900px;
+    aspect-ratio:2/3;
+  }
+  canvas {
+    display:block; width:100%; height:100%;
+    touch-action:manipulation;
+    image-rendering:auto;
+  }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <canvas id="game"></canvas>
+</div>
+
+<script>
+/* ==========================================================================
+   轨道跑者 — Rail Runner  v0.1 Tier 1
+   2.5D 等距视角无限跑酷 | HTML5 Canvas | 60fps | 零依赖
+   ========================================================================== */
+
+/* =========================== 命名空间 =========================== */
+const G = {
+  canvas: null,
+  ctx: null,
+  W: 0, H: 0,
+
+  /* 游戏状态 */
+  state: 'start',     // start | playing | dead
+  score: 0,
+  highScore: 0,
+  distance: 0,
+  speed: 0,
+  hearts: 3,
+  invincible: 0,       // 剩余无敌帧数
+
+  /* 玩家 */
+  player: null,
+
+  /* 对象池 */
+  obstacles: [],
+  coins: [],
+  particles: [],
+
+  /* 输入 */
+  keys: {},
+  swipeStart: null,
+  lastSwipe: '',
+
+  /* 世界参数 */
+  vanishY: 0,          // 消失点 Y
+  vanishX: 0,          // 消失点 X
+  maxDist: 800,        // 最大可视距离
+  laneSpread: 0,       // 轨道底部扩散宽度
+  groundY: 0,          // 玩家地面位置 Y（屏幕坐标）
+
+  /* 生成控制 */
+  spawnTimer: 0,
+  spawnInterval: 60,   // 初始帧间隔
+  coinTimer: 0,
+
+  /* 帧率 */
+  lastTime: 0,
+  deltaTime: 0,
+  fps: 0,
+  frameCount: 0,
+  fpsTime: 0,
+
+  /* 离线画布 */
+  offscreen: {},
+};
+
+/* =========================== 常量 =========================== */
+const LANE_COUNT = 3;
+const PLAYER_LANE = 1;     // 玩家初始在中间轨道 (0=左, 1=中, 2=右)
+const MAX_HEARTS = 3;
+const INVINCIBLE_FRAMES = 90;  // 1.5秒 @ 60fps
+const BASE_SPEED = 3.5;
+const MAX_SPEED = 14;
+const SPEED_INC = 0.0004;      // 每帧加速量
+const DISTANCE_PER_FRAME = 0.6; // 每帧距离增量（米）
+const COIN_SCORE = 50;
+const DISTANCE_SCORE = 1;       // 每米分数
+
+/* 玩家动作状态 */
+const STATE_RUN = 'run';
+const STATE_JUMP = 'jump';
+const STATE_SLIDE = 'slide';
+const STATE_HIT = 'hit';
+
+/* 障碍物类型 */
+const OBS_LOW = 'low';       // 滑铲通过
+const OBS_MID = 'mid';       // 跳跃通过
+const OBS_HIGH = 'high';     // 必须换道
+
+/* =========================== 工具函数 =========================== */
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+/* 屏幕坐标：根据世界深度计算 screenY 和缩放比例 */
+function worldToScreen(dist) {
+  /* dist: 0 = 玩家脚下, maxDist = 地平线 */
+  const t = 1 - clamp(dist / G.maxDist, 0, 1);
+  const screenY = lerp(G.vanishY, G.groundY, t);
+  const scale = lerp(0.15, 1.0, t);
+  return { y: screenY, scale };
+}
+
+/* 轨道 X 坐标：根据深度 + 轨道索引计算 screenX */
+function laneX(laneIdx, dist) {
+  const t = 1 - clamp(dist / G.maxDist, 0, 1);
+  const spread = lerp(0, G.laneSpread, t);
+  const centerX = G.vanishX;
+  return centerX + (laneIdx - 1) * spread;
+}
+
+/* =========================== 初始化 =========================== */
+function init() {
+  G.canvas = document.getElementById('game');
+  G.ctx = G.canvas.getContext('2d', { alpha: false });
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* 加载最高分 */
+  try {
+    G.highScore = parseInt(localStorage.getItem('railRunner_highScore')) || 0;
+  } catch(e) { G.highScore = 0; }
+
+  /* 输入：键盘 */
+  window.addEventListener('keydown', e => {
+    G.keys[e.key] = true;
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+    }
+    if (G.state === 'start' && e.key === ' ') startGame();
+    if (G.state === 'dead' && e.key === ' ') restartGame();
+  });
+  window.addEventListener('keyup', e => { G.keys[e.key] = false; });
+
+  /* 输入：触屏 */
+  G.canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (G.state === 'start') { startGame(); return; }
+    if (G.state === 'dead') { restartGame(); return; }
+    const t = e.touches[0];
+    G.swipeStart = { x: t.clientX, y: t.clientY, time: Date.now() };
+  }, { passive: false });
+
+  G.canvas.addEventListener('touchend', e => {
+    if (!G.swipeStart) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - G.swipeStart.x;
+    const dy = t.clientY - G.swipeStart.y;
+    const dt = Date.now() - G.swipeStart.time;
+    const absDx = Math.abs(dx), absDy = Math.abs(dy);
+
+    if (Math.max(absDx, absDy) < 20) return; // 太小忽略
+
+    if (absDx > absDy) {
+      G.lastSwipe = dx > 0 ? 'right' : 'left';
+    } else {
+      G.lastSwipe = dy > 0 ? 'down' : 'up';
+    }
+    G.swipeStart = null;
+  });
+
+  /* 玩家 */
+  G.player = createPlayer();
+
+  /* 预渲染 */
+  preRenderAssets();
+
+  /* 启动循环 */
+  G.lastTime = performance.now();
+  requestAnimationFrame(gameLoop);
+}
+
+function resize() {
+  const container = document.getElementById('game-container');
+  const rect = container.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2); // 限制像素比
+  G.W = rect.width;
+  G.H = rect.height;
+  G.canvas.width = G.W * dpr;
+  G.canvas.height = G.H * dpr;
+  G.canvas.style.width = G.W + 'px';
+  G.canvas.style.height = G.H + 'px';
+  G.ctx.setTransform(1, 0, 0, 1, 0, 0);
+  G.ctx.scale(dpr, dpr);
+
+  /* 重新计算透视参数 */
+  G.vanishX = G.W * 0.5;
+  G.vanishY = G.H * 0.28;
+  G.groundY = G.H * 0.88;
+  G.laneSpread = G.W * 0.18;
+
+  /* 预渲染需要 resize */
+  preRenderAssets();
+}
+
+/* =========================== 预渲染资源 =========================== */
+function preRenderAssets() {
+  /* --- 天空渐变背景 --- */
+  const skyCanvas = document.createElement('canvas');
+  skyCanvas.width = G.W;
+  skyCanvas.height = G.H;
+  const skyCtx = skyCanvas.getContext('2d');
+  const grad = skyCtx.createLinearGradient(0, 0, 0, G.vanishY + 40);
+  grad.addColorStop(0, '#1a1a4e');
+  grad.addColorStop(0.5, '#2d4a8e');
+  grad.addColorStop(1, '#5ba3d9');
+  skyCtx.fillStyle = grad;
+  skyCtx.fillRect(0, 0, G.W, G.H);
+  G.offscreen.sky = skyCanvas;
+
+  /* --- 城市天际线（远景） --- */
+  const cityCanvas = document.createElement('canvas');
+  cityCanvas.width = G.W * 3; // 宽于屏幕用于视差滚动
+  cityCanvas.height = G.H * 0.25;
+  const cityCtx = cityCanvas.getContext('2d');
+  /* 建筑剪影 */
+  cityCtx.fillStyle = '#1a1a3e';
+  const buildings = [];
+  let bx = 0;
+  while (bx < cityCanvas.width) {
+    const bw = randInt(30, 100);
+    const bh = randInt(40, cityCanvas.height * 0.85);
+    buildings.push({ x: bx, w: bw, h: bh });
+    bx += bw + randInt(5, 20);
+  }
+  buildings.forEach(b => {
+    cityCtx.fillRect(b.x, cityCanvas.height - b.h, b.w, b.h);
+    /* 窗户光点 */
+    cityCtx.fillStyle = 'rgba(255,220,150,0.3)';
+    for (let wy = cityCanvas.height - b.h + 8; wy < cityCanvas.height - 8; wy += 12) {
+      for (let wx = b.x + 6; wx < b.x + b.w - 6; wx += 10) {
+        if (Math.random() < 0.4) cityCtx.fillRect(wx, wy, 3, 3);
+      }
+    }
+    cityCtx.fillStyle = '#1a1a3e';
+  });
+  G.offscreen.city = cityCanvas;
+
+  /* --- 近景建筑（更大、暖色调） --- */
+  const nearCanvas = document.createElement('canvas');
+  nearCanvas.width = G.W * 2;
+  nearCanvas.height = G.H * 0.35;
+  const nearCtx = nearCanvas.getContext('2d');
+  nearCtx.fillStyle = '#2a1a0a';
+  let nx = 0;
+  while (nx < nearCanvas.width) {
+    const nw = randInt(60, 160);
+    const nh = randInt(80, nearCanvas.height * 0.9);
+    nearCtx.fillRect(nx, nearCanvas.height - nh, nw, nh);
+    /* 更大更亮的窗户 */
+    nearCtx.fillStyle = 'rgba(255,200,100,0.2)';
+    for (let wy = nearCanvas.height - nh + 12; wy < nearCanvas.height - 10; wy += 16) {
+      for (let wx = nx + 10; wx < nx + nw - 10; wx += 14) {
+        if (Math.random() < 0.35) nearCtx.fillRect(wx, wy, 5, 6);
+      }
+    }
+    nearCtx.fillStyle = '#2a1a0a';
+    nx += nw + randInt(8, 30);
+  }
+  G.offscreen.nearCity = nearCanvas;
+
+  /* --- 玩家精灵 预渲染 --- */
+  G.offscreen.player = {};
+  ['run', 'jump', 'slide', 'hit'].forEach(state => {
+    const pc = document.createElement('canvas');
+    pc.width = 80; pc.height = 100;
+    drawPlayerSprite(pc.getContext('2d'), state, pc.width, pc.height);
+    G.offscreen.player[state] = pc;
+  });
+
+  /* --- 障碍物图块 --- */
+  G.offscreen.obstacles = {};
+  /* 低障碍（横杆） */
+  let oc = document.createElement('canvas'); oc.width=60; oc.height=20;
+  drawObstacleSprite(oc.getContext('2d'), OBS_LOW, oc.width, oc.height);
+  G.offscreen.obstacles[OBS_LOW] = oc;
+  /* 中障碍（信号灯箱） */
+  oc = document.createElement('canvas'); oc.width=40; oc.height=55;
+  drawObstacleSprite(oc.getContext('2d'), OBS_MID, oc.width, oc.height);
+  G.offscreen.obstacles[OBS_MID] = oc;
+  /* 高障碍（信号塔） */
+  oc = document.createElement('canvas'); oc.width=50; oc.height=120;
+  drawObstacleSprite(oc.getContext('2d'), OBS_HIGH, oc.width, oc.height);
+  G.offscreen.obstacles[OBS_HIGH] = oc;
+
+  /* --- 金币 --- */
+  const coinCanvas = document.createElement('canvas');
+  coinCanvas.width = 32; coinCanvas.height = 32;
+  drawCoinSprite(coinCanvas.getContext('2d'), coinCanvas.width, coinCanvas.height);
+  G.offscreen.coin = coinCanvas;
+
+  /* --- 粒子 --- */
+  const partCanvas = document.createElement('canvas');
+  partCanvas.width = 8; partCanvas.height = 8;
+  const partCtx = partCanvas.getContext('2d');
+  partCtx.fillStyle = '#fff';
+  partCtx.beginPath(); partCtx.arc(4,4,4,0,Math.PI*2); partCtx.fill();
+  G.offscreen.particle = partCanvas;
+}
+
+/* =========================== 精灵绘制 =========================== */
+function drawPlayerSprite(ctx, state, w, h) {
+  ctx.clearRect(0, 0, w, h);
+  const cx = w/2, cy = h * 0.55;
+
+  if (state === STATE_SLIDE) {
+    /* 压低身体贴地滑铲 */
+    /* 身体（横卧） */
+    ctx.fillStyle = '#e94560';
+    ctx.fillRect(cx-22, cy-8, 44, 18);
+    /* 连帽衫帽子 */
+    ctx.fillStyle = '#c23152';
+    ctx.beginPath(); ctx.arc(cx-14, cy-4, 10, 0, Math.PI*2); ctx.fill();
+    /* 腿（向后伸展） */
+    ctx.fillStyle = '#2d2d44';
+    ctx.fillRect(cx-10, cy+4, 28, 10);
+    ctx.fillStyle = '#e94560';
+    ctx.fillRect(cx+14, cy+6, 14, 7);
+    /* 运动鞋 */
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(cx+24, cy+7, 10, 6);
+    /* 手臂前伸 */
+    ctx.fillStyle = '#e94560';
+    ctx.fillRect(cx-28, cy-2, 12, 6);
+    ctx.fillStyle = '#ffd3b6';
+    ctx.fillRect(cx-30, cy-3, 6, 5);
+  } else if (state === STATE_JUMP) {
+    /* 跳跃腾空蜷缩 */
+    ctx.fillStyle = '#e94560';
+    ctx.fillRect(cx-12, cy-30, 24, 32);  // 身体（抬起）
+    ctx.fillStyle = '#c23152';
+    ctx.beginPath(); ctx.arc(cx, cy-36, 11, 0, Math.PI*2); ctx.fill(); // 头
+    /* 腿蜷缩 */
+    ctx.fillStyle = '#2d2d44';
+    ctx.fillRect(cx-10, cy+2, 10, 14);
+    ctx.fillRect(cx+2, cy+2, 10, 14);
+    ctx.fillStyle = '#e94560';
+    ctx.fillRect(cx-8, cy, 12, 18);
+    /* 鞋 */
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(cx-7, cy+14, 8, 5);
+    ctx.fillRect(cx+3, cy+14, 10, 5);
+    /* 手臂上摆 */
+    ctx.fillStyle = '#e94560';
+    ctx.fillRect(cx-18, cy-24, 8, 18);
+    ctx.fillStyle = '#ffd3b6';
+    ctx.beginPath(); ctx.arc(cx-14, cy-28, 5, 0, Math.PI*2); ctx.fill();
+  } else if (state === STATE_HIT) {
+    /* 被撞后仰 */
+    ctx.fillStyle = '#ff4444';
+    ctx.fillRect(cx-8, cy-24, 16, 28);
+    ctx.fillStyle = '#cc0000';
+    ctx.beginPath(); ctx.arc(cx, cy-32, 10, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#2d2d44';
+    ctx.fillRect(cx-8, cy+4, 8, 16);
+    ctx.fillRect(cx+2, cy+4, 8, 14);
+  } else {
+    /* 奔跑——默认姿态 */
+    /* 身体/连帽衫 */
+    ctx.fillStyle = '#e94560';
+    ctx.fillRect(cx-10, cy-28, 20, 30);
+    /* 帽子 */
+    ctx.fillStyle = '#c23152';
+    ctx.beginPath(); ctx.arc(cx, cy-34, 11, 0, Math.PI*2); ctx.fill();
+    /* 脸 */
+    ctx.fillStyle = '#ffd3b6';
+    ctx.beginPath(); ctx.arc(cx, cy-32, 7, 0, Math.PI*2); ctx.fill();
+    /* 裤腿 */
+    ctx.fillStyle = '#2d2d44';
+    ctx.fillRect(cx-10, cy+2, 8, 16);
+    ctx.fillRect(cx+4, cy+2, 8, 14);
+    /* 鞋 */
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(cx-11, cy+15, 10, 6);
+    ctx.fillRect(cx+3, cy+13, 11, 6);
+    /* 手臂摆动的腿反侧 */
+    ctx.fillStyle = '#ffd3b6';
+    ctx.fillRect(cx-14, cy-18, 5, 12);
+    ctx.fillRect(cx+12, cy-22, 5, 12);
+  }
+}
+
+function drawObstacleSprite(ctx, type, w, h) {
+  ctx.clearRect(0, 0, w, h);
+  if (type === OBS_LOW) {
+    /* 道口栏杆——低矮横杆 */
+    ctx.fillStyle = '#555';
+    ctx.fillRect(2, h/2-3, w-4, 6);     // 横杆
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(4, h/2-2, w-8, 4);      // 黄色警示条
+    ctx.fillStyle = '#333';
+    ctx.fillRect(w/2-3, h/2-10, 6, 14);  // 支柱
+    ctx.fillRect(6, h/2+2, 10, 8);       // 基座
+    ctx.fillRect(w-16, h/2+2, 10, 8);
+  } else if (type === OBS_MID) {
+    /* 信号灯箱 */
+    ctx.fillStyle = '#444';
+    ctx.fillRect(4, 4, w-8, h-12);
+    ctx.fillStyle = '#333';
+    ctx.fillRect(w/2-4, h-12, 8, 12);     // 支柱
+    /* 信号灯 */
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath(); ctx.arc(w/2, 10, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ffaa00';
+    ctx.beginPath(); ctx.arc(w/2, 22, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#00cc00';
+    ctx.beginPath(); ctx.arc(w/2, 34, 5, 0, Math.PI*2); ctx.fill();
+  } else if (type === OBS_HIGH) {
+    /* 信号塔基座——高、必须绕行 */
+    ctx.fillStyle = '#555';
+    ctx.fillRect(w/4, 10, w/2, h-16);
+    ctx.fillStyle = '#ff4444';
+    ctx.fillRect(w/4+2, 12, w/2-4, 8);
+    ctx.fillStyle = '#333';
+    ctx.fillRect(w/2-2, 28, 4, h-28);     // 高高的立柱
+    ctx.fillRect(w/4-2, h-6, w/2+4, 8);   // 宽底座
+  }
+}
+
+function drawCoinSprite(ctx, w, h) {
+  ctx.clearRect(0, 0, w, h);
+  /* 金币——外圈金、内圈亮 */
+  ctx.fillStyle = '#ffaa00';
+  ctx.beginPath(); ctx.arc(w/2, h/2, w/2-2, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ffdd44';
+  ctx.beginPath(); ctx.arc(w/2, h/2, w/2-5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ffe680';
+  ctx.beginPath(); ctx.arc(w/2-2, h/2-2, 3, 0, Math.PI*2); ctx.fill();
+}
+
+/* =========================== 对象池 =========================== */
+function poolGet(pool, factory) {
+  for (let i = 0; i < pool.length; i++) {
+    if (!pool[i].active) { pool[i].active = true; return pool[i]; }
+  }
+  const obj = factory();
+  obj.active = true;
+  pool.push(obj);
+  return obj;
+}
+
+function poolReleaseAll(pool) {
+  for (let i = 0; i < pool.length; i++) pool[i].active = false;
+}
+
+/* =========================== 创建对象 =========================== */
+function createPlayer() {
+  return {
+    lane: PLAYER_LANE,
+    targetLane: PLAYER_LANE,
+    state: STATE_RUN,
+    stateTimer: 0,
+    jumpVel: 0,
+    slideTimer: 0,
+    animFrame: 0,
+    animTimer: 0,
+    x: 0, y: 0,            // 屏幕坐标（每帧更新）
+    scale: 1,
+  };
+}
+
+function createObstacle(lane, type, dist) {
+  return {
+    active: true,
+    lane,
+    type,
+    dist,                  // 世界距离（从远处向玩家移动）
+    passed: false,
+  };
+}
+
+function createCoin(lane, dist) {
+  return {
+    active: true,
+    lane,
+    dist,
+    collected: false,
+    sparkTimer: 0,
+  };
+}
+
+function createParticle(x, y, vx, vy, life, color) {
+  return {
+    active: true,
+    x, y, vx, vy, life, maxLife: life,
+    color,
+    size: randInt(2, 5),
+  };
+}
+
+/* =========================== 游戏流程 =========================== */
+function startGame() {
+  G.state = 'playing';
+  G.score = 0;
+  G.distance = 0;
+  G.speed = BASE_SPEED;
+  G.hearts = MAX_HEARTS;
+  G.invincible = 0;
+  G.spawnTimer = 0;
+  G.spawnInterval = 55;
+  G.coinTimer = 0;
+  G.player = createPlayer();
+  poolReleaseAll(G.obstacles);
+  poolReleaseAll(G.coins);
+  poolReleaseAll(G.particles);
+}
+
+function restartGame() {
+  if (G.state === 'dead') startGame();
+}
+
+function die() {
+  G.state = 'dead';
+  G.player.state = STATE_HIT;
+  G.player.stateTimer = 0;
+  /* 保存最高分 */
+  if (G.score > G.highScore) {
+    G.highScore = G.score;
+    try { localStorage.setItem('railRunner_highScore', G.highScore); } catch(e) {}
+  }
+  /* 爆炸粒子 */
+  const s = G.player;
+  for (let i = 0; i < 25; i++) {
+    poolGet(G.particles, () => createParticle(0,0,0,0,0,'#fff'))
+      .x = s.x + (Math.random()-0.5)*50;
+    const p = G.particles[G.particles.length-1];
+    p.y = s.y + (Math.random()-0.5)*60;
+    p.vx = (Math.random()-0.5)*8;
+    p.vy = (Math.random()-0.5)*8;
+    p.life = randInt(20, 50);
+    p.maxLife = p.life;
+    p.color = randChoice(['#ff4444','#ffaa00','#ffe644','#ff6644','#fff']);
+  }
+}
+
+function hurtPlayer(damage) {
+  if (G.invincible > 0) return;
+  G.hearts -= damage;
+  G.invincible = INVINCIBLE_FRAMES;
+  if (G.hearts <= 0) {
+    G.hearts = 0;
+    die();
+  } else {
+    G.player.state = STATE_HIT;
+    G.player.stateTimer = 18; // 短暂后仰
+  }
+}
+
+/* =========================== 输入处理 =========================== */
+function processInput() {
+  if (G.state !== 'playing') return;
+
+  let moveLR = 0;
+  let jump = false;
+  let slide = false;
+
+  /* 键盘 */
+  if (G.keys['ArrowLeft'] || G.keys['a'] || G.keys['A']) moveLR = -1;
+  if (G.keys['ArrowRight'] || G.keys['d'] || G.keys['D']) moveLR = 1;
+  if (G.keys['ArrowUp'] || G.keys['w'] || G.keys['W']) jump = true;
+  if (G.keys['ArrowDown'] || G.keys['s'] || G.keys['S']) slide = true;
+
+  /* 触屏 */
+  if (G.lastSwipe === 'left') { moveLR = -1; G.lastSwipe = ''; }
+  if (G.lastSwipe === 'right') { moveLR = 1; G.lastSwipe = ''; }
+  if (G.lastSwipe === 'up') { jump = true; G.lastSwipe = ''; }
+  if (G.lastSwipe === 'down') { slide = true; G.lastSwipe = ''; }
+
+  const p = G.player;
+  /* 换道 */
+  if (moveLR !== 0 && p.state !== STATE_SLIDE) {
+    p.targetLane = clamp(p.targetLane + moveLR, 0, LANE_COUNT - 1);
+  }
+  /* 跳跃 */
+  if (jump && p.state === STATE_RUN) {
+    p.state = STATE_JUMP;
+    p.stateTimer = 28;
+    p.jumpVel = -7;
+  }
+  /* 滑铲 */
+  if (slide && p.state === STATE_RUN) {
+    p.state = STATE_SLIDE;
+    p.stateTimer = 22;
+  }
+
+  /* 消耗一次性按键 */
+  G.keys['ArrowUp'] = false; G.keys['w'] = false; G.keys['W'] = false;
+  G.keys['ArrowDown'] = false; G.keys['s'] = false; G.keys['S'] = false;
+}
+
+/* =========================== 游戏更新 =========================== */
+function update() {
+  if (G.state !== 'playing') return;
+
+  const p = G.player;
+
+  /* --- 速度 & 距离 --- */
+  G.speed = Math.min(G.speed + SPEED_INC, MAX_SPEED);
+  G.distance += G.speed * DISTANCE_PER_FRAME;
+  G.score = Math.floor(G.distance * DISTANCE_SCORE);
+
+  /* --- 无敌计时 --- */
+  if (G.invincible > 0) G.invincible--;
+
+  /* --- 轨道平滑切换 --- */
+  p.lane = lerp(p.lane, p.targetLane, 0.25);
+
+  /* --- 玩家状态 --- */
+  if (p.state === STATE_JUMP) {
+    p.stateTimer--;
+    if (p.stateTimer <= 0) {
+      p.state = STATE_RUN;
+      p.stateTimer = 0;
+    }
+  } else if (p.state === STATE_SLIDE) {
+    p.stateTimer--;
+    if (p.stateTimer <= 0) {
+      p.state = STATE_RUN;
+      p.stateTimer = 0;
+    }
+  } else if (p.state === STATE_HIT) {
+    p.stateTimer--;
+    if (p.stateTimer <= 0) {
+      p.state = STATE_RUN;
+    }
+  }
+
+  /* --- 动画帧 --- */
+  p.animTimer++;
+  if (p.animTimer > 8) {
+    p.animTimer = 0;
+    p.animFrame = (p.animFrame + 1) % 4;
+  }
+
+  /* --- 移动障碍物 --- */
+  for (let i = 0; i < G.obstacles.length; i++) {
+    const obs = G.obstacles[i];
+    if (!obs.active) continue;
+    obs.dist -= G.speed;
+    if (obs.dist < -30) { obs.active = false; continue; }
+    /* 碰撞检测（仅当障碍物接近玩家时） */
+    if (!obs.passed && obs.dist < 30 && obs.dist > -10) {
+      if (sameLane(obs)) {
+        /* 低障碍：滑铲可通过 */
+        if (obs.type === OBS_LOW && p.state === STATE_SLIDE) continue;
+        /* 中障碍：跳跃可通过 */
+        if (obs.type === OBS_MID && p.state === STATE_JUMP) continue;
+        /* 高障碍：必须换道——同轨即受伤 */
+        hurtPlayer(1);
+      }
+    }
+  }
+
+  /* --- 移动金币 --- */
+  for (let i = 0; i < G.coins.length; i++) {
+    const coin = G.coins[i];
+    if (!coin.active) continue;
+    coin.dist -= G.speed;
+    if (coin.dist < -30) { coin.active = false; continue; }
+    /* 收集检测 */
+    if (!coin.collected && coin.dist < 25 && coin.dist > -15 && Math.abs(coin.lane - p.lane) < 0.7) {
+      coin.collected = true;
+      coin.sparkTimer = 10;
+      G.score += COIN_SCORE;
+      /* 收集粒子 */
+      const s = worldToScreen(coin.dist);
+      const sx = laneX(coin.lane, coin.dist);
+      for (let j = 0; j < 6; j++) {
+        poolGet(G.particles, () => createParticle(0,0,0,0,0,'#ff0'))
+          .x = sx + (Math.random()-0.5)*20;
+        const pt = G.particles[G.particles.length-1];
+        pt.y = s.y + (Math.random()-0.5)*20;
+        pt.vx = (Math.random()-0.5)*4;
+        pt.vy = (Math.random()-0.5)*4 - 2;
+        pt.life = randInt(10, 25);
+        pt.maxLife = pt.life;
+        pt.color = randChoice(['#ffdd44','#ffaa00','#ffe680','#fff']);
+      }
+    }
+  }
+
+  /* --- 更新粒子 --- */
+  for (let i = 0; i < G.particles.length; i++) {
+    const pt = G.particles[i];
+    if (!pt.active) continue;
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.life--;
+    if (pt.life <= 0) pt.active = false;
+  }
+
+  /* --- 生成障碍物 --- */
+  G.spawnTimer++;
+  const interval = G.spawnInterval / (G.speed / BASE_SPEED);
+  if (G.spawnTimer >= interval) {
+    G.spawnTimer = 0;
+    spawnObstacle();
+  }
+
+  /* --- 生成金币 --- */
+  G.coinTimer++;
+  if (G.coinTimer > 25 + Math.random() * 20) {
+    G.coinTimer = 0;
+    spawnCoinRow();
+  }
+
+  /* --- 清理远处对象 --- */
+  cleanupPool(G.obstacles);
+  cleanupPool(G.coins);
+  cleanupPool(G.particles);
+
+  /* --- 计算玩家屏幕坐标 --- */
+  p.y = G.groundY;
+  if (p.state === STATE_JUMP) {
+    p.y = G.groundY - 55 - (p.stateTimer / 28) * 30;
+  }
+  p.scale = 1.0;
+  p.x = laneX(p.lane, 0);
+}
+
+/* =========================== 碰撞检测 =========================== */
+function sameLane(obs) {
+  return Math.abs(obs.lane - G.player.lane) < 0.6;
+}
+
+/* =========================== 对象生成 =========================== */
+function spawnObstacle() {
+  /* 选择一个障碍物类型 */
+  const speedRatio = (G.speed - BASE_SPEED) / (MAX_SPEED - BASE_SPEED);
+  let types;
+  if (speedRatio < 0.2) {
+    types = [OBS_LOW, OBS_LOW, OBS_MID];           // 早期：多低障碍
+  } else if (speedRatio < 0.5) {
+    types = [OBS_LOW, OBS_MID, OBS_MID, OBS_HIGH]; // 中期：引入中高障碍
+  } else {
+    types = [OBS_LOW, OBS_MID, OBS_HIGH, OBS_HIGH];// 后期：混合
+  }
+  const type = randChoice(types);
+
+  /* 选择轨道（避免堆叠） */
+  const lane = randInt(0, 2);
+
+  /* 检查同轨道前方是否有障碍物太近 */
+  for (let i = 0; i < G.obstacles.length; i++) {
+    const obs = G.obstacles[i];
+    if (obs.active && obs.lane === lane && obs.dist > G.maxDist - 100 && obs.dist < G.maxDist - 30) {
+      return; // 太近，跳过
+    }
+  }
+
+  poolGet(G.obstacles, () => createObstacle(0, OBS_LOW, 0));
+  const o = G.obstacles[G.obstacles.length - 1];
+  o.lane = lane;
+  o.type = type;
+  o.dist = G.maxDist;
+  o.passed = false;
+}
+
+function spawnCoinRow() {
+  /* 在一到两条轨道生成金币行 */
+  const count = randInt(1, 3);
+  const lanes = [];
+  while (lanes.length < count) {
+    const l = randInt(0, 2);
+    if (!lanes.includes(l)) lanes.push(l);
+  }
+  lanes.forEach(l => {
+    for (let d = G.maxDist - 30; d < G.maxDist + 20; d += 40) {
+      poolGet(G.coins, () => createCoin(0, 0));
+      const c = G.coins[G.coins.length - 1];
+      c.lane = l;
+      c.dist = d + Math.random() * 15;
+      c.collected = false;
+    }
+  });
+}
+
+function cleanupPool(pool) {
+  /* 只清理距离很远且已失效的对象，减少 splice 操作 */
+  /* 实际：对象池不真正删除，只标记 inactive 并在获取时复用 */
+}
+
+/* =========================== 渲染 =========================== */
+function render() {
+  const ctx = G.ctx;
+  ctx.clearRect(0, 0, G.W, G.H);
+
+  /* --- 天空 --- */
+  ctx.drawImage(G.offscreen.sky, 0, 0);
+
+  /* --- 远城市场景视差 --- */
+  const cityOffset = (G.distance * 0.15) % (G.W * 3);
+  ctx.drawImage(G.offscreen.city, -cityOffset, G.vanishY - 30, G.W, G.H*0.25, 0, G.vanishY - 30, G.W, G.H*0.25);
+
+  /* --- 近建筑视差 --- */
+  const nearOffset = (G.distance * 0.3) % (G.W * 2);
+  ctx.drawImage(G.offscreen.nearCity, -nearOffset, G.vanishY + 10, G.W, G.H*0.35, 0, G.vanishY + 10, G.W, G.H*0.35);
+
+  /* --- 地面 --- */
+  drawGround(ctx);
+
+  /* --- 轨道 --- */
+  drawTracks(ctx);
+
+  /* --- 收集所有需要深度排序的实体 --- */
+  const entities = [];
+
+  /* 障碍物 */
+  for (let i = 0; i < G.obstacles.length; i++) {
+    const o = G.obstacles[i];
+    if (!o.active) continue;
+    entities.push({ type:'obstacle', obj:o, dist:o.dist, lane:o.lane });
+  }
+
+  /* 金币 */
+  for (let i = 0; i < G.coins.length; i++) {
+    const c = G.coins[i];
+    if (!c.active || c.collected) continue;
+    entities.push({ type:'coin', obj:c, dist:c.dist, lane:c.lane });
+  }
+
+  /* 按距离排序（远处先画） */
+  entities.sort((a, b) => b.dist - a.dist);
+
+  /* --- 绘制所有实体 --- */
+  entities.forEach(e => {
+    const s = worldToScreen(e.dist);
+    if (s.y < G.vanishY - 20 || s.y > G.H + 20) return;
+    const sx = laneX(e.lane, e.dist);
+
+    if (e.type === 'obstacle') {
+      drawObstacle(ctx, e.obj, sx, s.y, s.scale);
+    } else if (e.type === 'coin') {
+      drawCoin(ctx, e.obj, sx, s.y, s.scale);
+    }
+  });
+
+  /* --- 玩家 --- */
+  drawPlayer(ctx);
+
+  /* --- 粒子（玩家上方） --- */
+  for (let i = 0; i < G.particles.length; i++) {
+    const p = G.particles[i];
+    if (!p.active) continue;
+    const alpha = p.life / p.maxLife;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+
+  /* --- HUD --- */
+  drawHUD(ctx);
+
+  /* --- 界面状态 --- */
+  if (G.state === 'start') drawStartScreen(ctx);
+  if (G.state === 'dead') drawDeathScreen(ctx);
+}
+
+/* =========================== 绘制地面 =========================== */
+function drawGround(ctx) {
+  /* 地面区域：从消失点下方到屏幕底 */
+  const groundTop = G.vanishY + 30;
+  const groundBot = G.H;
+
+  /* 碎石地表渐变 */
+  const grad = ctx.createLinearGradient(0, groundTop, 0, groundBot);
+  grad.addColorStop(0, '#8b7355');
+  grad.addColorStop(0.3, '#9b8b75');
+  grad.addColorStop(0.7, '#a09080');
+  grad.addColorStop(1, '#b0a090');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, groundTop, G.W, groundBot - groundTop);
+
+  /* 碎石纹理点 */
+  ctx.fillStyle = 'rgba(120,110,100,0.3)';
+  const seed = 42; // 固定种子保持稳定
+  for (let y = groundTop; y < groundBot; y += 12) {
+    for (let x = 0; x < G.W; x += 14) {
+      if (((x * 31 + y * 17 + seed) % 7) === 0) {
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+  }
+}
+
+/* =========================== 绘制轨道 =========================== */
+function drawTracks(ctx) {
+  for (let lane = 0; lane < LANE_COUNT; lane++) {
+    /* 钢轨 */
+    const railWidth = 5;
+
+    /* 左轨 */
+    ctx.strokeStyle = '#8899aa';
+    ctx.lineWidth = railWidth;
+    ctx.beginPath();
+    for (let d = 0; d <= G.maxDist; d += 20) {
+      const s = worldToScreen(d);
+      const lx = laneX(lane, d) - 8;
+      if (d === 0) ctx.moveTo(lx, s.y);
+      else ctx.lineTo(lx, s.y);
+    }
+    ctx.stroke();
+
+    /* 右轨 */
+    ctx.beginPath();
+    for (let d = 0; d <= G.maxDist; d += 20) {
+      const s = worldToScreen(d);
+      const rx = laneX(lane, d) + 8;
+      if (d === 0) ctx.moveTo(rx, s.y);
+      else ctx.lineTo(rx, s.y);
+    }
+    ctx.stroke();
+
+    /* 枕木 */
+    ctx.strokeStyle = '#6b5b4a';
+    ctx.lineWidth = 3;
+    for (let d = 20; d < G.maxDist; d += 60) {
+      const s = worldToScreen(d);
+      const lx = laneX(lane, d);
+      ctx.beginPath();
+      ctx.moveTo(lx - 10, s.y);
+      ctx.lineTo(lx + 10, s.y);
+      ctx.stroke();
+    }
+  }
+}
+
+/* =========================== 绘制障碍物 =========================== */
+function drawObstacle(ctx, obs, sx, sy, scale) {
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.scale(scale, scale);
+
+  const sprite = G.offscreen.obstacles[obs.type];
+  if (sprite) {
+    ctx.drawImage(sprite, -sprite.width/2, -sprite.height/2);
+  }
+
+  ctx.restore();
+}
+
+/* =========================== 绘制金币 =========================== */
+function drawCoin(ctx, coin, sx, sy, scale) {
+  ctx.save();
+  ctx.translate(sx, sy);
+  /* 金币旋转效果 */
+  const rot = (G.frameCount * 0.05 + coin.dist * 0.1) % (Math.PI * 2);
+  const squish = Math.abs(Math.cos(rot));
+  ctx.scale(squish * scale, scale);
+  const sprite = G.offscreen.coin;
+  if (sprite) {
+    ctx.drawImage(sprite, -sprite.width/2, -sprite.height/2);
+  }
+  ctx.restore();
+}
+
+/* =========================== 绘制玩家 =========================== */
+function drawPlayer(ctx) {
+  const p = G.player;
+  ctx.save();
+  ctx.translate(p.x, p.y);
+
+  /* 无敌闪烁 */
+  if (G.invincible > 0 && Math.floor(G.invincible / 4) % 2 === 0) {
+    ctx.globalAlpha = 0.4;
+  }
+
+  /* 奔跑时的上下起伏 */
+  let bounceY = 0;
+  if (p.state === STATE_RUN) {
+    bounceY = Math.sin(G.frameCount * 0.4) * 2;
+  }
+
+  /* 阴影 */
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(0, 14, 18, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.translate(0, bounceY);
+
+  const sprite = G.offscreen.player[p.state];
+  if (sprite) {
+    ctx.drawImage(sprite, -sprite.width/2, -sprite.height/2 + 8);
+  }
+
+  ctx.restore();
+}
+
+/* =========================== HUD =========================== */
+function drawHUD(ctx) {
+  if (G.state !== 'playing' && G.state !== 'dead') return;
+
+  /* 左上——血量 */
+  const heartSize = 18;
+  for (let i = 0; i < MAX_HEARTS; i++) {
+    const hx = 16 + i * (heartSize + 6);
+    const hy = 16;
+    if (i < G.hearts) {
+      /* 满血——红色心 */
+      drawHeart(ctx, hx, hy, heartSize, '#e94560');
+    } else {
+      /* 空血——灰色 */
+      drawHeart(ctx, hx, hy, heartSize, '#444');
+    }
+  }
+
+  /* 顶部居中——分数 */
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 28px "Segoe UI","PingFang SC",sans-serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 4;
+  ctx.fillText(Math.floor(G.score), G.W / 2, 40);
+  ctx.shadowBlur = 0;
+
+  /* 右上——速度指示 */
+  const speedPct = Math.floor((G.speed - BASE_SPEED) / (MAX_SPEED - BASE_SPEED) * 100);
+  ctx.fillStyle = speedPct > 70 ? '#ff6644' : '#aaccff';
+  ctx.font = '12px "Segoe UI","PingFang SC",sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('速度 ' + speedPct + '%', G.W - 14, 28);
+}
+
+function drawHeart(ctx, x, y, size, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  const s = size / 20;
+  ctx.moveTo(x, y + size * 0.35);
+  /* 左半 */
+  ctx.bezierCurveTo(x, y + size*0.15, x - size*0.45, y - size*0.15, x - size*0.45, y + size*0.25);
+  ctx.bezierCurveTo(x - size*0.45, y + size*0.6, x, y + size*0.8, x, y + size);
+  /* 右半 */
+  ctx.bezierCurveTo(x, y + size*0.8, x + size*0.45, y + size*0.6, x + size*0.45, y + size*0.25);
+  ctx.bezierCurveTo(x + size*0.45, y - size*0.15, x, y + size*0.15, x, y + size*0.35);
+  ctx.fill();
+}
+
+/* =========================== 界面 =========================== */
+function drawStartScreen(ctx) {
+  /* 半透明遮罩 */
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(0, 0, G.W, G.H);
+
+  /* 标题 */
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 48px "Segoe UI","PingFang SC",sans-serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#e94560';
+  ctx.shadowBlur = 20;
+  ctx.fillText('轨道跑者', G.W/2, G.H * 0.3);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = '#ffcc00';
+  ctx.font = 'bold 18px "Segoe UI","PingFang SC",sans-serif';
+  ctx.fillText('RAIL RUNNER', G.W/2, G.H * 0.3 + 40);
+
+  /* 操作说明 */
+  ctx.fillStyle = '#ddd';
+  ctx.font = '16px "Segoe UI","PingFang SC",sans-serif';
+  const instructions = [
+    '← →  切换轨道',
+    '↑  跳跃  |  ↓  滑铲',
+    '空格键  开始 / 重来',
+  ];
+  instructions.forEach((txt, i) => {
+    ctx.fillText(txt, G.W/2, G.H * 0.55 + i * 28);
+  });
+
+  /* 最高分 */
+  if (G.highScore > 0) {
+    ctx.fillStyle = '#ffdd44';
+    ctx.font = 'bold 20px "Segoe UI","PingFang SC",sans-serif';
+    ctx.fillText('最高分: ' + G.highScore, G.W/2, G.H * 0.74);
+  }
+
+  /* 提示 */
+  const alpha = 0.5 + 0.5 * Math.sin(G.frameCount * 0.05);
+  ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  ctx.font = '18px "Segoe UI","PingFang SC",sans-serif';
+  ctx.fillText('点击屏幕 或 按空格键 开始', G.W/2, G.H * 0.85);
+}
+
+function drawDeathScreen(ctx) {
+  /* 半透明遮罩 */
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, G.W, G.H);
+
+  /* 得分面板背景 */
+  const panelW = G.W * 0.7;
+  const panelH = G.H * 0.35;
+  const panelX = (G.W - panelW) / 2;
+  const panelY = G.H * 0.25;
+  ctx.fillStyle = 'rgba(20,20,40,0.9)';
+  ctx.strokeStyle = '#e94560';
+  ctx.lineWidth = 2;
+  roundRect(ctx, panelX, panelY, panelW, panelH, 16);
+  ctx.fill();
+  ctx.stroke();
+
+  /* 标题 */
+  ctx.fillStyle = '#e94560';
+  ctx.font = 'bold 28px "Segoe UI","PingFang SC",sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('游戏结束', G.W/2, panelY + 45);
+
+  /* 本次得分 */
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 24px "Segoe UI","PingFang SC",sans-serif';
+  ctx.fillText('得分: ' + Math.floor(G.score), G.W/2, panelY + 80);
+
+  /* 距离 */
+  ctx.fillStyle = '#aaa';
+  ctx.font = '16px "Segoe UI","PingFang SC",sans-serif';
+  ctx.fillText('距离: ' + Math.floor(G.distance) + ' 米', G.W/2, panelY + 108);
+
+  /* 最高分 */
+  const isNew = G.score >= G.highScore && G.highScore > 0;
+  ctx.fillStyle = isNew ? '#ffdd44' : '#aaa';
+  ctx.font = 'bold 18px "Segoe UI","PingFang SC",sans-serif';
+  ctx.fillText((isNew ? '🎉 新纪录！' : '最高分: ') + G.highScore, G.W/2, panelY + 135);
+
+  /* 重来提示 */
+  const alpha = 0.5 + 0.5 * Math.sin(G.frameCount * 0.06);
+  ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  ctx.font = '18px "Segoe UI","PingFang SC",sans-serif';
+  ctx.fillText('点击屏幕 或 按空格键 重来', G.W/2, panelY + panelH + 40);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+/* =========================== 游戏主循环 =========================== */
+function gameLoop(timestamp) {
+  G.deltaTime = timestamp - G.lastTime;
+  G.lastTime = timestamp;
+
+  /* FPS 计算 */
+  G.frameCount++;
+  G.fpsTime += G.deltaTime;
+  if (G.fpsTime >= 1000) {
+    G.fps = G.frameCount;
+    G.frameCount = 0;
+    G.fpsTime = 0;
+  }
+
+  processInput();
+  update();
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+/* =========================== 启动 =========================== */
+init();
+</script>
+</body>
+</html>

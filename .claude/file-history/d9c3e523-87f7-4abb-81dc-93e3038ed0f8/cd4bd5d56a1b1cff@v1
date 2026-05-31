@@ -1,0 +1,32 @@
+<!-- STATUS -->
+Epic: Tier 2 视觉与玩法增强
+Feature: 火车系统 / 地形坡道 / 视差天际线 / 触屏完善
+Task: 全部代码完成，待浏览器测试
+<!-- /STATUS -->
+
+# Session State — 2026-05-30
+
+## 本次会话完成
+- [x] **火车系统** — 动态轨道障碍物，3-6节车厢，比玩家快15%，逐节碰撞检测，闪避 combo
+  - 常量: TRAIN_SPAWN_INTERVAL=600, TRAIN_CAR_COUNT_MIN=3/MAX=6, TRAIN_CAR_LENGTH=70, TRAIN_SPEED_FACTOR=1.15, TRAIN_CAR_HEIGHT=38
+  - 新增函数: spawnTrain(), updateTrains(p), drawTrain(ctx, ...)
+  - 集成: updateSpawning, updateFinalize, renderEntities (front/behind)
+  - 渲染: 车身/车顶/3窗/底盘/2轮/车厢连接器
+- [x] **地形坡道** — drawEmbankments() 轨道两侧绿色梯形护坡，透视缩放
+- [x] **轨旁景物** — drawTracksideScenery() 电杆(含横梁+瓷瓶) + 灌木丛
+- [x] **视差天际线完善** — 远山(3噪声层+雪顶, 4x宽) + 云层(12朵独立云, 3x宽)
+- [x] **视差 wrapping 修复** — 山、云、城市天际线、近景建筑均正确处理边界回绕
+- [x] **滑铲动画升级** — 6帧 SLIDE_POSES[6]，-90°旋转，smooth cubic ease-in/out 插值
+- [x] **触屏完善** — touchmove preventDefault 阻止移动端滚动
+
+## 代码状态
+- `src/index.html` — ~2598行，JS语法验证通过
+- 新增常量: TRAIN_*, PARALLAX_MOUNTAIN, PARALLAX_CLOUD
+- 新增函数: drawEmbankments, drawTracksideScenery, spawnTrain, updateTrains, drawTrain
+- G.offscreen: 新增 mountains, clouds
+- G.trains: [] 对象池，G.trainSpawnTimer
+
+## 待办
+- [ ] 玩家测试——火车视觉效果、滑铲动画、视差天际线
+- [ ] Tier 3：移动端真机触屏测试
+- [ ] Tier 3：性能分析（新增山/云/火车/地形对帧率的影响）

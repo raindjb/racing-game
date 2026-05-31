@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(claude plugin *)",
+      "Bash(printf 'Write-Host \"=== Network Adapters ===\"; Get-NetAdapter | Where-Object { $_.Status -eq \"Up\" } | Format-Table Name, InterfaceDescription, LinkSpeed, DriverVersion -AutoSize\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_net1.ps1)",
+      "Bash(printf 'Write-Host \"=== Power Plan ===\"; powercfg /GetActiveScheme; Write-Host \"\"; Write-Host \"=== Game Mode ===\"; Get-ItemProperty -Path \"HKCU:\\\\Software\\\\Microsoft\\\\GameBar\" -Name AllowAutoGameMode -ErrorAction SilentlyContinue; Get-ItemProperty -Path \"HKCU:\\\\Software\\\\Microsoft\\\\GameBar\" -Name AutoGameModeEnabled -ErrorAction SilentlyContinue\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_sys.ps1)",
+      "Bash(printf 'Write-Host \"=== TCP Settings ===\"; netsh int tcp show global; Write-Host \"\"; Write-Host \"=== DNS ===\"; Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object { $_.ServerAddresses.Count -gt 0 } | Format-Table InterfaceAlias, ServerAddresses -AutoSize\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_net2.ps1)",
+      "Bash(printf 'Write-Host \"=== Network Adapter Advanced ===\"; Get-NetAdapterAdvancedProperty -Name \"*\" | Where-Object { $_.DisplayName -match \"RSS|Interrupt|Moderation|Offload|Jumbo|Coalescing|Flow|Buffer|Queue|Energy|Green|Wake|Power\" } | Format-Table Name, DisplayName, DisplayValue -AutoSize\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_net3.ps1)",
+      "Bash(printf 'Write-Host \"=== All NIC Advanced Settings ===\"; Get-NetAdapter -Name \"*以太网*\" -ErrorAction SilentlyContinue | Get-NetAdapterAdvancedProperty | Format-Table DisplayName, DisplayValue, RegistryKeyword -AutoSize\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_nic.ps1)",
+      "Bash(printf 'Write-Host \"=== UDP Stats ===\"; netsh int udp show global; Write-Host \"\"; Write-Host \"=== Network Offload ===\"; netsh int ip show offload; Write-Host \"\"; Write-Host \"=== Heuristics ===\"; netsh int tcp show heuristics\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_net4.ps1)",
+      "Bash(printf 'Write-Host \"=== Current Ping Test \\(baidu\\) ===\"; ping -n 10 baidu.com; Write-Host \"\"; Write-Host \"=== Path MTU ===\"; netsh int ipv4 show interfaces\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_ping.ps1)",
+      "Bash(printf 'Write-Host \"=== GPU Driver Settings ===\"; Write-Host \"Anti-Lag:\"; Get-ItemProperty -Path \"HKLM:\\\\SYSTEM\\\\CurrentControlSet\\\\Control\\\\Class\\\\{4d36e968-e325-11ce-bfc1-08002be10318}\\\\0000\" -Name \"KMD_AntiLag\" -ErrorAction SilentlyContinue; Write-Host \"Radeon Boost:\"; Get-ItemProperty -Path \"HKLM:\\\\SYSTEM\\\\CurrentControlSet\\\\Control\\\\Class\\\\{4d36e968-e325-11ce-bfc1-08002be10318}\\\\0000\" -Name \"KMD_RadeonBoost\" -ErrorAction SilentlyContinue; Write-Host \"Surface Format Optimization:\"; Get-ItemProperty -Path \"HKLM:\\\\SYSTEM\\\\CurrentControlSet\\\\Control\\\\Class\\\\{4d36e968-e325-11ce-bfc1-08002be10318}\\\\0000\" -Name \"KMD_SurfaceFormatOptimizations\" -ErrorAction SilentlyContinue\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_amd.ps1)",
+      "Bash(printf 'Write-Host \"=== Tracert to 111.63.65.247 ===\"; tracert -d -h 15 111.63.65.247\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_trace.ps1)",
+      "Bash(printf 'Write-Host \"=== Power Plans ===\"; powercfg /L; Write-Host \"\"; Write-Host \"=== PowerX Details ===\"; powercfg /Q 66666666-6666-6666-6666-666666666666 | Select-String -Pattern \"Processor|PCI|Network|Interrupt|Throttl|Parking|Minimum|Maximum|Cooling|Policy\" | Select-Object -First 20\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_pwr.ps1)",
+      "Bash(printf 'Write-Host \"=== NIC Power Management ===\"; Get-CimInstance -ClassName MSPower_DeviceEnable -Namespace \"root/WMI\" -ErrorAction SilentlyContinue | Where-Object { $_.InstanceName -match \"Realtek\" -or $_.InstanceName -match \"ethernet\" -or $_.InstanceName -match \"以太\" } | Format-List; Write-Host \"\"; Get-NetAdapter | Where-Object { $_.Status -eq \"Up\" } | ForEach-Object { Write-Host \"--- $\\($_.Name\\) ---\"; Get-NetAdapterPowerManagement -Name $_.Name -ErrorAction SilentlyContinue | Format-List }\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_nicpm.ps1)",
+      "Bash(printf 'Write-Host \"=== Ultimate Performance CPU Settings ===\"; powercfg /Q a1841308-3541-4fab-bc81-f71556f20b4a | Select-String -Pattern \"Minimum|Maximum|Throttl|Parking|Cooling|Policy|Latency|Idle|Perf\" | Select-Object -First 15; Write-Host \"\"; Write-Host \"=== PowerX CPU Settings ===\"; powercfg /Q 66666666-6666-6666-6666-666666666666 | Select-String -Pattern \"Minimum|Maximum|Throttl|Parking|Cooling|Policy|Latency|Idle|Perf\" | Select-Object -First 15\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_pwr2.ps1)",
+      "Bash(printf 'Write-Host \"=== DNS Benchmark \\(baidu.com\\) ===\"; Write-Host \"Current DNS \\(192.168.1.1\\):\"; Measure-Command { Resolve-DnsName baidu.com -Server 192.168.1.1 -ErrorAction SilentlyContinue } | Select-Object TotalMilliseconds; Write-Host \"114 DNS:\"; Measure-Command { Resolve-DnsName baidu.com -Server 114.114.114.114 -ErrorAction SilentlyContinue } | Select-Object TotalMilliseconds; Write-Host \"Ali DNS:\"; Measure-Command { Resolve-DnsName baidu.com -Server 223.5.5.5 -ErrorAction SilentlyContinue } | Select-Object TotalMilliseconds; Write-Host \"DNSPod:\"; Measure-Command { Resolve-DnsName baidu.com -Server 119.29.29.29 -ErrorAction SilentlyContinue } | Select-Object TotalMilliseconds\\\\n')",
+      "Bash(powershell -ExecutionPolicy Bypass -File /tmp/cs_dns.ps1)",
+      "Bash(bash -c 'ls -d ~/.claude/projects/*/')"
+    ]
+  }
+}

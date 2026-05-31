@@ -1,0 +1,50 @@
+<!-- STATUS -->
+Epic: 赛车游戏 Bug 修复
+Feature: 透视投影 + 配置 + 输入修复
+Task: 6个新bug修复，待浏览器验证
+<!-- /STATUS -->
+
+# Session State — 2026-05-31 (续4)
+
+## 本轮修复 (6项)
+
+### Bug 1-2: 透视投影重构 `_projectSegment`
+- **根因**: 用世界空间Z坐标 (`seg.worldZ - cam.y`) 代替路径距离 `dz` 做深度
+- **根因2**: `sy = H/2 + dy*scale` 使远处道路往下跑，方向反了
+- **修复**: `sy = H - dz * scale + elevation * scale`
+  - dz=0 → sy=H (道路在屏幕底部)
+  - dz→∞ → sy→horizon (远处收敛到地平线)
+- **移除**: `ROAD_V_OFFSET` 项 (已不再需要)
+
+### Bug 3: 车道扭曲/车不动
+- 是 Bug 1+2 的症状: 圆形赛道 worldZ 循环 → 段乱序 + 透视反转 → 画面不动
+- 修复 Bug 1+2 即修复 Bug 3
+
+### Bug 4: 配置冲突
+- `ACCELERATION`: 0.15 → 0.08 (匹配 ensurePlayerConfig)
+- `FRICTION`: 0.96 → 0.985 (匹配 ensurePlayerConfig)
+
+### Bug 5: Boost 帧单位当秒数
+- `BOOST_DURATION`: 90 frames → 1.5 seconds
+- `BOOST_COOLDOWN`: 300 frames → 3.0 seconds
+
+### Bug 6: Space 键 boost 死代码
+- `_onKeyDown`: Space/Enter 提前 return 前加了 `_keysDown[e.code] = true`
+- Space 键现在可以触发 boost
+
+## 全部修复汇总
+| 轮次 | 数量 | 范围 |
+|------|------|------|
+| 上一轮 | 16项 | 渲染管线、坐标约定、透视计算、碰撞、minimap、道路边缘、相机初始化、Space键 |
+| 本轮 | 6项 | 透视投影重构、配置修复、输入修复 |
+
+## 待验证
+1. 打开 `src/racing/index.html`
+2. Enter/Space → 倒计时 → ↑ 加速
+3. 确认画面不滚动 ✓(上轮已修)
+4. **确认赛道形状正常（重点验证）**
+5. **确认车辆正常移动（重点验证）**
+6. 确认 Space 键可以 boost
+
+## 文件
+- `src/racing/index.html` — ~10042行

@@ -1,0 +1,84 @@
+'Admin' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'Run' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'ling' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+系统找不到指定的路径。
+'o' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'PO' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+系统找不到指定的路径。
+'o' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'TCP...' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'l' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'l' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'etting' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'n' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'ip' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'face' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'Ethernet' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+一个或多个重要的参数没有输入。
+请验证需要的参数，然后再次输入。
+此命令提供的语法不正确。请查看帮助以获取正确的语法信息。
+
+用法: set dnsservers [name=]<字符串> [source=]dhcp|static
+             [[address=]<IP 地址>|none]
+             [[register=]none|primary|both]
+             [[validate=]yes|no]
+
+参数:
+
+      标记           值
+      name         - 接口的名称或索引。
+      source       - 下列值之一:
+                     dhcp: 将 DHCP 设置为源，以便为特定接口配置 DNS
+                            服务器。
+                     static: 将用于配置 DNS 服务器的源设置为
+                             本地静态配置。
+      address      - 下列值之一:
+                     <IP address>: DNS 服务器的 IP 地址。
+                     none: 清除 DNS 服务器的列表。
+      register     - 下列值之一:
+                     none: 禁用动态 DNS 注册。
+                     primary: 仅在主 DNS 后缀下注册。
+                     both: 在主 DNS 后缀下注册，同时在特定连接后缀下
+                           注册。
+      validate     - 指定是否将验证 DNS 服务器
+                     设置。默认情况下，值为 yes。
+
+备注: 将 DNS 服务器配置设置为 DHCP 或静态模式。仅当
+      源为 "static" 时，"addr" 选项还可用于为指定的接口
+      配置 DNS 服务器的 IP 地址静态列表。
+      如果 Validate 开关为 yes，
+      则验证新设置的 DNS 服务器。
+
+示例:
+
+       set dnsservers name="Wired Ethernet Connection" source=dhcp
+       set dnsservers "Wired Ethernet Connection" static 10.0.0.1 primary
+
+'etsh' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+  Done (using interface name
+
+============================================
+  ALL DONE. REBOOT REQUIRED.
+============================================
+
+Changes applied:
+  HAGS - OFF (reboot to take effect)
+  MPO - OFF (reboot to take effect)
+  TCP Timestamps - disabled
+  TCP Initial RTO - 300ms
+  DNS - 223.5.5.5 / 119.29.29.29

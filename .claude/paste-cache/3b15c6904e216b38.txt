@@ -1,0 +1,185 @@
+全部读完。CrewAI 主仓库没有 examples 目录，示例在外部仓库。写索引。
+# Wrote repos\crewAI\DEMO_INDEX.md
+# CrewAI 示例索引
+
+> 基于 ~/repos/crewAI 全部文件扫描生成。
+
+## 重要发现
+
+**CrewAI 主仓库不包含可运行的示例代码。** 所有示例在外部仓库：
+- `crewAI-examples`: https://github.com/crewAIInc/crewAI-examples
+- `crewAI-quickstarts`: https://github.com/crewAIInc/crewAI-quickstarts
+
+主仓库内只有 **CLI 模板**（脚手架生成新项目用的模板）。
+
+---
+
+## 仓库内模板文件
+
+### Crew 模板（`crewai create crew <name>` 生成的项目结构）
+
+| 文件路径 | 功能描述 | API Key | DeepSeek 替代 | 复杂度 |
+|----------|----------|---------|---------------|--------|
+| `lib/cli/src/crewai_cli/templates/crew/main.py` | Crew 入口，含 run/train/replay/test 函数 | 无（模板） | N/A | 简单 (90行) |
+| `lib/cli/src/crewai_cli/templates/crew/crew.py` | Crew 定义，researcher + reporting_analyst 两个 agent | 无（模板） | N/A | 简单 (48行) |
+| `lib/cli/src/crewai_cli/templates/crew/config/agents.yaml` | Agent 角色定义（研究员 + 分析师） | 无 | N/A | 简单 (19行) |
+| `lib/cli/src/crewai_cli/templates/crew/config/tasks.yaml` | 任务定义（研究 + 报告） | 无 | N/A | 简单 (17行) |
+| `lib/cli/src/crewai_cli/templates/crew/tools/custom_tool.py` | 自定义工具模板 | 无 | N/A | 简单 (18行) |
+
+### Flow 模板（`crewai create flow <name>` 生成的项目结构）
+
+| 文件路径 | 功能描述 | API Key | DeepSeek 替代 | 复杂度 |
+|----------|----------|---------|---------------|--------|
+| `lib/cli/src/crewai_cli/templates/flow/main.py` | Flow 入口，ContentFlow（plan→generate→save） | 无（模板） | N/A | 中等 (89行) |
+| `lib/cli/src/crewai_cli/templates/flow/crews/content_crew/content_crew.py` | ContentCrew 定义（planner + writer + editor） | 无（模板） | N/A | 简单 (60行) |
+| `lib/cli/src/crewai_cli/templates/flow/crews/content_crew/config/agents.yaml` | 3 个 agent 角色定义 | 无 | N/A | 简单 (33行) |
+| `lib/cli/src/crewai_cli/templates/flow/crews/content_crew/config/tasks.yaml` | 3 个任务定义（规划→写作→编辑） | 无 | N/A | 简单 (50行) |
+| `lib/cli/src/crewai_cli/templates/flow/tools/custom_tool.py` | 自定义工具模板 | 无 | N/A | 简单 (20行) |
+
+### Tool 模板（`crewai create tool <name>` 生成的项目结构）
+
+| 文件路径 | 功能描述 | API Key | DeepSeek 替代 | 复杂度 |
+|----------|----------|---------|---------------|--------|
+| `lib/cli/src/crewai_cli/templates/tool/src/{{folder_name}}/tool.py` | 工具发布模板 | 无 | N/A | 简单 |
+
+---
+
+## 外部示例仓库（需单独 clone）
+
+### crewAI-examples（https://github.com/crewAIInc/crewAI-examples）
+
+文档中列出的主要示例：
+
+| 示例名 | 功能描述 | API Key | DeepSeek 替代 | 复杂度 |
+|--------|----------|---------|---------------|--------|
+| **Marketing Strategy** | 多 agent 营销策划 | OpenAI | 可以（通过 LLM 配置） | 中等 |
+| **Surprise Trip** | 个性化旅行规划 | OpenAI | 可以 | 中等 |
+| **Match Profile to Positions** | 简历匹配职位（向量搜索） | OpenAI | 可以 | 复杂 |
+| **Job Posting** | 自动生成职位描述 | OpenAI | 可以 | 中等 |
+| **Game Builder Crew** | 多 agent 团队开发 Python 游戏 | OpenAI | 可以 | 复杂 |
+| **Recruitment** | 候选人筛选和评估 | OpenAI | 可以 | 中等 |
+| **Trip Planner** | 旅行规划（官方 demo） | OpenAI + Serper | 可以 | 中等 |
+| **Stock Analysis** | 股票分析 | OpenAI | 可以 | 中等 |
+
+### crewAI-examples Flows
+
+| 示例名 | 功能描述 | API Key | DeepSeek 替代 | 复杂度 |
+|--------|----------|---------|---------------|--------|
+| **Content Creator Flow** | 多 crew 内容生成 + 路由 | OpenAI | 可以 | 复杂 |
+| **Email Auto Responder** | 自动邮件监控和回复 | OpenAI | 可以 | 复杂 |
+| **Lead Score Flow** | Lead 评分 + 人工审核 | OpenAI | 可以 | 中等 |
+| **Meeting Assistant Flow** | 会议助手 + 集成 | OpenAI | 可以 | 复杂 |
+| **Self Evaluation Loop** | 迭代自改进工作流 | OpenAI | 可以 | 中等 |
+| **Write a Book (Flows)** | 并行章节生成 | OpenAI | 可以 | 复杂 |
+
+### crewAI-quickstarts（https://github.com/crewAIInc/crewAI-quickstarts）
+
+| 示例名 | 功能描述 | API Key | DeepSeek 替代 | 复杂度 |
+|--------|----------|---------|---------------|--------|
+| **Collaboration** | 多 agent 协作模式 | OpenAI | 可以 | 简单（notebook） |
+| **Planning** | 多步规划能力 | OpenAI | 可以 | 简单（notebook） |
+| **Reasoning** | 自我反思循环 | OpenAI | 可以 | 简单（notebook） |
+| **Structured Guardrails** | 任务级护栏 + 重试 | OpenAI | 可以 | 简单（notebook） |
+| **Gemini Search & Grounding** | Gemini 搜索集成 | Google | N/A | 中等 |
+| **Gemini Video Summaries** | Gemini 视频摘要 | Google | N/A | 中等 |
+
+---
+
+## DeepSeek 替代方案
+
+CrewAI 支持通过 `crewai.LLM` 配置任何 OpenAI 兼容 API：
+
+```python
+from crewai import LLM
+
+# DeepSeek 替代
+llm = LLM(
+    model="openai/deepseek-chat",  # 或 "openai/deepseek-reasoner"
+    base_url="https://api.deepseek.com/v1",
+    api_key="sk-...",
+)
+
+# 或通过环境变量
+# .env:
+# OPENAI_API_KEY=sk-...
+# OPENAI_API_BASE=https://api.deepseek.com/v1
+# MODEL=openai/deepseek-chat
+```
+
+所有使用 OpenAI 的示例都可以通过这种方式切换到 DeepSeek。
+
+---
+
+## 装好后直接跑的路径
+
+### 最快路径：scaffold + 跑模板
+
+```bash
+# 1. 安装 CrewAI
+uv pip install crewai
+
+# 2. 生成 Crew 项目
+crewai create crew my_first_crew --skip_provider
+cd my_first_crew
+
+# 3. 配置 DeepSeek
+echo 'OPENAI_API_KEY=sk-your-deepseek-key' > .env
+echo 'OPENAI_API_BASE=https://api.deepseek.com/v1' >> .env
+echo 'MODEL=openai/deepseek-chat' >> .env
+
+# 4. 安装依赖
+crewai install
+
+# 5. 跑
+crewai run
+```
+
+### 最快路径：scaffold Flow 项目
+
+```bash
+# 1. 生成 Flow 项目
+crewai create flow my_first_flow --skip_provider
+cd my_first_flow
+
+# 2. 同上配置 DeepSeek .env
+
+# 3. 安装依赖
+crewai install
+
+# 4. 跑
+crewai run
+```
+
+### 外部示例路径
+
+```bash
+# 1. clone 示例仓库
+git clone https://github.com/crewAIInc/crewAI-examples.git
+cd crewAI-examples/crews/trip_planner
+
+# 2. 配置 .env
+
+# 3. crewai install && crewai run
+```
+
+---
+
+## 推荐首选运行：`crewai create crew my_first_crew --skip_provider`
+
+**理由：**
+1. **零额外 clone** — 模板已在本地仓库内，不需要联网下载
+2. **依赖最少** — 只需 `crewai` 一个包，不需要 `crewai-tools`、`SerperDevTool` 等
+3. **可直接用 DeepSeek** — 模板没有硬编码任何 base_url，通过 .env 配置即可
+4. **演示效果最直观** — researcher 搜索 + analyst 写报告，两步完成，输出 `report.md`
+5. **30 秒出结果** — 从 `crewai create` 到看到输出，不超过 1 分钟
+
++ Thought: 188ms
+全部读完，共 16 个文件。
+关键发现：CrewAI 主仓库没有 examples 目录。 所有示例在外部仓库 crewAI-examples 和 crewAI-quickstarts。
+主仓库内只有 CLI 模板（crewai create crew/flow 生成新项目用的脚手架）。
+推荐首选运行：crewai create crew my_first_crew --skip_provider
+- 零额外 clone，模板已在本地
+- 依赖最少，只需 crewai 一个包
+- 通过 .env 配 DeepSeek 即可
+- researcher + analyst 两步出 report.md，30 秒出结果
+索引已写入 ~/repos/crewAI/DEMO_INDEX.md。

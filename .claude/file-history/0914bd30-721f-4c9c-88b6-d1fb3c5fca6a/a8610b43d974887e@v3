@@ -1,0 +1,43 @@
+extends CanvasLayer
+
+var start_button: Button
+
+func _ready() -> void:
+	GameManager.game_started.connect(_on_game_started)
+	GameManager.game_ended.connect(_on_game_ended)
+
+	start_button = Button.new()
+	start_button.text = "Start"
+	start_button.anchor_left = 0.5
+	start_button.anchor_right = 0.5
+	start_button.anchor_top = 0.5
+	start_button.anchor_bottom = 0.5
+	start_button.offset_left = -50
+	start_button.offset_top = -20
+	start_button.offset_right = 50
+	start_button.offset_bottom = 20
+	start_button.pressed.connect(_on_start_pressed)
+	add_child(start_button)
+
+	var title := Label.new()
+	title.text = "Subway Runner"
+	title.anchor_left = 0.5
+	title.anchor_right = 0.5
+	title.anchor_bottom = 1.0
+	title.offset_left = -100
+	title.offset_top = 60
+	title.offset_right = 100
+	title.offset_bottom = 100
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(title)
+
+	show()
+
+func _on_game_started() -> void:
+	hide()
+
+func _on_game_ended() -> void:
+	pass
+
+func _on_start_pressed() -> void:
+	GameManager.start_game()

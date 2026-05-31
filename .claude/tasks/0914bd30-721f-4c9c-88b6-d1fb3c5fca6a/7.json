@@ -1,0 +1,12 @@
+{
+  "id": "7",
+  "subject": "Migrate UI system",
+  "description": "Migrate UI: menu screen, HUD, death screen to Godot CanvasLayer",
+  "status": "completed",
+  "blocks": [
+    "5"
+  ],
+  "blockedBy": [
+    "3"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "lastGood": {
+    "xiaomi": "xiaomi:default"
+  },
+  "usageStats": {
+    "xiaomi:default": {
+      "lastUsed": 1779881762183,
+      "errorCount": 0
+    }
+  }
+}

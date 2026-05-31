@@ -1,0 +1,57 @@
+# ── Dependencies ─────────────────────────────────────────────────────────
+node_modules/
+
+# ── Claude Code internals ─────────────────────────────────────────────────
+.claude/backup*/
+.claude/backups/
+.claude/cache/
+.claude/daemon*/
+.claude/debug/
+.claude/file-history/
+
+# ── Build artifacts ──────────────────────────────────────────────────────
+.cache/
+.cc-switch/
+
+# ── Session state (ephemeral) ────────────────────────────────────────────
+production/session-state/
+production/session-logs/
+
+# ── IDE / Editor ─────────────────────────────────────────────────────────
+.vscode/extensions/
+.vscode/cli/
+.vscode/argv.json
+
+# ── OS / Personal files in home directory ────────────────────────────────
+Desktop/
+Documents/
+Downloads/
+Pictures/
+Videos/
+Music/
+AppData/
+Application Data/
+Cookies/
+Local Settings/
+My Documents/
+NetHood/
+PrintHood/
+Recent/
+SendTo/
+Templates/
+「开始」菜单/
+NTUSER.DAT*
+ntuser.dat*
+*.lnk
+
+# ── Temporary / Logs ─────────────────────────────────────────────────────
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# ── Secrets / Credentials ────────────────────────────────────────────────
+.env
+.env.local
+*.pem
+*.key

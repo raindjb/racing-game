@@ -1,0 +1,79 @@
+<!-- STATUS -->
+Epic: 赛车游戏 Bug 修复
+Feature: 坐标系统一 + 渲染管线修复
+Task: 10项修复已应用，待验证
+<!-- /STATUS -->
+
+# Session State — 2026-05-31
+
+## 本轮修复（10项 — 2026-05-31）
+
+### 架构级修复
+
+1. **R.renderCars 桥接函数** (~line 782)
+   - 渲染管线调用 R.renderCars 但从未定义 → 所有车辆不渲染
+   - 定义桥接函数调用 R.renderPlayerCar() + R.renderAICars()
+
+2. **渲染管线坐标空间冲突** (~line 796-809)
+   - _applyCameraTransform (相机→canvas) 和 worldToScreen (世界→屏幕绝对坐标) 双重变换
+   - 赛道/天空自己重置变换，不受影响
+   - 车辆/场景移到 ctx.restore() 后执行（屏幕坐标空间）
+   - 粒子效果保留在相机变换内（使用世界坐标）
+
+3. **worldToScreen 透视计算** (~line 1908)
+   - `relZ = wz - cam.y` → `relZ = wy - cam.y`
+   - 原代码用 wz (高程≈0) 计算透视 → 所有地面物体透视相同
+   - 修复后基于实际世界Z距离 → 远处物体更小
+
+### 坐标系约定统一
+
+4. **worldToScreen sy 公式恢复** (~line 1908)
+   - 恢复为 `sy = cy + (wy - cam.y) * scale`
+   - 约定：wy = 世界Z (前向距离)，wz = 世界Y (高程)
+
+5. **renderPlayerCar worldToScreen 调用** (~line 2889)
+   - `worldToScreen(p.x, 0, p.z)` → `worldToScreen(p.x, p.z, 0)`
+   - 匹配 wy=世界Z 约定
+
+6. **场景模块 worldToScreen 调用** (~line 8603)
+   - `worldToScreen(obj.worldX, obj.worldY, obj.worldZ)` → `worldToScreen(obj.worldX, obj.worldZ, obj.worldY)`
+
+7. **AI车辆 worldToScreen 调用** (~line 4324)
+   - 恢复为 `worldToScreen(ai.x, ai.z, ai.y || 0)` (wy=世界Z约定)
+
+### 属性名修复
+
+8. **renderPlayerCar + 粒子属性名** (5处)
+   - `screen.sx`/`screen.sy` → `screen.x`/`screen.y`
+   - worldToScreen 返回 `{x, y, scale}`，不返回 sx/sy
+   - 修复位置：玩家车、漂移痕迹、排气粒子、弹跳标记(×2)
+
+### 透视缩放
+
+9. **renderPlayerCar 透视缩放** (~line 2892)
+   - `const zoom = cam.zoom` → `const zoom = screen.scale`
+   - 使用 worldToScreen 的透视缩放替代全局 zoom
+
+### 碰撞系统
+
+10. **R.playerCollide XY→XZ** (~line 2849)
+    - `p.y` (高程=0) → `p.z` (实际Z位置)
+    - `spawnBounceMarker(p.x, p.y)` → `spawnBounceMarker(p.x, p.z)`
+    - 碰撞检测和回弹正确使用 XZ 平面
+
+## 约定备忘
+- `worldToScreen(wx, wy, wz)`: wx=世界X, wy=**世界Z**, wz=世界Y(高程)
+- `cam.y` = 相机Z前向距离 (不是高程)
+- `cam.x` = 相机X位置
+- 车辆粒子系统 `.x`=世界X, `.y`=世界Z (不是高程)
+
+## 待验证
+1. 打开 `src/racing/index.html`
+2. 按 Space 跳过倒计时
+3. 确认：能看到玩家车 + AI车
+4. 确认：AI车远处小、近处大（透视）
+5. 确认：场景（建筑/树）可见
+6. 控制台无红色报错
+
+## 文件
+- `src/racing/index.html` — ~10130行，10项修复已应用

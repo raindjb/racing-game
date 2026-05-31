@@ -1,0 +1,23 @@
+19:09:19 [model-fallback/decision] model fallback decision: decision=candidate_failed requested=xiaomi/mimo-v2-flash candidate=xiaomi/mimo-v2-flash reason=auth next=none detail=401 Invalid API Key
+19:09:20 Embedded agent failed before reply: HTTP 401: Invalid API Key
+19:09:23 [gateway] provider auth state re-warmed (auth-profile-failure) in 3209ms eventLoopMax=1112.5ms
+19:09:53 [reload] config change detected; evaluating reload (models.providers.xiaomi.baseUrl)
+19:09:53 [reload] config hot reload applied (models.providers.xiaomi.baseUrl)
+19:10:02 [ws] webchat disconnected code=1001 reason=n/a conn=6a570c60-5840-45d8-b86b-e2c56830a9af
+19:10:14 [ws] webchat connected conn=20aa134b-156c-41da-942a-c806e6e15912 remote=127.0.0.1 client=openclaw-control-ui webchat v2026.5.22
+19:10:15 [ws] ⇄ res ✓ health 318ms cached=true conn=20aa134b…5912 id=ae67b566…f83d
+19:10:15 [ws] ⇄ res ✓ agents.list 703ms conn=20aa134b…5912 id=0ff7c453…a3fd
+19:10:16 [ws] ⇄ res ✓ models.authStatus 251ms conn=20aa134b…5912 id=b490df93…6b3e
+19:10:16 [ws] ⇄ res ✓ commands.list 554ms conn=20aa134b…5912 id=eabbb177…8e47
+19:10:16 [ws] ⇄ res ✓ models.list 854ms conn=20aa134b…5912 id=78b33e90…e600
+19:10:16 [ws] ⇄ res ✓ sessions.list 1093ms conn=20aa134b…5912 id=146f2b7a…c916
+19:10:17 [ws] ⇄ res ✓ chat.history 1320ms conn=20aa134b…5912 id=43e0c8ae…3fe3
+19:10:36 [ws] ⇄ res ✓ sessions.list 229ms conn=20aa134b…5912 id=cfb9a2aa…ff5d
+19:10:36 [ws] ⇄ res ✓ sessions.list 233ms conn=20aa134b…5912 id=446427de…dd29
+19:10:37 [agent/embedded] embedded run agent end: runId=3631af6d-ede5-4c2d-b91a-43be504b573e isError=true model=mimo-v2-flash provider=xiaomi error=LLM request failed: provider rejected the request schema or tool payload. rawError=400 Not supported model mimo-v2-flash
+19:10:37 [ws] ⇄ res ✓ sessions.list 232ms conn=20aa134b…5912 id=28d9a637…3f1d
+19:10:37 [agent/embedded] embedded run failover decision: runId=3631af6d-ede5-4c2d-b91a-43be504b573e stage=assistant decision=surface_error reason=format from=xiaomi/mimo-v2-flash profile=sha256:ef058b79e235 rawError=400 Not supported model mimo-v2-flash
+19:10:37 [diagnostic] lane task error: lane=main durationMs=5907 error="FailoverError: LLM request failed: provider rejected the request schema or tool payload."
+19:10:37 [diagnostic] lane task error: lane=session:agent:main:main durationMs=5910 error="FailoverError: LLM request failed: provider rejected the request schema or tool payload."
+19:10:37 [model-fallback/decision] model fallback decision: decision=candidate_failed requested=xiaomi/mimo-v2-flash candidate=xiaomi/mimo-v2-flash reason=format next=none detail=400 Not supported model mimo-v2-flash
+19:10:38 Embedded agent failed before reply: LLM request failed: provider rejected the request schema or tool payload.

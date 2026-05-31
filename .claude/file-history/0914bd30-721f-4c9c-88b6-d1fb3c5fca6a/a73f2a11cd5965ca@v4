@@ -1,0 +1,93 @@
+extends Node2D
+
+@onready var player: CharacterBody2D = $World/Player/CharacterBody2D
+@onready var obstacle_spawner: Node2D = $World/ObstacleSpawner
+@onready var pickup_spawner: Node2D = $World/PickupSpawner
+@onready var train_spawner: Node2D = $World/TrainSpawner
+
+var slope: float = 0.0
+var target_slope: float = 0.0
+var slope_timer: float = 0.0
+var frame_count: int = 0
+var shake_intensity: float = 0.0
+var shake_timer: float = 0.0
+var slow_mo: float = 0.0
+var last_heal_distance: float = 0.0
+
+func _ready() -> void:
+	GameManager.game_started.connect(_on_game_started)
+	GameManager.game_ended.connect(_on_game_ended)
+	if player:
+		player.died.connect(_on_player_died)
+
+func _process(delta: float) -> void:
+	if GameManager.state != GameManager.State.PLAY:
+		return
+
+	if slow_mo > 0:
+		delta *= 0.25
+		slow_mo -= delta
+
+	delta = minf(delta, 0.1)
+	frame_count += 1
+
+	_update_slope(delta)
+	_update_speed(delta)
+	_update_distance(delta)
+	_update_auto_heal()
+	_update_shake(delta)
+
+	queue_redraw()
+
+func _update_slope(delta: float) -> void:
+	slope_timer -= delta
+	if slope_timer <= 0:
+		target_slope = randf_range(-0.5, 0.5)
+		slope_timer = randf_range(3.0, 7.0)
+	slope = move_toward(slope, target_slope, delta * 0.45)
+
+func _update_speed(delta: float) -> void:
+	var speed_ramp := 1.0 + minf(GameManager.total_distance / 12000.0, 1.0) * 0.35
+	GameManager.base_speed = 200.0 * speed_ramp
+	GameManager.current_speed = GameManager.base_speed * (1.0 - slope * 0.22)
+	GameManager.current_speed = clampf(GameManager.current_speed, 160.0, 480.0)
+
+func _update_distance(delta: float) -> void:
+	var dd := GameManager.current_speed * delta
+	GameManager.total_distance += dd
+	GameManager.distance += dd
+	GameManager.score += dd * 0.5
+	GameManager.score_changed.emit(GameManager.score)
+
+func _update_auto_heal() -> void:
+	var checkpoint := floorf(GameManager.total_distance / 500.0) * 500.0
+	if checkpoint > last_heal_distance:
+		last_heal_distance = checkpoint
+		if player and player.hp < player.max_hp:
+			player.heal(1)
+
+func _update_shake(delta: float) -> void:
+	if shake_timer > 0:
+		shake_timer -= delta
+	else:
+		shake_intensity = 0.0
+
+func add_shake(intensity: float, duration: float) -> void:
+	shake_intensity = intensity
+	shake_timer = duration
+
+func _on_game_started() -> void:
+	last_heal_distance = 0.0
+	slope = 0.0
+	target_slope = 0.0
+	slope_timer = randf_range(3.0, 7.0)
+	slow_mo = 0.0
+	shake_intensity = 0.0
+	shake_timer = 0.0
+
+func _on_game_ended() -> void:
+	add_shake(8.0, 0.4)
+	slow_mo = 0.5
+
+func _on_player_died() -> void:
+	GameManager.end_game()

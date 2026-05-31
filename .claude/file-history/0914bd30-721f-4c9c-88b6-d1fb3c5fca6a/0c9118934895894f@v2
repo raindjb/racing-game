@@ -1,0 +1,35 @@
+extends CanvasLayer
+
+@onready var score_label: Label = $ScoreLabel
+@onready var distance_label: Label = $DistanceLabel
+@onready var hearts_label: Label = $HeartsLabel
+@onready var power_up_label: Label = $PowerUpLabel
+@onready var pause_button: Button = $PauseButton
+
+func _ready() -> void:
+	GameManager.score_changed.connect(_on_score_changed)
+
+func _process(_delta: float) -> void:
+	if GameManager.state != GameManager.State.PLAY:
+		return
+	score_label.text = str(int(GameManager.score))
+	distance_label.text = str(int(GameManager.total_distance)) + "m"
+
+	var player := get_tree().get_first_node_in_group("player")
+	if player:
+		var hp_text := ""
+		for i in range(player.max_hp):
+			hp_text += "❤ " if i < player.hp else "♡ "
+		hearts_label.text = hp_text
+
+		var pu_text := ""
+		if player.magnet_active:
+			pu_text += "Magnet %.1fs  " % player.magnet_timer
+		if player.double_coin_active:
+			pu_text += "x2 %.1fs  " % player.double_coin_timer
+		if player.skate_active:
+			pu_text += "Skate %.1fs" % player.skate_timer
+		power_up_label.text = pu_text
+
+func _on_score_changed(new_score: float) -> void:
+	score_label.text = str(int(new_score))

@@ -1,0 +1,1560 @@
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+extglob.Extension : 无法将“extglob.Extension”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括
+路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 109
++ ... rorAction SilentlyContinue | Where-Object { extglob.Extension -match  ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (extglob.Extension:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 

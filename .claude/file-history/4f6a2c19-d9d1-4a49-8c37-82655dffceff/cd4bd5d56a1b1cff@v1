@@ -1,0 +1,46 @@
+<!-- STATUS -->
+Epic: 赛车游戏 Bug 修复
+Feature: 多agent协作产物调试
+Task: 坐标系统一 + 渲染修复，待验证
+<!-- /STATUS -->
+
+# Session State — 2026-05-31
+
+## 已完成修复（16项）
+
+### 架构级
+- [x] 玩家坐标系 XY→XZ（initPlayer, updatePlayer, camera, checkpoint, 粒子）
+- [x] R.playerCar → R.player 桥接 + y:0 elevation
+- [x] R.cars = [R.player].concat(R.aiCars) 每帧同步
+- [x] R.worldToScreen wz 透视缩放
+- [x] 碰撞系统接入 game loop
+- [x] 赛道检测 isOnTrack 传正确坐标
+- [x] 玩家初始角度对齐 R.track.startAngle
+
+### 视觉/体验
+- [x] 倒计时 3/2/1/GO! 触发 + Space 可跳过
+- [x] 完整菜单渲染接入 render pipeline
+- [x] 暂停系统（Escape/P → paused state）
+- [x] 输入系统统一（R._inputModuleActive 守卫）
+- [x] AI seg.length → seg.segDist + trackLength 修复
+
+### 细节
+- [x] HUD 速度表 speed*20 km/h
+- [x] 弯道路缘世界距离索引（不再闪烁）
+- [x] 建筑屋顶颜色缓存 + 广告牌确定性渲染
+- [x] renderTrack null guard
+
+## 当前问题（待修）
+1. **倒计时可能卡住** — 已加 Space 跳过，需验证
+2. **赛道 C 形/畸形** — 可能需检查 initTrack 是否正常执行
+3. **看不见车** — 坐标系修复后渲染位置待验证
+
+## 明天继续
+1. 浏览器打开 `src/racing/index.html`
+2. 按 F12 打开控制台看有没有红色报错
+3. 按 Space 跳过倒计时，看能不能跑起来
+4. 把截图和报错告诉我
+
+## 文件
+- `src/racing/index.html` — 唯一游戏文件，~10100行
+- `src/racing/modules/` — 源模块（被 build.js 拼装）

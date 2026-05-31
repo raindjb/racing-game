@@ -1,0 +1,103 @@
+extends Area2D
+
+@export var obstacle_type: String = "barrier"
+@export var required_action: int = 0
+@export var lane: int = 0
+@export var color: Color = Color.RED
+@export var height_ratio: float = 0.15
+
+var depth: float = 0.02
+var passed: bool = false
+var wob_offset: float = randf() * PI * 2
+
+signal obstacle_passed
+
+func _ready() -> void:
+	body_entered.connect(_on_body_entered)
+	queue_redraw()
+
+func _process(delta: float) -> void:
+	if GameManager.state != GameManager.State.PLAY:
+		return
+	depth += GameManager.current_speed * delta / (get_viewport().get_visible_rect().size.y * 0.75)
+	if depth > 1.08:
+		if not passed:
+			obstacle_passed.emit()
+		queue_free()
+		return
+	_update_position()
+	queue_redraw()
+
+func _update_position() -> void:
+	var pos := Perspective.depth_to_position(float(lane), depth)
+	position = Vector2(pos.x, pos.y)
+	scale = Vector2(pos.scale, pos.scale)
+
+func _on_body_entered(body: Node2D) -> void:
+	if not body.is_in_group("player") or passed:
+		return
+	if body.has_method("can_dodge_obstacle") and body.can_dodge_obstacle(required_action, lane):
+		if depth > 0.62:
+			passed = true
+			body.add_combo()
+		return
+	if body.has_method("take_damage"):
+		body.take_damage(1)
+		passed = true
+
+func _draw() -> void:
+	var u: float = get_viewport().get_visible_rect().size.x * 0.025
+	var w: float = u * 10
+	var h := height_ratio * u * 20
+	match obstacle_type:
+		"barrier":
+			draw_rect(Rect2(-w / 2, -h / 2, w, h), color)
+			for i in range(-4, 5, 2):
+				draw_rect(Rect2(i * w / 10.0, -h / 2, w / 5.0, h), Color.WHITE)
+		"pipe":
+			draw_rect(Rect2(-w / 2, -h / 2, w, h * 0.6), color)
+			draw_rect(Rect2(-w / 2, -h / 2, w, h * 0.15), Color("#bdc3c7"))
+		"low_fence":
+			for fx in range(-4, 5):
+				draw_rect(Rect2(fx * w / 10.0, -h, w / 40.0, h), color)
+			draw_rect(Rect2(-w / 2, -h, w, h / 5.0), color)
+		"wire":
+			draw_arc(Vector2.ZERO, w / 4.0, 0, PI, 16, color, w / 20.0)
+			draw_circle(Vector2(-w / 2.5, 0), w / 20.0, color)
+			draw_circle(Vector2(w / 2.5, 0), w / 20.0, color)
+		"signal":
+			draw_rect(Rect2(-w / 4, -h, w / 2, h), color)
+			draw_circle(Vector2(0, -h * 0.65), w / 8.0, Color.RED)
+			draw_circle(Vector2(0, -h * 0.3), w / 8.0, Color.GREEN)
+			draw_rect(Rect2(-w / 30, 0, w / 15, h / 4), Color("#555"))
+		"ties":
+			for i in range(4):
+				var y_off := -h / 2 + i * h / 4.0
+				var wid := w * (1.0 - i * 0.15)
+				draw_rect(Rect2(-wid / 2, y_off, wid, h / 5.0), color)
+		"barrel":
+			draw_rect(Rect2(-w / 5, -h, w / 2.5, h), color)
+			draw_rect(Rect2(-w / 5, -h, w / 2.5, h / 5.0), Color("#c0392b"))
+			draw_rect(Rect2(-w / 5, h - h / 8.0, w / 2.5, h / 8.0), Color("#c0392b"))
+		"cone_wall":
+			for cx in range(-3, 4, 2):
+				var cx_pos := float(cx) * w / 10.0
+				var pts := PackedVector2Array([
+					Vector2(cx_pos, -h),
+					Vector2(cx_pos - w / 8.0, 0),
+					Vector2(cx_pos + w / 8.0, 0)
+				])
+				draw_polygon(pts, PackedColorArray([color, color, color]))
+		"cart":
+			draw_rect(Rect2(-w / 2, -h, w, h), color)
+			draw_rect(Rect2(-w / 2 + w * 0.1, -h, w * 0.8, h), Color("#e67e22"))
+			draw_circle(Vector2(-w / 4, h / 3), w / 10.0, Color.BLACK)
+			draw_circle(Vector2(w / 4, h / 3), w / 10.0, Color.BLACK)
+		"tower":
+			draw_rect(Rect2(-w / 3, -h, w / 1.5, h), color)
+			draw_circle(Vector2.ZERO, w / 12.0, Color.RED)
+		"worker":
+			var wx := sin(Time.get_ticks_msec() * 0.004 + wob_offset) * w * 0.4
+			draw_rect(Rect2(wx - w / 6, -h, w / 3, h * 0.35), color)
+			draw_rect(Rect2(wx - w / 8, -h * 0.6, w / 4, h * 0.55), Color("#1a1a2e"))
+			draw_circle(Vector2(wx, -h * 0.75), w / 10.0, Color("#f5c6a0"))

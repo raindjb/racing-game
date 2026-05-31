@@ -1,0 +1,18 @@
+---
+name: user-preferences
+description: "User profile — Chinese-speaking indie game developer, prefers rapid prototyping, direct action over process"
+metadata: 
+  node_type: memory
+  type: user
+  originSessionId: 79e93986-b072-406e-813b-899b6c309869
+---
+
+The user is a Chinese-speaking indie game developer building "Rail Runner" (轨道跑者), a 2.5D isometric infinite runner. They prefer:
+
+- **Direct action**: Wants things done, not discussed. Prefers me to handle all tasks rather than ask permission for each step.
+- **Rapid prototyping**: Started with a single `src/index.html` Canvas game rather than setting up an engine project first. Values speed and playability over ceremony.
+- **DeepSeek API backend**: Uses `api.deepseek.com/anthropic` as the model backend (Claude Code configured as Anthropic compatibility layer). Model: `deepseek-v4-pro` with `[1M]` context variant for Opus/Sonnet slots.
+- **Chinese + English**: Game UI is Chinese (轨道跑者, 得分, etc.), technical communication is Chinese with English code.
+- **Visual quality matters**: Despite rapid prototyping, the game design doc specifies "Paint in Motion" visual direction with speed-driven color changes.
+- **No process overhead**: Explicitly told me not to follow formal workflows. Direct implementation preferred.
+- **High agency**: When asked what to improve, said "handle all of it" — wants comprehensive solutions, not incremental hand-holding.

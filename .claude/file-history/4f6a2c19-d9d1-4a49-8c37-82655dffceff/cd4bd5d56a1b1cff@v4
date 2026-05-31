@@ -1,0 +1,35 @@
+<!-- STATUS -->
+Epic: 赛车游戏 Bug 修复
+Feature: 赛道 + minimap + 输入修复
+Task: 14项修复，待验证
+<!-- /STATUS -->
+
+# Session State — 2026-05-31 (续2)
+
+## 新增修复 (3项)
+
+### 14. Minimap 坐标 Y→Z 修复 (3处)
+- 赛道轮廓: `segs[i].worldY`(高程≈0) → `segs[i].worldZ`(空间Z)
+- AI车位置: `car.y` → `car.z`
+- 玩家位置: `R.player.y` → `R.player.z`
+- 这就是 minimap 显示为一条水平线的原因
+
+### 13. 赛道渲染 _projectSegment Y→Z (~line 2185)
+- `seg.worldY`(高程) → `seg.worldZ`(空间Z坐标)
+- 已在上轮修复
+
+### 12. Space 键 → confirm (~line 1116)
+- Enter 和 Space 都触发确认，可跳过倒计时
+
+## 全部修复汇总 (14项)
+R.renderCars 桥接 | 属性名 .sx→.x | worldToScreen 透视+垂直 | 渲染管线重组 | player/AI/scenery 坐标约定统一 | 碰撞XY→XZ | minimap坐标 | 赛道Z轴
+
+## 待验证
+1. 打开 `src/racing/index.html`
+2. Enter/Space → 倒计时 → ↑ 加速
+3. 确认赛道正常（不扭曲）
+4. 确认 minimap 显示正确形状
+5. 确认车辆在赛道上正常移动
+
+## 文件
+- `src/racing/index.html` — ~10140行

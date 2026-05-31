@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "xiaomi/mimo-v2.5-pro",
+  "provider": {
+    "xiaomi": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Xiaomi MiMo",
+      "options": {
+        "baseURL": "https://token-plan-cn.xiaomimimo.com/v1",
+        "apiKey": "tp-cbzywogal5qek502jxufr5e9eagms02herw1440h1alce0rh"
+      },
+      "models": {
+        "mimo-v2.5": {
+          "name": "MiMo V2.5"
+        },
+        "mimo-v2.5-pro": {
+          "name": "MiMo V2.5 Pro"
+        }
+      }
+    }
+  }
+}

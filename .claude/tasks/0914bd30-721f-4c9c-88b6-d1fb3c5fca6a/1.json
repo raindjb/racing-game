@@ -1,0 +1,10 @@
+{
+  "id": "1",
+  "subject": "Create Godot project structure for subway-runner",
+  "description": "Set up project.godot, directory structure, and core scenes",
+  "status": "completed",
+  "blocks": [
+    "2"
+  ],
+  "blockedBy": []
+}

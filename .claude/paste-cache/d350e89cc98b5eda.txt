@@ -1,0 +1,55 @@
+数据全部到手。给你完整回答：
+一、同时用 Claude Code + 我（opencode）需要什么工具
+核心工具链
+层级    工具
+终端 AI    Claude Code + opencode
+代理管理    Clash/V2Ray + TUN 模式
+版本控制    Git + worktree
+编辑器    VS Code / Cursor
+MCP 服务器    Agent-MCP / mcp-chrome
+推荐配置
+终端1: Claude Code  → 做架构设计、复杂逻辑
+终端2: opencode     → 做暴力搜索、全库扫描、重复性工作
+VS Code: Cline/Continue → 代码补全、快速编辑
+Git worktree: 每个 agent 独立分支
+二、GitHub 高星项目推荐（按类别）
+AI 编码 Agent（最核心）
+项目    Stars
+Dify    143k
+Cline    62k
+Aider    45k
+Continue    33k
+SWE-agent    19k
+多 Agent 编排框架
+项目    Stars
+MetaGPT    68k
+CrewAI    52k
+ChatDev    33k
+Agency-Swarm    4.4k
+MCP 生态（agent 间通信）
+项目
+mcp-chrome
+MCP Registry
+XcodeBuildMCP
+mcp-playwright
+5ire
+mobile-mcp
+spec-workflow-mcp
+excel-mcp-server
+其他值得关注
+项目
+onlook
+OpenHands
+Costrict
+context-engineering-kit
+三、最实用的组合方案
+最低成本方案（全免费）：
+Claude Code（主力）+ opencode（我，暴力扫描）+ Cline（VS Code 补全）+ Git worktree
+进阶方案：
+Claude Code + opencode + Dify（工作流编排）+ Agent-MCP（多 agent 共享上下文）+ MCP 生态
+核心思路：
+- Claude Code 做精活（架构、复杂逻辑）
+- 我做粗活（暴力搜索、全库扫描、重复迭代）
+- Cline/Continue 做补活（代码补全）
+- MCP 做联通活（agent 间共享上下文）
+要我深入看哪个项目？

@@ -1,0 +1,31 @@
+---
+name: parallel-agents-need-interface-contracts
+description: Parallel agents produce incompatible code without precise shared interface specs — learned from 12-agent racing game failure
+metadata: 
+  node_type: memory
+  type: feedback
+  originSessionId: 35eac173-0c29-4813-965d-cd26b188e27f
+---
+
+## 并行 Agent 开发的核心教训
+
+**场景**：12 个 agent 并行写赛车游戏模块（10,000 行），结果接口互相不兼容。
+
+**实际发生的冲突**：
+- track.js 用伪 3D `worldToScreen(x, y, z)`，player.js 自己写了 2D `worldToScreen(x, y)`
+- ai.js 坐标参数顺序是 `(x, z, y)`，其他模块是 `(x, y, z)`
+- track.js 需要 16 个配置常量，config.js 一个没写
+- engine.js 把按键存在 `R.input._keys`，input.js 用模块局部 `_keysDown`
+
+**根因**：我只给了 20 行共享规范，没有精确的接口文档。每个 agent 单独看代码都写对了，但对共享接口的理解不一致。
+
+**正确流程**：
+1. 先写接口契约 — 每个共享函数的精确签名、参数顺序、返回值格式、坐标系约定
+2. 所有 agent 对着接口文档实现
+3. 验证阶段 — 拼装前检查每个模块是否遵守接口
+
+**判断标准**：如果人看了接口描述会有歧义，agent 也一定会有。接口描述要精确到「参数叫什么、什么类型、谁负责创建、谁负责销毁」的级别。
+
+**Why:** 12 个 agent 并行写未协调的代码 = 12 个建筑队对着模糊草图盖楼。单独看都对，拼起来全错。不是模型水平问题，是我的协调没做。
+
+**How to apply:** 以后并行派发 3+ agent 写代码时，先在 plan 阶段产出一份接口文档（每个共享函数签名 + 数据结构），再派发 agent 对着文档写。

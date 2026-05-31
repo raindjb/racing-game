@@ -1,0 +1,43 @@
+<!-- STATUS -->
+Epic: Tier 1 核心循环
+Feature: 2.5D 等距无限跑酷
+Task: 基础跑酷已可玩，待优化手感
+<!-- /STATUS -->
+
+# Session State — 2026-05-17
+
+## 当前进度
+Tier 1 核心循环已完成初版，单 HTML 文件可运行。
+
+## 已完成
+- [x] Game concept 文档 → `design/gdd/game-concept.md`
+- [x] 四大 Pillars：不间断心流 / 可读混沌 / 风险回报 / 垂直维度
+- [x] 视觉方向：Paint in Motion（速度驱动色彩变化）
+- [x] 引擎配置：Web Canvas/HTML5 + JavaScript → `.claude/docs/technical-preferences.md`
+- [x] 引擎参考 → `docs/engine-reference/web-canvas/VERSION.md`
+- [x] Tier 1 核心代码 → `src/index.html`（~1160行）
+- [x] 审查模式：full → `production/review-mode.txt`
+- [x] 阶段：Concept → `production/stage.txt`
+
+## Tier 1 实现内容
+- 2.5D 透视、三轨道、角色跑/跳/滑、三级障碍物、金币收集
+- 3心血量 + 无敌帧、计分系统、最高分持久化
+- 键盘+触屏双输入、开始/死亡界面、粒子效果
+- 对象池、离屏预渲染
+
+## 待办（无需按流程走，直接做）
+- [ ] 手感调优（速度曲线、障碍物间距、碰撞判定宽容度）
+- [ ] 视觉质量（角色精灵优化、轨道材质、涂鸦元素）
+- [ ] Tier 2：火车系统（短/长/可攀爬）+ 道具（磁铁/双倍金币/医疗包/滑板）
+- [ ] Tier 2：地形坡道、视差天际线完善
+- [ ] Web Audio 音效
+- [ ] Tier 3：触屏适配、移动端性能优化
+
+## 关键文件
+- 游戏代码：`src/index.html`
+- 游戏概念：`design/gdd/game-concept.md`
+- 技术配置：`.claude/docs/technical-preferences.md`
+- 引擎参考：`docs/engine-reference/web-canvas/VERSION.md`
+
+## 恢复方式
+新会话或 /clear 后，直接说：「继续开发 src/index.html，当前是 Tier 1 核心循环阶段，会话状态在 production/session-state/active.md」

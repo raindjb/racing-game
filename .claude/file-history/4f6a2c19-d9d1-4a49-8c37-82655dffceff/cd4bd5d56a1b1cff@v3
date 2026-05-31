@@ -1,0 +1,36 @@
+<!-- STATUS -->
+Epic: 赛车游戏 Bug 修复
+Feature: 输入 + 赛道渲染修复
+Task: Space键修复 + 赛道Z轴修复，待验证
+<!-- /STATUS -->
+
+# Session State — 2026-05-31 (续)
+
+## 本轮修复（3项新增）
+
+### 11. Space 键不触发确认 (~line 1116)
+- `_onKeyDown` 只有 Enter 触发 confirm，Space 被当作 boost
+- 用户无法用 Space 跳过倒计时开始游戏
+- 修复：`e.code === 'Enter' || e.code === 'Space'` 都触发 confirm
+
+### 12. 赛道渲染 Y→Z 坐标错误 (~line 2185)
+- `_projectSegment` 用 `seg.worldY`(高程≈0) - `cam.y`(相机Z~1000)
+- 高程和Z相减导致赛道渲染扭曲
+- 修复：`(seg.worldZ - cam.y) + seg.worldY` 用世界Z做景深，高程做偏移
+
+### 13. 渲染管线坐标空间冲突修复
+- 车辆 + 场景移到屏幕空间渲染（相机变换外）
+- 防止 worldToScreen 屏幕坐标与相机变换双重投射
+
+## 先前修复 (10项)
+含 R.renderCars 桥接、worldToScreen 透视修正、属性名修复等
+
+## 待验证
+1. 打开 `src/racing/index.html`
+2. 按 **Enter** 或 **Space** 跳过倒计时
+3. 按 ↑ 加速，确认车辆移动
+4. 确认赛道形状正常（非C形/扭曲）
+5. 确认能看到玩家车+AI车+场景
+
+## 文件
+- `src/racing/index.html` — ~10140行，13项修复

@@ -1,0 +1,18 @@
+{
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "C:\\Users\\13751\\.claude\\plugins\\marketplaces\\claude-plugins-official",
+    "lastUpdated": "2026-05-16T17:05:42.073Z"
+  },
+  "ai-research-skills": {
+    "source": {
+      "source": "github",
+      "repo": "WenyuChiou/ai-research-skills"
+    },
+    "installLocation": "C:\\Users\\13751\\.claude\\plugins\\marketplaces\\ai-research-skills",
+    "lastUpdated": "2026-05-18T14:40:50.472Z"
+  }
+}

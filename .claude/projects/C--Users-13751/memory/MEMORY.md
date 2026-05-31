@@ -1,0 +1,8 @@
+- [User Preferences](user-preferences.md) — Chinese-speaking, rapid prototyping, direct action, DeepSeek API backend
+- [考公 + 证券双线备考](exam-plan-kaogong.md) — 2026应届，证券6/27考试 + 国考/京考11月，每日3-4h
+- [OpenClaw Token Plan 配置](openclaw-setup.md) — Xiaomi MiMo V2.5 通过 Token Plan 接入，含关键坑点
+- [每月基金定投复盘](monthly-fund-review.md) — 华夏沪深300ETF联接C 005658，每月 500 定投，27 号扣款
+- [不重复、不过度解释](feedback-no-repetition.md) — 不重发已确认信息，不问"要继续吗"，回答所问不展开
+- [User Role](user-role.md) — 非开发者，玩家视角，靠直觉判断好不好玩/好不好看
+- [Agent vs Shell 分工](agent-vs-shell-routing.md) — Dynamic Workflows实操：AI做判断，shell做机械拼装
+- [并行Agent需接口契约](parallel-agents-need-interface-contracts.md) — 12 agent并行写代码前必须定义精确共享接口

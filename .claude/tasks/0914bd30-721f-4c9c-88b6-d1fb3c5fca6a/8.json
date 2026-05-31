@@ -1,0 +1,8 @@
+{
+  "id": "8",
+  "subject": "Assembly and runtime verification",
+  "description": "Assemble complete scene tree in Godot editor, set main scene, test all systems, verify collision/collection flow",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

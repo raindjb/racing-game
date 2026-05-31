@@ -1,0 +1,33 @@
+<!-- STATUS -->
+Epic: Tier 1.5 打磨
+Feature: 音效/手感/道具/视觉全面提升
+Task: 四系统完成，待玩家测试反馈
+<!-- /STATUS -->
+
+# Session State — 2026-05-29
+
+## 本次会话完成
+- [x] **Web Audio 音效系统** — 跳跃/滑铲/金币/受伤/死亡/道具 6种声音，零外部文件
+- [x] **视觉手感增强** — 屏幕震动、红色闪屏、速度线、碰撞宽容度优化、金币磁吸范围
+- [x] **道具系统** — 磁铁(吸金币)、护盾(挡一次伤害)、2x分数，含HUD指示器
+- [x] **角色和场景视觉** — 详细人物精灵(跑/跳/滑/受伤)、涂鸦系统(建筑上彩色标签)、云层、奔跑扬尘
+- [x] **Bug修复** — 金币分被距离分覆盖导致不累加
+- [x] **障碍物重绘** — 道口横栏(条纹)、信号控制箱(3灯)、高压信号塔(叉形结构)
+- [x] **对象池Bug修复** — poolGet返回对象被丢弃，导致障碍物/金币/道具/粒子属性设置到错误对象上（7处）
+- [x] **FPS计数器Bug修复** — G.frameCount每秒重置导致硬币旋转、角色弹跳、文字闪烁动画跳帧
+
+## 代码状态
+- `src/index.html` — ~1832行，JS语法验证通过
+- 新增常量：PUP_MAGNET/SHIELD/2X、POWERUP_DURATION、MAGNET_RANGE
+- 新增函数：initAudio/playSound/playNoise/sfx*系列、applyPowerup、drawPowerup、drawGraffitiTag、spawnPowerup
+- G命名空间新增：audioCtx/audioReady/shake*/flashAlpha/powerups[]/coinScore
+
+## 待办
+- [ ] 玩家测试——从游玩角度反馈手感、视觉、音效
+- [ ] Tier 2：火车系统（轨道上运行的列车作为动态障碍）
+- [ ] Tier 2：地形坡道、视差天际线完善
+- [ ] Tier 3：触屏适配、移动端性能优化
+
+## 关键文件
+- 游戏代码：`src/index.html`
+- 游戏概念：`design/gdd/game-concept.md`

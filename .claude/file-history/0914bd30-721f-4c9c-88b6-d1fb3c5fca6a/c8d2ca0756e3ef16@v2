@@ -1,0 +1,55 @@
+extends Node2D
+
+@export var obstacle_scene: PackedScene
+
+var spawn_timer: float = 0.0
+var min_interval: float = 0.9
+var max_interval: float = 2.8
+
+func _ready() -> void:
+	spawn_timer = randf_range(min_interval, max_interval)
+
+func _process(delta: float) -> void:
+	if GameManager.state != GameManager.State.PLAY:
+		return
+	spawn_timer -= delta
+	if spawn_timer <= 0:
+		spawn_obstacle()
+		var dist_factor := min(GameManager.total_distance / 20000.0, 0.4)
+		spawn_timer = randf_range(min_interval, max_interval) * (1.0 - dist_factor)
+		spawn_timer = max(0.9, spawn_timer)
+
+func spawn_obstacle() -> void:
+	var types := ObstacleData.all_types()
+	var r := randf()
+	var cat: int
+	if r < 0.35:
+		cat = 0
+	elif r < 0.65:
+		cat = 1
+	else:
+		cat = 2
+
+	var candidates: Array[Dictionary] = []
+	for d in types:
+		if d.action == cat:
+			candidates.append(d)
+
+	if candidates.is_empty():
+		return
+
+	var chosen := candidates[randi() % candidates.size()]
+	var lane := randi_range(-1, 1)
+
+	for child in get_children():
+		if child is Area2D and child.get("lane") == lane and child.get("depth") > 0.6:
+			return
+
+	var obstacle: Area2D = obstacle_scene.instantiate()
+	obstacle.obstacle_type = chosen.name
+	obstacle.required_action = chosen.action
+	obstacle.lane = lane
+	obstacle.color = Color(chosen.color)
+	obstacle.height_ratio = chosen.h
+	obstacle.depth = 0.02
+	add_child(obstacle)

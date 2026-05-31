@@ -1,0 +1,3 @@
+- [User Preferences](user-preferences.md) — Chinese indie dev, rapid prototyping, direct action, DeepSeek API backend
+- [Project: Rail Runner Tier 1](project-tier1.md) — 2.5D infinite runner, single HTML Canvas file, core loop playable
+- [Feedback: Proactive Cleanup](feedback-cleanup.md) — fix stale config and doc/code mismatches directly, don't just report

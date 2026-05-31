@@ -1,0 +1,111 @@
+{
+  "proto": 1,
+  "supervisorPid": 16672,
+  "updatedAt": 1780209473568,
+  "workers": {
+    "c2582f96": {
+      "pid": 2508,
+      "sessionId": "c2582f96-2d0d-4b18-8745-3694a6461582",
+      "rendezvousSock": "\\\\.\\pipe\\cc-daemon-c1336f8b1c9a439d-rv-c2582f96",
+      "ptySock": "\\\\.\\pipe\\cc-daemon-c1336f8b1c9a439d-pty-c2582f96",
+      "cliVersion": "2.1.158",
+      "startedAt": 1780206520269,
+      "attempt": 1,
+      "cwd": "C:\\Users\\13751",
+      "dispatch": {
+        "proto": 1,
+        "short": "c2582f96",
+        "nonce": "02687102",
+        "sessionId": "c2582f96-2d0d-4b18-8745-3694a6461582",
+        "createdAt": 1780206517401,
+        "source": "spare",
+        "cwd": "C:\\Users\\13751",
+        "launch": {
+          "mode": "prompt",
+          "args": [
+            "--session-id",
+            "c2582f96-2d0d-4b18-8745-3694a6461582",
+            "--agent",
+            "claude"
+          ]
+        },
+        "env": {},
+        "isolation": "none",
+        "respawnFlags": [
+          "--agent",
+          "claude"
+        ],
+        "agent": "claude",
+        "seed": {
+          "intent": ""
+        },
+        "cols": 102,
+        "rows": 51
+      },
+      "decModes": [
+        1004,
+        1000,
+        1002,
+        1003,
+        1006,
+        2004,
+        2031
+      ]
+    },
+    "33bb46d3": {
+      "pid": 8,
+      "sessionId": "33bb46d3-5164-4c0e-baf3-56da1c48d305",
+      "rendezvousSock": "\\\\.\\pipe\\cc-daemon-c1336f8b1c9a439d-rv-33bb46d3",
+      "ptySock": "\\\\.\\pipe\\cc-daemon-c1336f8b1c9a439d-pty-33bb46d3",
+      "cliVersion": "2.1.158",
+      "startedAt": 1780206520269,
+      "attempt": 1,
+      "cwd": "C:\\Users\\13751",
+      "dispatch": {
+        "proto": 1,
+        "short": "33bb46d3",
+        "nonce": "7cd4daf8",
+        "sessionId": "33bb46d3-5164-4c0e-baf3-56da1c48d305",
+        "createdAt": 1780206517352,
+        "source": "slash",
+        "cwd": "C:\\Users\\13751",
+        "launch": {
+          "mode": "resume",
+          "sessionId": "C:\\Users\\13751\\.claude\\projects\\C--Users-13751\\d66cc1ba-7351-4b2c-a826-81628cf5d69d.jsonl",
+          "fork": true,
+          "flagArgs": [
+            "--disallowed-tools",
+            "PowerShell",
+            "--permission-mode",
+            "default"
+          ]
+        },
+        "env": {
+          "CLAUDE_BG_ISOLATION": "none"
+        },
+        "isolation": "none",
+        "respawnFlags": [
+          "--disallowed-tools",
+          "PowerShell",
+          "--permission-mode",
+          "default"
+        ],
+        "seed": {
+          "intent": "1. State Machine & Flow\n🔴 R.state.time 永远为 0，从未递增\n位置: engine.js R.state 初始化 + R.updateStateMachine 全文\n描述: R.state.time 初始化为 0，游戏循环中没有任何代码递增它。R.state.raceTime 在 'racing' 阶段递增，但 R.state.time 不变。\n触发条件: ",
+          "name": "Write bug discovery prompt for AI agents"
+        },
+        "cols": 102,
+        "rows": 51
+      },
+      "decModes": [
+        1004,
+        1000,
+        1002,
+        1003,
+        1006,
+        2004,
+        2031
+      ]
+    }
+  }
+}

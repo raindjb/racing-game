@@ -1,0 +1,22 @@
+19:06:28 [gateway] provider auth state re-warmed (auth-profile-failure) in 3122ms eventLoopMax=1048.1ms
+19:07:21 [ws] webchat disconnected code=1001 reason=n/a conn=deeafd89-0fb1-4b99-bd77-6efcdc6e8aee
+19:09:01 [ws] webchat connected conn=6a570c60-5840-45d8-b86b-e2c56830a9af remote=127.0.0.1 client=openclaw-control-ui webchat v2026.5.22
+19:09:02 [ws] ⇄ res ✓ health 431ms cached=true conn=6a570c60…a9af id=63a5ffe0…62a9
+19:09:02 [ws] ⇄ res ✓ agents.list 807ms conn=6a570c60…a9af id=11814ccc…8cea
+19:09:03 [ws] ⇄ res ✓ models.authStatus 268ms conn=6a570c60…a9af id=7c88d8fc…d7a5
+19:09:03 [ws] ⇄ res ✓ commands.list 563ms conn=6a570c60…a9af id=16d849b2…f53e
+19:09:03 [ws] ⇄ res ✓ models.list 840ms conn=6a570c60…a9af id=4ea51b34…0c00
+19:09:04 [ws] ⇄ res ✓ sessions.list 1074ms conn=6a570c60…a9af id=cd6716d3…f604
+19:09:04 [ws] ⇄ res ✓ chat.history 1269ms conn=6a570c60…a9af id=5ca01635…59b6
+19:09:15 [model-fallback/decision] model fallback decision: decision=probe_cooldown_candidate requested=xiaomi/mimo-v2-flash candidate=xiaomi/mimo-v2-flash reason=billing next=none
+19:09:16 [agent/embedded] probing cooldowned auth profile for xiaomi/mimo-v2-flash due to billing unavailability
+19:09:18 [ws] ⇄ res ✓ sessions.list 232ms conn=6a570c60…a9af id=f1bec52f…87d8
+19:09:19 [ws] ⇄ res ✓ sessions.list 231ms conn=6a570c60…a9af id=abc55429…92cc
+19:09:19 [agent/embedded] embedded run agent end: runId=3b8aa10f-b06a-491a-9889-7c7be3ddb4fb isError=true model=mimo-v2-flash provider=xiaomi error=HTTP 401: Invalid API Key rawError=401 Invalid API Key
+19:09:19 [ws] ⇄ res ✓ sessions.list 226ms conn=6a570c60…a9af id=bac1cd2f…26e9
+19:09:19 [agent/embedded] auth profile failure state updated: runId=3b8aa10f-b06a-491a-9889-7c7be3ddb4fb profile=sha256:ef058b79e235 provider=xiaomi reason=auth window=cooldown reused=false
+19:09:19 [agent/embedded] embedded run failover decision: runId=3b8aa10f-b06a-491a-9889-7c7be3ddb4fb stage=assistant decision=surface_error reason=auth from=xiaomi/mimo-v2-flash profile=sha256:ef058b79e235 rawError=401 Invalid API Key
+19:09:19 [diagnostic] lane task error: lane=main durationMs=3722 error="FailoverError: HTTP 401: Invalid API Key"
+19:09:19 [diagnostic] lane task error: lane=session:agent:main:main durationMs=3724 error="FailoverError: HTTP 401: Invalid API Key"
+19:09:19 [model-fallback/decision] model fallback decision: decision=candidate_failed requested=xiaomi/mimo-v2-flash candidate=xiaomi/mimo-v2-flash reason=auth next=none detail=401 Invalid API Key
+19:09:20 Embedded agent failed before reply: HTTP 401: Invalid API Key

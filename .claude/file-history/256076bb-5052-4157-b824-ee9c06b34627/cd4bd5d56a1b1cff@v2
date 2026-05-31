@@ -1,0 +1,69 @@
+<!-- STATUS -->
+Epic: 测试基础设施搭建
+Feature: Vitest + 109 tests + build fix + config bug fix
+Task: 全部完成 ✓
+<!-- /STATUS -->
+
+# Session State — 2026-05-31
+
+## 本轮完成
+
+### 1. 测试基础设施
+- `package.json`: npm test → `vitest run`
+- `vitest.config.js`: globals + setup file + 排除旧测试
+- `tests/setup.js`: mock 浏览器环境 (window, R, CONFIG, Audio, Canvas)
+- `tests/helpers/load-module.js`: 模块加载器
+- `.vscode/tasks.json`: Ctrl+Shift+B = 跑测试，Ctrl+Shift+T = watch 模式
+
+### 2. 测试文件 (109 tests, 100% pass)
+
+| 文件 | 测试数 | 覆盖范围 |
+|------|--------|----------|
+| `tests/unit/config.test.js` | 18 | Canvas尺寸, 数学常量, 预计算值, 配置合并, 帧时序, 速度范围 |
+| `tests/unit/collision/collision.test.js` | 30 | rotatePoint, projectPolygon, carCorners, normals, overlap, AABB, SAT, resolveCollision |
+| `tests/unit/track/track.test.js` | 25 | worldToScreen, initTrack, getTrackPosition, isOnTrack, getSegmentAtDistance |
+| `tests/unit/player/player.test.js` | 36 | init, accelerate, boost, friction, steering, collide, reset, config overrides |
+
+### 3. 测试发现的 Bug & 修复
+
+**Bug: ensurePlayerConfig 死代码** (`src/racing/modules/player.js:52-56`)
+- 根因: `if (!(k in R.CONFIG))` 只填缺失 key，config.js 已设所有 key → player.js 覆盖永不生效
+- Session 记录的 Bug 4/5 (ACCELERATION→0.08, BOOST_DURATION→1.5s) 的 fix 是死代码
+- 修复: 新增 `overrides` 对象，无条件覆盖 12 个关键值
+- 验证: `tests/unit/player/player.test.js` 中 6 个 override 测试全部通过
+
+**Bug: build.cjs 语法检查误报**
+- 根因1: 拼接所有脚本到 `new Function()` 检查，单个脚本的合法代码拼接后不合法
+- 根因2: `worldToScreenPos(` → `R.worldToScreen(` 把函数声明变成了 `function R.worldToScreen(...)` (不合法)
+- 修复: per-module 语法检查 + lookbehind 跳过函数声明
+- 构建: ✓ 14 scripts pass, 全部 interface 存在
+
+### 4. 构建修复
+- `build.cjs`: CommonJS (`.cjs` 扩展名, 与 package.json `"type":"module"` 兼容)
+- `npm run build` = `cd src/racing && node build.cjs`
+
+## 使用方式
+
+```bash
+npm test           # 跑全部测试 (109 tests, ~350ms)
+npm run test:watch # 文件变更自动重跑
+npm run build      # 构建游戏到 src/racing/index.html
+```
+
+VS Code: `Ctrl+Shift+B` = 跑测试
+
+## 验证清单
+- [x] `npm test` → 109 passed, 0 failed
+- [x] `npm run build` → syntax PASS, all interfaces present
+- [x] ensurePlayerConfig 覆盖值生效 (BOOST: 1.5s/3.0s, ACCEL: 0.08, FRICTION: 0.985)
+
+## 文件
+- `tests/setup.js` — mock 环境
+- `tests/helpers/load-module.js` — 模块加载
+- `tests/unit/config.test.js` — 18 tests
+- `tests/unit/collision/collision.test.js` — 30 tests
+- `tests/unit/track/track.test.js` — 25 tests
+- `tests/unit/player/player.test.js` — 36 tests
+- `src/racing/modules/player.js` — ensurePlayerConfig 修复
+- `src/racing/build.cjs` — 语法检查修复
+- `.vscode/tasks.json` — VS Code 任务

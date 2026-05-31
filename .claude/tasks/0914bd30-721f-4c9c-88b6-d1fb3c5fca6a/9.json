@@ -1,0 +1,8 @@
+{
+  "id": "9",
+  "subject": "Create main scene and ground renderer",
+  "description": "Create main.tscn, main.gd script, and ground_renderer.gd for slope/speed/distance updates and perspective track drawing",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}
