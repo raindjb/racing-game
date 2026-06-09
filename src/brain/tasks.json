@@ -1,47 +1,47 @@
 {
-  "project": "个人知识库 Web App",
-  "description": "本地运行的笔记管理工具，支持标签、搜索、Markdown 渲染",
+  "project": "贪吃蛇小游戏",
+  "description": "HTML5 Canvas 贪吃蛇，浏览器本地运行",
   "tasks": [
     {
       "id": 1,
-      "title": "项目初始化",
-      "description": "创建 package.json（name: brain, type: module, 依赖 express 和 marked），最小 server.js 监听 3456 端口，GET /api/health 返回 {status:ok}",
-      "acceptance": "node server.js 启动后 curl localhost:3456/api/health 返回 200",
+      "title": "项目骨架",
+      "description": "创建 package.json（name: snake, type: module, 依赖 express），server.js 监听 3456 端口提供静态文件，public/index.html 包含一个 canvas 元素和标题。确保 npm start 后浏览器能看到页面。",
+      "acceptance": "npm start 后 curl localhost:3456 返回包含 canvas 的 HTML",
       "status": "pending"
     },
     {
       "id": 2,
-      "title": "数据层 Store",
-      "description": "创建 modules/store.js，Store 类：constructor(filePath) 读写 JSON 文件，add({title,content,tags}) 返回带 id 的笔记，getAll()，search(keyword) 搜索标题/内容/标签，getByTag(tag) 精确匹配标签，delete(id)，getById(id)。data/notes.json 为存储文件。",
-      "acceptance": "npx vitest run tests/store.test.js 全绿，测试覆盖 add/search/delete/getByTag/getById",
+      "title": "画蛇",
+      "description": "public/game.js 中实现：20x20 网格，蛇初始长度3节居中，用绿色方块绘制蛇身。requestAnimationFrame 游戏循环，每帧清空画布重绘。蛇身用数组表示 [{x,y},...]。",
+      "acceptance": "浏览器打开能看到绿色蛇身在画布上静止显示",
       "status": "pending"
     },
     {
       "id": 3,
-      "title": "REST API",
-      "description": "server.js 中添加路由：POST /api/notes（title+content 必填，tags 可选），GET /api/notes（全部）、GET /api/notes?q=keyword（搜索）、GET /api/notes?tag=xxx（标签筛选）、GET /api/notes/:id、DELETE /api/notes/:id。缺失字段返回 400，不存在返回 404。",
-      "acceptance": "npx vitest run tests/api.test.js 全绿，每个端点至少一个测试",
+      "title": "蛇移动和键盘控制",
+      "description": "方向键控制蛇移动方向。setInterval 每 150ms 移动一格。蛇头前进，尾部跟随。不能直接反向（向右走时不能直接向左）。碰到墙壁从对面穿出（环绕模式）。",
+      "acceptance": "方向键能控制蛇移动，穿墙正常，反向操作无效",
       "status": "pending"
     },
     {
       "id": 4,
-      "title": "前端页面",
-      "description": "创建 public/index.html + style.css + app.js。深色主题，左侧搜索+标签筛选，右侧笔记列表，顶部添加表单（标题、内容 textarea、标签输入）。app.js 用 fetch 调用 API，实时渲染笔记卡片，支持删除按钮。",
-      "acceptance": "浏览器打开 localhost:3456 能添加笔记、搜索、按标签筛选、删除笔记，页面不报错",
+      "title": "食物和吃食物",
+      "description": "随机位置生成红色食物方块。蛇头碰到食物时：蛇身长度+1，分数+10，食物重新生成。食物不能生成在蛇身上。画布上方显示当前分数。",
+      "acceptance": "蛇能吃食物变长，分数增加，食物不会出现在蛇身上",
       "status": "pending"
     },
     {
       "id": 5,
-      "title": "Markdown 渲染",
-      "description": "npm install marked，笔记内容用 marked 渲染为 HTML 显示。添加表单下方加实时预览区域。",
-      "acceptance": "输入 **粗体** 和 # 标题 显示为格式化内容，预览区实时更新",
+      "title": "游戏结束和重新开始",
+      "description": "蛇头碰到自己身体时游戏结束。显示 Game Over 和最终分数。按空格键重新开始（蛇重置，分数归零）。游戏结束时蛇停止移动。",
+      "acceptance": "撞自己后显示 Game Over，按空格重新开始",
       "status": "pending"
     },
     {
       "id": 6,
-      "title": "收尾和 README",
-      "description": "创建 README.md 说明启动方式和功能。确保 npm start 能正常启动，npm test 全绿。",
-      "acceptance": "npm test 全绿，npm start 后浏览器功能完整",
+      "title": "收尾",
+      "description": "视觉优化：网格线、蛇身渐变色、食物闪烁效果。添加最高分记录（localStorage）。创建 README.md。",
+      "acceptance": "npm start 后游戏完整可玩，有最高分记录功能",
       "status": "pending"
     }
   ]
