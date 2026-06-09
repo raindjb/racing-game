@@ -1,0 +1,14 @@
+{
+  "name": "brain",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "marked": "^15.0.0"
+  }
+}
