@@ -13,6 +13,17 @@ let snake = [
 
 let dir = { x: 1, y: 0 };
 let nextDir = { x: 1, y: 0 };
+let food = null;
+let score = 0;
+
+function spawnFood() {
+  let pos;
+  do {
+    pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
+  } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+  food = pos;
+}
+spawnFood();
 
 document.addEventListener('keydown', (e) => {
   const map = {
@@ -33,15 +44,29 @@ function update() {
   head.x = (head.x + COLS) % COLS;
   head.y = (head.y + ROWS) % ROWS;
   snake.unshift(head);
-  snake.pop();
+
+  if (head.x === food.x && head.y === food.y) {
+    score += 10;
+    spawnFood();
+  } else {
+    snake.pop();
+  }
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#f00';
+  ctx.fillRect(food.x * GRID, food.y * GRID, GRID - 1, GRID - 1);
+
   ctx.fillStyle = '#0a0';
   for (const seg of snake) {
     ctx.fillRect(seg.x * GRID, seg.y * GRID, GRID - 1, GRID - 1);
   }
+
+  ctx.fillStyle = '#fff';
+  ctx.font = '16px monospace';
+  ctx.fillText('分数: ' + score, 10, 20);
 }
 
 setInterval(update, 150);
