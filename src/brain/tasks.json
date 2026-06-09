@@ -7,14 +7,14 @@
       "title": "项目骨架",
       "description": "创建 package.json（name: snake, type: module, 依赖 express），server.js 监听 3456 端口提供静态文件，public/index.html 包含一个 canvas 元素和标题。确保 npm start 后浏览器能看到页面。",
       "acceptance": "npm start 后 curl localhost:3456 返回包含 canvas 的 HTML",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 2,
       "title": "画蛇",
       "description": "public/game.js 中实现：20x20 网格，蛇初始长度3节居中，用绿色方块绘制蛇身。requestAnimationFrame 游戏循环，每帧清空画布重绘。蛇身用数组表示 [{x,y},...]。",
       "acceptance": "浏览器打开能看到绿色蛇身在画布上静止显示",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 3,
