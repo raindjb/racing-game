@@ -1,14 +1,12 @@
 {
-  "name": "brain",
+  "name": "snake",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "test": "vitest run"
+    "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.21.0",
-    "marked": "^15.0.0"
+    "express": "^4.21.0"
   }
 }
