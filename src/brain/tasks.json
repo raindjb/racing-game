@@ -35,7 +35,7 @@
       "title": "游戏结束和重新开始",
       "description": "蛇头碰到自己身体时游戏结束。显示 Game Over 和最终分数。按空格键重新开始（蛇重置，分数归零）。游戏结束时蛇停止移动。",
       "acceptance": "撞自己后显示 Game Over，按空格重新开始",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 6,
