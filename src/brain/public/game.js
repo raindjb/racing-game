@@ -15,6 +15,7 @@ let dir = { x: 1, y: 0 };
 let nextDir = { x: 1, y: 0 };
 let food = null;
 let score = 0;
+let gameOver = false;
 
 function spawnFood() {
   let pos;
@@ -26,6 +27,10 @@ function spawnFood() {
 spawnFood();
 
 document.addEventListener('keydown', (e) => {
+  if (gameOver) {
+    if (e.key === ' ') restart();
+    return;
+  }
   const map = {
     ArrowUp:    { x:  0, y: -1 },
     ArrowDown:  { x:  0, y:  1 },
@@ -39,10 +44,17 @@ document.addEventListener('keydown', (e) => {
 });
 
 function update() {
+  if (gameOver) return;
   dir = nextDir;
   const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
   head.x = (head.x + COLS) % COLS;
   head.y = (head.y + ROWS) % ROWS;
+
+  if (snake.some(s => s.x === head.x && s.y === head.y)) {
+    gameOver = true;
+    return;
+  }
+
   snake.unshift(head);
 
   if (head.x === food.x && head.y === food.y) {
@@ -67,6 +79,33 @@ function draw() {
   ctx.fillStyle = '#fff';
   ctx.font = '16px monospace';
   ctx.fillText('分数: ' + score, 10, 20);
+
+  if (gameOver) {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = '32px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 10);
+    ctx.font = '20px monospace';
+    ctx.fillText('分数: ' + score, canvas.width / 2, canvas.height / 2 + 25);
+    ctx.font = '14px monospace';
+    ctx.fillText('按空格键重新开始', canvas.width / 2, canvas.height / 2 + 55);
+    ctx.textAlign = 'left';
+  }
+}
+
+function restart() {
+  snake = [
+    { x: 10, y: 10 },
+    { x: 9, y: 10 },
+    { x: 8, y: 10 },
+  ];
+  dir = { x: 1, y: 0 };
+  nextDir = { x: 1, y: 0 };
+  score = 0;
+  gameOver = false;
+  spawnFood();
 }
 
 setInterval(update, 150);
