@@ -7,9 +7,15 @@ import { BLINDS } from '../data/blinds.js';
 import { blindTarget } from '../data/blinds.js';
 import { cardEl, releaseCard } from './card-dom.js';
 import { layoutHand, withFlip } from './hand-layout.js';
+import { consumeSuppressedClick } from './drag.js';
 
 const $ = id => document.getElementById(id);
 let els = {};
+
+/** 出牌（按钮/键盘共用）：非阻塞结算 + 动画后落地 */
+export function playAction() {
+  if (round.playSelected({ instant: false })) scheduleResolve();
+}
 
 export function initRender() {
   els = {
@@ -17,14 +23,13 @@ export function initRender() {
     play: $('btn-play'), discard: $('btn-discard'),
   };
 
-  // 手牌点击选牌（事件委托）
+  // 手牌点击选牌（事件委托；拖拽结束的 click 被吞掉）
   els.hand.addEventListener('click', e => {
+    if (consumeSuppressedClick()) return;
     const cardDiv = e.target.closest('.card');
     if (cardDiv) round.toggleSelect(Number(cardDiv.dataset.cid));
   });
-  els.play.addEventListener('click', () => {
-    if (round.playSelected({ instant: false })) scheduleResolve();
-  });
+  els.play.addEventListener('click', playAction);
   els.discard.addEventListener('click', () => round.discardSelected());
   $('btn-sort-rank').addEventListener('click', () => round.sortHand('rank'));
   $('btn-sort-suit').addEventListener('click', () => round.sortHand('suit'));
@@ -33,6 +38,7 @@ export function initRender() {
   bus.on('phase', onPhase);
   bus.on('select:change', () => { syncSelection(); syncPreview(); syncButtons(); });
   bus.on('hand:sorted', () => syncHand(true));
+  bus.on('hand:reordered', () => {});   // 拖拽已实时布局，无需重排
   bus.on('hand:discarded', () => { syncHand(true); syncSidebar(); syncButtons(); });
   bus.on('hand:resolved', () => { syncPlayed(); syncHand(true); syncSidebar(); syncButtons(); });
   bus.on('hand:played', onHandPlayed);
