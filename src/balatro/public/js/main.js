@@ -9,6 +9,7 @@ import { initAudio } from './audio/hooks.js';
 import { initBackground } from './shaders/background.js';
 import { initParticles } from './ui/notifications.js';
 import { initHandPanel } from './ui/hand-panel.js';
+import { initSaveClient } from './save-client.js';
 import { startRun } from './round.js';
 
 console.log(`[balatro] ${GAME_NAME} v${VERSION} booting…`);
@@ -22,4 +23,5 @@ initAudio();
 initBackground();
 initParticles();
 initHandPanel();
+initSaveClient();
 startRun({});     // Task 12：改为主菜单（新游戏/继续存档）

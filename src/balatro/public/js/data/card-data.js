@@ -94,6 +94,8 @@ export function makeCard(suit, rank, opts = {}) {
   };
 }
 export function resetCardIds() { nextCardId = 1; }
+export function setNextCardId(n) { nextCardId = Math.max(1, n); }
+export function peekNextCardId() { return nextCardId; }
 
 /** 牌面筹码（石头牌固定 50，不看点数） */
 export function cardBaseChips(card) {

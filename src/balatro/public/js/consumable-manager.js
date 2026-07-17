@@ -8,6 +8,8 @@ import { destroyCards } from './deck.js';
 import { makeJokerInstance, addJoker, sellValue } from './joker-manager.js';
 
 let nextUid = 1000;
+export function setNextConsumableUid(n) { nextUid = Math.max(1000, n); }
+export function peekNextConsumableUid() { return nextUid; }
 
 export function makeConsumable(kind, defId) {
   const def = kind === 'tarot' ? TAROT_MAP[defId] : PLANET_MAP[defId];

@@ -4,6 +4,8 @@ import { getJokerHandlers } from './effects/index.js';
 import { bus } from './state.js';
 
 let nextUid = 1;
+export function setNextJokerUid(n) { nextUid = Math.max(1, n); }
+export function peekNextJokerUid() { return nextUid; }
 
 /** 创建 Joker 实例（商店/卡包购得时） */
 export function makeJokerInstance(defId, opts = {}) {
