@@ -18,6 +18,7 @@ import { TAROT_MAP } from '../data/tarots.js';
 import { PLANET_MAP } from '../data/planets.js';
 import { VOUCHER_MAP } from '../data/vouchers.js';
 import { playScoreAnimation } from './score-popup.js';
+import { loadSave, fetchStats } from '../save-client.js';
 
 const $ = id => document.getElementById(id);
 let els = {};
@@ -66,6 +67,7 @@ export function initRender() {
 
 function onPhase({ phase }) {
   switch (phase) {
+    case PHASES.MENU: showMainMenu(); break;
     case PHASES.BLIND_SELECT: showBlindSelect(); break;
     case PHASES.PLAYING: hideOverlay(); syncAll(); break;
     case PHASES.ROUND_END: showRoundEnd(); break;
@@ -380,7 +382,49 @@ function showGameEnd(won) {
       <div class="panel-sub">
         到达 ANTE ${Math.min(G.ante, 8)} · 回合 ${G.round} · 最佳一手 ${G.stats.bestHandScore.toLocaleString()} · $${G.money}
       </div>
-      <button class="btn btn-play" id="ov-restart">再来一局</button>
+      <div class="panel-actions">
+        <button class="btn btn-play" id="ov-restart">再来一局</button>
+        <button class="btn btn-ghost" id="ov-menu">主菜单</button>
+      </div>
     </div>`);
   $('ov-restart').addEventListener('click', () => round.startRun({}));
+  $('ov-menu').addEventListener('click', () => round.toMenu());
+}
+
+/** 主菜单：新游戏（可指定种子）/ 继续存档 / 战绩 */
+export async function showMainMenu() {
+  const [save, stats] = await Promise.all([loadSave(), fetchStats()]);
+  if (G.phase !== PHASES.MENU) return;   // 异步期间阶段已变
+
+  const statsHtml = stats && stats.games
+    ? `<div class="menu-stats">局数 ${stats.games} · 胜场 ${stats.wins ?? 0} · 最佳一手 ${(stats.bestScore ?? 0).toLocaleString()} · 最高底注 ${stats.bestAnte ?? 0}</div>`
+    : '';
+  const contHtml = save
+    ? `<button class="btn btn-shop-go" id="menu-continue">继续 · ANTE ${save.ante} · $${save.money}</button>`
+    : '';
+  showOverlay(`
+    <div class="panel menu-panel">
+      <h1>🃏 小丑牌</h1>
+      <div class="panel-sub">BALATRO 复刻 · M1</div>
+      ${statsHtml}
+      <div class="menu-actions">
+        ${contHtml}
+        <button class="btn btn-play" id="menu-new">新游戏</button>
+        <div class="seed-row">
+          <input id="menu-seed" maxlength="12" placeholder="自定义种子（可选）" spellcheck="false">
+        </div>
+      </div>
+    </div>`);
+  $('menu-new').addEventListener('click', () => {
+    const seed = $('menu-seed').value.trim().toUpperCase();
+    round.startRun(seed ? { seed } : {});
+  });
+  $('menu-continue')?.addEventListener('click', () => {
+    if (!round.continueRun(save)) {
+      flashMessage('存档损坏或版本不符');
+      round.toMenu();
+    } else {
+      syncAll();
+    }
+  });
 }

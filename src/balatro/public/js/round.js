@@ -15,6 +15,17 @@ import { applyBossOnBlindStart, applyBossOnCardDrawn, validatePlay, applyBossAft
 import { makeConsumable, addConsumable, randomTarotId } from './consumable-manager.js';
 import { PLANETS } from './data/planets.js';
 import { enterShopGen } from './shop.js';
+import { deserializeRun } from './serialize.js';
+
+/** 回主菜单 */
+export function toMenu() { setPhase(PHASES.MENU); }
+
+/** 从存档继续 */
+export function continueRun(saveData) {
+  if (!deserializeRun(saveData)) return false;
+  bus.emit('run:continued');
+  return true;
+}
 
 /** 开新局 */
 export function startRun({ seed } = {}) {

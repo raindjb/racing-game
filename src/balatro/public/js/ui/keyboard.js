@@ -33,6 +33,11 @@ export function initKeyboard() {
       case PHASES.WIN:
         if (e.key === 'Enter') round.startRun({});
         break;
+      case PHASES.MENU:
+        if (e.key === 'Enter' && document.activeElement?.id !== 'menu-seed') {
+          document.getElementById('menu-new')?.click();
+        }
+        break;
     }
   });
 }
