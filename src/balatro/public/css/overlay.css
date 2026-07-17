@@ -36,13 +36,12 @@
 .blind-card.current { border-color: var(--gold-bright); box-shadow: 0 0 26px rgba(240, 192, 96, 0.25); transform: translateY(-6px); }
 .blind-card.done { opacity: 0.4; filter: grayscale(0.7); }
 .bc-icon {
-  width: 52px; height: 52px; margin: 0 auto 10px; border-radius: 50%;
+  width: 58px; height: 58px; margin: 0 auto 10px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 24px; border: 3px solid rgba(255, 255, 255, 0.25);
 }
-.bc-icon.small { background: #2d6a8e; }
-.bc-icon.big { background: #8e6a2d; }
-.bc-icon.boss { background: #7a2030; animation: bossPulse 1.6s ease-in-out infinite; }
+.bc-icon svg { width: 100%; height: 100%; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.5)); }
+.bc-icon.small, .bc-icon.big { background: none; border: none; }
+.bc-icon.boss { background: none; border: none; animation: bossPulse 1.6s ease-in-out infinite; border-radius: 50%; }
 .bc-name { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
 .bc-target { font-size: 13px; color: var(--red); font-weight: 700; }
 .bc-reward { font-size: 12px; color: var(--gold-bright); margin-top: 4px; }
@@ -107,6 +106,8 @@
 .s-cardface { width: 72px; height: 102px; }
 .s-cardface svg { width: 100%; height: 100%; }
 .s-emoji { font-size: 42px; line-height: 1.2; margin-bottom: 2px; }
+.s-icon { width: 52px; height: 52px; margin-bottom: 2px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); }
+.s-icon svg { width: 100%; height: 100%; }
 .s-name { font-size: 14px; font-weight: 800; text-align: center; line-height: 1.2; }
 .s-desc { font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.4; }
 .s-price {
@@ -130,7 +131,11 @@
 .c-card.c-tarot { background: linear-gradient(160deg, #3a2158, #1d0f30); }
 .c-card.c-planet { background: linear-gradient(160deg, #1d3a58, #0d1b30); }
 .c-card.c-spectral { background: linear-gradient(160deg, #1d5850, #0d3028); }
-.c-card .c-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); font-size: 30px; }
+.c-card .c-icon {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%);
+  width: 34px; height: 34px;
+}
+.c-card .c-icon svg { width: 100%; height: 100%; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45)); }
 .c-card { outline: 2px solid rgba(255, 255, 255, 0.18); outline-offset: -2px; }
 
 /* ===== 主菜单 ===== */

@@ -26,31 +26,37 @@
   padding: 10px; gap: 12px;
 }
 
-/* ===== 左侧信息栏 ===== */
+/* ===== 左侧信息栏（立体浮雕层次） ===== */
 #sidebar {
   width: 210px; flex-shrink: 0;
-  display: flex; flex-direction: column; gap: 8px;
-  background: var(--panel-dark);
+  display: flex; flex-direction: column; gap: 9px;
+  background: linear-gradient(165deg, rgba(30, 44, 28, 0.95), rgba(14, 22, 14, 0.98));
   border: 1px solid var(--panel-line);
-  border-radius: 12px;
-  padding: 10px;
+  border-top-color: rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 11px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 #sidebar section {
-  background: var(--panel);
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.055), rgba(0, 0, 0, 0.18));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-top-color: rgba(255, 255, 255, 0.12);
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 9px 11px;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-#blind-badge { display: flex; align-items: center; gap: 8px; }
+#blind-badge { display: flex; align-items: center; gap: 10px; }
 #blind-icon {
-  width: 42px; height: 42px; border-radius: 50%;
+  width: 46px; height: 46px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0;
-  background: #2d5a8e; border: 3px solid rgba(255,255,255,0.25);
 }
-#blind-icon.small { background: #2d6a8e; }
-#blind-icon.big { background: #8e6a2d; }
-#blind-icon.boss { background: #7a2030; animation: bossPulse 1.6s ease-in-out infinite; }
+#blind-icon svg { width: 100%; height: 100%; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
+#blind-icon.boss { animation: bossPulse 1.6s ease-in-out infinite; border-radius: 50%; }
 #blind-name { font-size: 16px; font-weight: 800; }
 #blind-target { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
 #target-score { font-size: 22px; font-weight: 900; color: var(--red); }
@@ -60,7 +66,7 @@
 #score-panel { text-align: center; }
 #round-score {
   font-size: 30px; font-weight: 900; color: var(--gold-bright);
-  text-shadow: 0 0 18px rgba(240,192,96,0.35);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.4), 0 0 18px rgba(240,192,96,0.35);
 }
 
 #calc-panel { text-align: center; }
@@ -72,20 +78,30 @@
 .chips-box, .mult-box {
   min-width: 62px; padding: 4px 8px; border-radius: 6px;
   font-size: 19px; font-weight: 900; color: #fff;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 4px rgba(0,0,0,0.3);
 }
 .chips-box { background: var(--blue); text-align: right; }
 .mult-box { background: var(--red); text-align: left; }
 .calc-x { font-size: 20px; font-weight: 900; color: var(--red); }
 
 #counter-panel, #meta-panel { display: flex; gap: 8px; }
-.counter { flex: 1; text-align: center; background: var(--panel-dark); border-radius: 8px; padding: 4px; }
-.counter .num { font-size: 20px; font-weight: 900; }
+.counter {
+  flex: 1; text-align: center;
+  background: linear-gradient(175deg, rgba(0,0,0,0.32), rgba(0,0,0,0.16));
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px; padding: 5px 4px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.35), inset 0 -1px 0 rgba(255,255,255,0.04);
+}
+.counter .num { font-size: 20px; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 .num.blue { color: var(--blue); }
 .num.red { color: var(--red); }
 .num.gold { color: var(--gold-bright); }
 
 #money-panel { text-align: center; }
-#money { font-size: 26px; font-weight: 900; color: var(--gold-bright); }
+#money {
+  font-size: 26px; font-weight: 900; color: var(--gold-bright);
+  text-shadow: 0 2px 0 rgba(0,0,0,0.45), 0 0 14px rgba(240,192,96,0.3);
+}
 
 /* ===== 主板 ===== */
 #board {

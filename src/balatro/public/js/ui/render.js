@@ -16,7 +16,9 @@ import * as shop from '../shop.js';
 import { JOKER_MAP } from '../data/jokers.js';
 import { TAROT_MAP } from '../data/tarots.js';
 import { PLANET_MAP } from '../data/planets.js';
+import { SPECTRAL_MAP } from '../data/spectrals.js';
 import { VOUCHER_MAP } from '../data/vouchers.js';
+import { tarotIcon, planetIcon, spectralIcon, packIcon, voucherIcon, blindIcon } from '../svg/icons.js';
 import { playScoreAnimation } from './score-popup.js';
 import { loadSave, fetchStats } from '../save-client.js';
 
@@ -101,8 +103,9 @@ function syncConsumables() {
     }
     const el = document.createElement('div');
     el.className = `j-card c-card c-${c.kind}`;
+    const kindIcon = { tarot: tarotIcon, planet: planetIcon, spectral: spectralIcon }[c.kind] ?? tarotIcon;
     el.innerHTML =
-      `<div class="c-icon">${c.kind === 'tarot' ? '🔮' : '🪐'}</div>` +
+      `<div class="c-icon">${kindIcon()}</div>` +
       `<div class="j-name">${c.zh}</div><div class="j-desc">${c.desc}</div>` +
       `<div class="sell-tip">点击使用 · 右键卖 $1</div>`;
     el.title = `${c.zh}：${c.desc}`;
@@ -213,7 +216,7 @@ function syncSidebar() {
   $('blind-reward').textContent = `$${b.reward}`;
   const icon = $('blind-icon');
   icon.className = ['small', 'big', 'boss'][G.blindIndex] ?? 'small';
-  icon.textContent = G.blindIndex === 2 ? '☠' : b.icon;
+  icon.innerHTML = blindIcon(['small', 'big', 'boss'][G.blindIndex] ?? 'small');
 }
 
 function syncDeckBadge() {
@@ -257,7 +260,7 @@ function showBlindSelect() {
     const target = blindTarget(G.ante, i, i === 2 ? boss : null).toLocaleString();
     const cur = i === G.blindIndex ? 'current' : (i < G.blindIndex ? 'done' : '');
     return `<div class="blind-card ${cur}">
-      <div class="bc-icon ${['small', 'big', 'boss'][i]}">${i === 2 ? '☠' : b.icon}</div>
+      <div class="bc-icon ${['small', 'big', 'boss'][i]}">${blindIcon(['small', 'big', 'boss'][i])}</div>
       <div class="bc-name">${i === 2 && boss ? boss.zh : b.zh}</div>
       <div class="bc-target">至少 ${target}</div>
       <div class="bc-reward">奖励 $${b.reward}</div>
@@ -305,16 +308,16 @@ function showShop() {
         `<div class="s-rarity r-${d.rarity}">${{ common: '普通', uncommon: '罕见', rare: '稀有' }[d.rarity]}</div>`;
     } else if (item.kind === 'tarot') {
       const d = TAROT_MAP[item.id];
-      body = `<div class="s-emoji">🔮</div><div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div>`;
+      body = `<div class="s-icon">${tarotIcon()}</div><div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div>`;
     } else if (item.kind === 'spectral') {
       const d = SPECTRAL_MAP[item.id];
-      body = `<div class="s-emoji">👻</div><div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div>`;
+      body = `<div class="s-icon">${spectralIcon()}</div><div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div>`;
     } else if (item.kind === 'card') {
       body = `<div class="s-cardface">${cardFaceSVG(item.card)}</div>` +
         (item.card.enhancement ? `<div class="s-desc">${item.card.enhancement}</div>` : '');
     } else {
       const d = PLANET_MAP[item.id];
-      body = `<div class="s-emoji">🪐</div><div class="s-name">${d.zh}</div>` +
+      body = `<div class="s-icon">${planetIcon()}</div><div class="s-name">${d.zh}</div>` +
         `<div class="s-desc">升级「${HAND_TYPE_MAP[d.hand].zh}」等级</div>`;
     }
     return `<div class="s-item" data-slot="${i}">${body}<div class="s-price">$${item.price}</div></div>`;
@@ -323,12 +326,12 @@ function showShop() {
     if (p.sold) return `<div class="s-item sold">已售出</div>`;
     const d = shop.PACK_MAP[p.id];
     return `<div class="s-item s-pack" data-pack="${i}">
-      <div class="s-emoji">🎁</div><div class="s-name">${d.zh}</div>
+      <div class="s-icon">${packIcon()}</div><div class="s-name">${d.zh}</div>
       <div class="s-desc">${d.desc}</div><div class="s-price">$${p.price}</div></div>`;
   };
   const vCard = (v, domId) => !v ? '' : v.sold ? `<div class="s-item sold">已购</div>` :
     `<div class="s-item s-voucher" id="${domId}">
-      <div class="s-emoji">🎟️</div><div class="s-name">${VOUCHER_MAP[v.id].zh}</div>
+      <div class="s-icon">${voucherIcon()}</div><div class="s-name">${VOUCHER_MAP[v.id].zh}</div>
       <div class="s-desc">${VOUCHER_MAP[v.id].desc}</div><div class="s-price">$${v.price}</div></div>`;
   const voucherHTML = vCard(s.voucher, 'shop-voucher') + vCard(s.voucher2, 'shop-voucher2');
 
@@ -371,10 +374,12 @@ function showBooster() {
       return `<div class="s-item" data-bi="${i}"><div class="s-art">${jokerArtSVG(d.art, d.id)}</div>
         <div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div></div>`;
     }
-    const d = it.kind === 'tarot' ? TAROT_MAP[it.id] : PLANET_MAP[it.id];
+    // 消耗牌（塔罗/星球/幻灵）— 幻灵之前误走 PLANET_MAP 会崩
+    const d = { tarot: TAROT_MAP, planet: PLANET_MAP, spectral: SPECTRAL_MAP }[it.kind]?.[it.id];
+    const ic = { tarot: tarotIcon, planet: planetIcon, spectral: spectralIcon }[it.kind] ?? tarotIcon;
     return `<div class="s-item" data-bi="${i}">
-      <div class="s-emoji">${it.kind === 'tarot' ? '🔮' : '🪐'}</div>
-      <div class="s-name">${d.zh}</div><div class="s-desc">${d.desc ?? ''}</div></div>`;
+      <div class="s-icon">${ic()}</div>
+      <div class="s-name">${d?.zh ?? it.id}</div><div class="s-desc">${d?.desc ?? ''}</div></div>`;
   };
   showOverlay(`
     <div class="panel shop-panel">
