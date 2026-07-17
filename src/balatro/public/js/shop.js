@@ -4,15 +4,16 @@ import { JOKERS } from './data/jokers.js';
 import { VOUCHERS, VOUCHER_MAP } from './data/vouchers.js';
 import { PLANETS } from './data/planets.js';
 import { SUITS, RANKS, makeCard } from './data/card-data.js';
-import { makeConsumable, addConsumable, randomPlanetId, randomTarotId } from './consumable-manager.js';
+import { makeConsumable, addConsumable, randomPlanetId, randomTarotId, randomSpectralId } from './consumable-manager.js';
 import { makeJokerInstance, addJoker } from './joker-manager.js';
 import { dispatchHook } from './effects/index.js';
 
 export const PACKS = [
-  { id: 'standard',  zh: '标准包', desc: '3 张游戏牌选 1 加入牌组', price: 4, picks: 1, count: 3 },
-  { id: 'arcana',    zh: '奥术包', desc: '3 张塔罗牌选 1', price: 4, picks: 1, count: 3 },
-  { id: 'celestial', zh: '天体包', desc: '3 张星球牌选 1', price: 4, picks: 1, count: 3 },
-  { id: 'buffoon',   zh: '小丑包', desc: '2 张小丑牌选 1', price: 4, picks: 1, count: 2 },
+  { id: 'standard',  zh: '标准包', desc: '3 张游戏牌选 1 加入牌组', price: 4, picks: 1, count: 3, weight: 1 },
+  { id: 'arcana',    zh: '奥术包', desc: '3 张塔罗牌选 1', price: 4, picks: 1, count: 3, weight: 1 },
+  { id: 'celestial', zh: '天体包', desc: '3 张星球牌选 1', price: 4, picks: 1, count: 3, weight: 1 },
+  { id: 'buffoon',   zh: '小丑包', desc: '2 张小丑牌选 1', price: 4, picks: 1, count: 2, weight: 1 },
+  { id: 'spectral',  zh: '幻灵包', desc: '2 张幻灵牌选 1', price: 4, picks: 1, count: 2, weight: 0.3 },
 ];
 export const PACK_MAP = Object.fromEntries(PACKS.map(p => [p.id, p]));
 
@@ -67,7 +68,9 @@ function genJokerItem() {
 
 function genPacks() {
   const freeCelestial = G.jokers.some(j => j.id === 'astronomer');
-  return [G.rng.pick(PACKS), G.rng.pick(PACKS)].map(p =>
+  const weighted = PACKS.flatMap(p => Array(Math.round(p.weight * 10)).fill(p));
+  const pick = () => G.rng.pick(weighted);
+  return [pick(), pick()].map(p =>
     ({ id: p.id, price: p.id === 'celestial' && freeCelestial ? 0 : price(p.price) }));
 }
 
@@ -172,9 +175,11 @@ function genPackItems(packId, count) {
     }
     case 'buffoon': {
       const owned = new Set(G.jokers.map(j => j.id));
-      const pool = JOKERS.filter(j => !owned.has(j.id));
-      return Array.from({ length: count }, () => ({ kind: 'joker', id: rng.pick(pool.length ? pool : JOKERS).id }));
+      const pool = JOKERS.filter(j => j.rarity !== 'legendary' && !owned.has(j.id));
+      return Array.from({ length: count }, () => ({ kind: 'joker', id: rng.pick(pool.length ? pool : JOKERS.filter(j => j.rarity !== 'legendary')).id }));
     }
+    case 'spectral':
+      return Array.from({ length: count }, () => ({ kind: 'spectral', id: randomSpectralId(rng) }));
   }
   return [];
 }
@@ -194,6 +199,7 @@ export function pickBoosterItem(idx) {
     const inst = makeJokerInstance(item.id);
     res = addJoker(G, inst) ? { ok: true, msg: `获得「${inst.zh}」` } : { ok: false, msg: '小丑牌槽已满' };
   } else {
+    // 塔罗/星球/幻灵统一进消耗牌槽
     res = addConsumable(makeConsumable(item.kind, item.id))
       ? { ok: true, msg: '已加入消耗牌' } : { ok: false, msg: '消耗牌槽已满' };
   }

@@ -1,9 +1,10 @@
-// consumable-manager.js — 消耗牌（塔罗/星球）：创建/使用/出售 + 塔罗效果实现
+// consumable-manager.js — 消耗牌（塔罗/星球/幻灵）：创建/使用/出售 + 效果实现
 import { G, bus, selectedCards } from './state.js';
 import { TAROT_MAP, TAROTS } from './data/tarots.js';
 import { PLANET_MAP, PLANETS } from './data/planets.js';
+import { SPECTRAL_MAP, SPECTRALS } from './data/spectrals.js';
 import { JOKERS } from './data/jokers.js';
-import { RANKS } from './data/card-data.js';
+import { RANKS, SUITS, makeCard, HAND_TYPES } from './data/card-data.js';
 import { destroyCards } from './deck.js';
 import { makeJokerInstance, addJoker, sellValue } from './joker-manager.js';
 import { dispatchHook } from './effects/index.js';
@@ -13,7 +14,9 @@ export function setNextConsumableUid(n) { nextUid = Math.max(1000, n); }
 export function peekNextConsumableUid() { return nextUid; }
 
 export function makeConsumable(kind, defId) {
-  const def = kind === 'tarot' ? TAROT_MAP[defId] : PLANET_MAP[defId];
+  const def = kind === 'tarot' ? TAROT_MAP[defId]
+    : kind === 'planet' ? PLANET_MAP[defId]
+    : SPECTRAL_MAP[defId];
   if (!def) throw new Error(`未知消耗牌: ${kind}/${defId}`);
   return { uid: nextUid++, kind, id: def.id, zh: def.zh,
            desc: kind === 'planet' ? `升级「${handZh(def.hand)}」等级` : def.desc };
@@ -51,6 +54,14 @@ export function randomPlanetId(rng) {
 }
 export function randomTarotId(rng) { return rng.pick(TAROTS).id; }
 
+/** 随机幻灵（灵魂/黑洞低权重） */
+export function randomSpectralId(rng) {
+  const total = SPECTRALS.reduce((s, x) => s + x.weight, 0);
+  let r = rng.random() * total;
+  for (const s of SPECTRALS) { r -= s.weight; if (r <= 0) return s.id; }
+  return SPECTRALS[0].id;
+}
+
 /** 使用消耗牌。targets 默认取当前选中的手牌。返回 {ok, msg} */
 export function useConsumable(uid) {
   const idx = G.consumables.findIndex(c => c.uid === uid);
@@ -65,6 +76,8 @@ export function useConsumable(uid) {
     const def = PLANET_MAP[inst.id];
     G.handLevels[def.hand] = (G.handLevels[def.hand] ?? 1) + 1;
     res = { ok: true, msg: `${def.zh}：${handZh(def.hand)} → Lv.${G.handLevels[def.hand]}` };
+  } else if (inst.kind === 'spectral') {
+    res = useSpectral(inst.id);
   } else {
     res = useTarot(inst.id);
   }
@@ -183,6 +196,119 @@ function useTarot(id) {
       return addConsumable(makeConsumable(last.kind, last.id))
         ? { ok: true, msg: '愚者：复制成功' }
         : { ok: false, msg: '消耗牌槽已满' };
+    }
+  }
+  return { ok: false, msg: '未实现' };
+}
+
+/** 幻灵牌效果实现 */
+function useSpectral(id) {
+  const def = SPECTRAL_MAP[id];
+  const rng = G.rng;
+  const targets = selectedCards();
+
+  if (def.targets) {
+    if (targets.length < def.targets.min || targets.length > def.targets.max)
+      return { ok: false, msg: `需选中 ${def.targets.min === def.targets.max ? def.targets.min : `${def.targets.min}-${def.targets.max}`} 张手牌` };
+  }
+
+  // 蜡封类
+  if (def.seal) {
+    targets[0].seal = def.seal;
+    G.selected = [];
+    return { ok: true, msg: `${def.zh}：已附上蜡封` };
+  }
+
+  switch (id) {
+    case 'familiar':
+    case 'grim':
+    case 'incantation': {
+      // 销毁随机手牌 → 生成指定强化牌
+      if (!G.hand.length) return { ok: false, msg: '手中无牌' };
+      const victim = rng.pick(G.hand);
+      destroyCards([victim]);
+      const count = id === 'familiar' ? 3 : id === 'grim' ? 2 : 4;
+      const ranks = id === 'familiar' ? ['K', 'Q', 'J'] : id === 'grim' ? ['A'] : RANKS.filter(r => !['K', 'Q', 'J', 'A'].includes(r));
+      const enhPool = ['bonus', 'mult', 'wild', 'glass', 'gold', 'lucky'];
+      for (let i = 0; i < count; i++) {
+        const card = makeCard(rng.pick(SUITS), rng.pick(ranks), { enhancement: rng.pick(enhPool) });
+        G.hand.push(card);
+        dispatchHook(G.jokers, 'onCardAdded', G, card);
+      }
+      return { ok: true, msg: `${def.zh}：${count} 张强化牌已加入手牌` };
+    }
+    case 'aura': {
+      const roll = rng.random();
+      targets[0].edition = roll < 0.5 ? 'foil' : roll < 0.85 ? 'holographic' : 'polychrome';
+      G.selected = [];
+      return { ok: true, msg: `${def.zh}：已附上版本` };
+    }
+    case 'wraith': {
+      const pool = JOKERS.filter(j => j.rarity === 'rare' && !G.jokers.some(x => x.id === j.id));
+      const inst = makeJokerInstance(rng.pick(pool.length ? pool : JOKERS.filter(j => j.rarity !== 'legendary')).id);
+      G.money = 0;
+      return addJoker(G, inst) ? { ok: true, msg: `怨灵：获得「${inst.zh}」，金钱归零` } : { ok: false, msg: '小丑牌槽已满' };
+    }
+    case 'sigil': {
+      const s = rng.pick(SUITS);
+      for (const c of G.hand) if (c.enhancement !== 'stone') c.suit = s;
+      return { ok: true, msg: `印记：全部转换为 ${s === 'spades' ? '♠' : s === 'hearts' ? '♥' : s === 'diamonds' ? '♦' : '♣'}` };
+    }
+    case 'ouija': {
+      const r = rng.pick(RANKS);
+      for (const c of G.hand) if (c.enhancement !== 'stone') c.rank = r;
+      G.config.handSize = Math.max(0, G.config.handSize - 1);
+      return { ok: true, msg: `通灵板：全部 → ${r}，手牌上限 -1` };
+    }
+    case 'ectoplasm': {
+      if (!G.jokers.length) return { ok: false, msg: '没有小丑牌' };
+      const j = rng.pick(G.jokers);
+      j.edition = 'negative';
+      return { ok: true, msg: `灵质：「${j.zh}」获得负片` };
+    }
+    case 'immolate': {
+      const n = Math.min(5, G.hand.length);
+      const victims = [];
+      for (let i = 0; i < n; i++) { victims.push(G.hand[Math.floor(rng.random() * G.hand.length)]); destroyCards([victims[i]]); }
+      G.money += 20;
+      return { ok: true, msg: `献祭：销毁 ${n} 张牌 +$20` };
+    }
+    case 'ankh': {
+      if (!G.jokers.length) return { ok: false, msg: '没有小丑牌' };
+      const target = rng.pick(G.jokers);
+      const dup = makeJokerInstance(target.id, { edition: target.edition });
+      dup.state = target.state;
+      G.jokers.length = 0;
+      G.jokers.push(dup);
+      bus.emit('jokers:change');
+      return { ok: true, msg: `安卡：仅保留复制的「${dup.zh}」` };
+    }
+    case 'hex': {
+      if (!G.jokers.length) return { ok: false, msg: '没有小丑牌' };
+      const target = rng.pick(G.jokers);
+      target.edition = 'polychrome';
+      G.jokers = [target];
+      bus.emit('jokers:change');
+      return { ok: true, msg: `妖术：「${target.zh}」获得多彩，其余销毁` };
+    }
+    case 'cryptid': {
+      for (let i = 0; i < 2; i++) {
+        const copy = makeCard(targets[0].suit, targets[0].rank,
+          { enhancement: targets[0].enhancement, edition: targets[0].edition, seal: targets[0].seal });
+        G.hand.push(copy);
+        dispatchHook(G.jokers, 'onCardAdded', G, copy);
+      }
+      G.selected = [];
+      return { ok: true, msg: '秘影：已复制 2 张' };
+    }
+    case 'soul': {
+      const leg = JOKERS.filter(j => j.rarity === 'legendary');
+      const inst = makeJokerInstance(rng.pick(leg).id);
+      return addJoker(G, inst) ? { ok: true, msg: `灵魂：获得传奇「${inst.zh}」!` } : { ok: false, msg: '小丑牌槽已满' };
+    }
+    case 'black_hole': {
+      for (const h of HAND_TYPES) G.handLevels[h.id] = (G.handLevels[h.id] ?? 1) + 1;
+      return { ok: true, msg: '黑洞：全部手型升 1 级!' };
     }
   }
   return { ok: false, msg: '未实现' };

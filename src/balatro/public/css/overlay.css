@@ -111,6 +111,7 @@
 /* 消耗牌迷你卡 */
 .c-card.c-tarot { background: linear-gradient(160deg, #3a2158, #1d0f30); }
 .c-card.c-planet { background: linear-gradient(160deg, #1d3a58, #0d1b30); }
+.c-card.c-spectral { background: linear-gradient(160deg, #1d5850, #0d3028); }
 .c-card .c-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); font-size: 30px; }
 .c-card { outline: 2px solid rgba(255, 255, 255, 0.18); outline-offset: -2px; }
 

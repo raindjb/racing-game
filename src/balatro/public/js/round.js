@@ -12,7 +12,7 @@ import { blindTarget, interestOf, BLINDS, ANTE_MAX } from './data/blinds.js';
 import { pickBoss, BOSS_MAP } from './data/bosses.js';
 import { cardOrder, SUITS } from './data/card-data.js';
 import { applyBossOnBlindStart, applyBossOnCardDrawn, validatePlay, applyBossAfterPlay } from './boss-effects.js';
-import { makeConsumable, addConsumable, randomTarotId } from './consumable-manager.js';
+import { makeConsumable, addConsumable, randomTarotId, randomSpectralId } from './consumable-manager.js';
 import { PLANETS } from './data/planets.js';
 import { enterShopGen } from './shop.js';
 import { deserializeRun } from './serialize.js';
@@ -169,6 +169,11 @@ export function resolveAfterScoring() {
   const { eval: ev, result } = G.lastPlay;
 
   destroyCards(result.destroyed);                 // 玻璃碎裂永久移除
+  // 第六感/降神会：本手积攒的幻灵牌
+  while (G.pendingSpectral > 0) {
+    G.pendingSpectral--;
+    addConsumable(makeConsumable('spectral', randomSpectralId(G.rng)));
+  }
   discardFromHand([]);                            // no-op：保持接口一致
   G.discardPile.push(...G.playedZone);            // 打出的牌进弃牌堆
   G.playedZone = [];
