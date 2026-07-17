@@ -27,13 +27,7 @@ export function applyBossOnBlindStart() {
       G.bossState.heartDisabled = null;
       _crimsonHeartRandomDisable();
       break;
-    case 'cerulean_bell':
-      if (G.hand.length) {
-        const forced = G.rng.pick(G.hand);
-        G.bossState.forcedCard = forced.id;
-        if (!G.selected.includes(forced.id)) G.selected.push(forced.id);
-      }
-      break;
+    // cerulean_bell 在首发之后处理（bossFirstDrawDone）
   }
 }
 
@@ -53,10 +47,12 @@ export function applyBossOnCardDrawn(card) {
       break;
   }
 }
-// 第一次发牌结束后标记
+// 第一次发牌结束后标记/触发
 export function bossFirstDrawDone() {
+  if (G.bossDisabled) return;
   if (G.boss?.fx === 'house') G.bossState.firstDrawDone = true;
   if (G.boss?.fx === 'pillar') G.bossState.pillarIds = new Set();
+  if (G.boss?.fx === 'cerulean_bell') _ceruleanBellForceCard();
 }
 
 /** 出牌合法性校验（拒绝时不消耗次数） */
