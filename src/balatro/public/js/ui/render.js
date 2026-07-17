@@ -8,6 +8,8 @@ import { blindTarget } from '../data/blinds.js';
 import { cardEl, releaseCard } from './card-dom.js';
 import { layoutHand, withFlip } from './hand-layout.js';
 import { consumeSuppressedClick } from './drag.js';
+import { jokerSlotsOf, sellJoker, sellValue } from '../joker-manager.js';
+import { jokerArtSVG } from '../svg/joker-art.js';
 
 const $ = id => document.getElementById(id);
 let els = {};
@@ -45,6 +47,7 @@ export function initRender() {
   bus.on('boss:hook', () => syncHand(true));
   bus.on('cards:destroyed', ({ cards }) => cards.forEach(c => releaseCard(c.id)));
   bus.on('ui:reject', ({ reason }) => flashMessage(reason));
+  bus.on('jokers:change', () => { syncJokers(); syncSidebar(); });
 
   window.addEventListener('resize', () => syncHand(false));
 }
@@ -63,7 +66,39 @@ function onPhase({ phase }) {
 // ===== 主区域同步 =====
 
 export function syncAll() {
-  syncHand(false); syncPlayed(); syncSidebar(); syncSelection(); syncPreview(); syncButtons();
+  syncHand(false); syncPlayed(); syncSidebar(); syncSelection(); syncPreview(); syncButtons(); syncJokers();
+}
+
+/** Joker 行：实例卡 + 空槽；右键出售 */
+const GROWING = new Set(['green_joker', 'ride_the_bus', 'loyalty_card']);
+function syncJokers() {
+  const row = $('joker-row');
+  row.innerHTML = '';
+  const slots = jokerSlotsOf(G);
+  for (let i = 0; i < slots; i++) {
+    const j = G.jokers[i];
+    if (!j) {
+      const s = document.createElement('div');
+      s.className = 'j-slot'; s.textContent = '+';
+      row.appendChild(s);
+      continue;
+    }
+    const el = document.createElement('div');
+    el.className = `j-card rarity-${j.rarity}`;
+    if (j.edition) el.classList.add(`ed-${j.edition}`);
+    el.dataset.juid = j.uid;
+    el.innerHTML = jokerArtSVG(j.art, j.id) +
+      `<div class="j-name">${j.zh}</div><div class="j-desc">${j.desc}</div>` +
+      (GROWING.has(j.id) ? `<div class="j-count">${j.state}</div>` : '') +
+      `<div class="sell-tip">右键出售 $${sellValue(j)}</div>`;
+    el.title = `${j.zh}：${j.desc}`;
+    el.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      sellJoker(G, j.uid);
+      flashMessage(`出售 ${j.zh} +$${sellValue(j)}`);
+    });
+    row.appendChild(el);
+  }
 }
 
 function syncHand(flip) {

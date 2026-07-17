@@ -34,6 +34,7 @@ export function buildContext(G, evalResult, playedCards) {
       deckCount: G.deck.length,
       ante: G.ante,
       handPlayed: G.handPlayed,
+      jokerSlots: G.config.jokerSlots + G.jokers.filter(j => j.edition === 'negative').length,
       totalDeckCount: G.deck.length + G.hand.length + G.discardPile.length + playedCards.length,
     },
   };
