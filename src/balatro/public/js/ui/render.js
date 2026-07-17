@@ -17,13 +17,14 @@ import { JOKER_MAP } from '../data/jokers.js';
 import { TAROT_MAP } from '../data/tarots.js';
 import { PLANET_MAP } from '../data/planets.js';
 import { VOUCHER_MAP } from '../data/vouchers.js';
+import { playScoreAnimation } from './score-popup.js';
 
 const $ = id => document.getElementById(id);
 let els = {};
 
-/** 出牌（按钮/键盘共用）：非阻塞结算 + 动画后落地 */
+/** 出牌（按钮/键盘共用）：结算动画由 hand:played 事件驱动 */
 export function playAction() {
-  if (round.playSelected({ instant: false })) scheduleResolve();
+  round.playSelected({ instant: false });
 }
 
 export function initRender() {
@@ -217,25 +218,14 @@ function syncButtons() {
   els.discard.disabled = !playing || G.selected.length === 0 || G.discardsLeft <= 0;
 }
 
-// ===== 结算表现（Task 10 升级为逐步跳分） =====
+// ===== 结算表现：逐步跳分（steps 重放），完成后落地 =====
 
-function onHandPlayed({ result, eval: ev }) {
+function onHandPlayed({ result }) {
   syncHand(true); syncPlayed(); syncSidebar(); syncButtons();
-  $('hand-type-label').textContent = ev.zh;
-  $('calc-chips').textContent = result.chips;
-  $('calc-mult').textContent = result.mult;
-  const pop = $('score-pop');
-  pop.textContent = `+${result.score.toLocaleString()}`;
-  pop.classList.add('on');
-}
-
-let resolveTimer = null;
-function scheduleResolve() {
-  clearTimeout(resolveTimer);
-  resolveTimer = setTimeout(() => {
-    $('score-pop').classList.remove('on');
+  playScoreAnimation(result, () => {
     round.resolveAfterScoring();
-  }, 1100);
+    syncSidebar();
+  });
 }
 
 function flashMessage(text) {

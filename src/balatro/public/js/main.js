@@ -6,6 +6,9 @@ import { initDrag } from './ui/drag.js';
 import { initHover3d } from './ui/hover-3d.js';
 import { initKeyboard } from './ui/keyboard.js';
 import { initAudio } from './audio/hooks.js';
+import { initBackground } from './shaders/background.js';
+import { initParticles } from './ui/notifications.js';
+import { initHandPanel } from './ui/hand-panel.js';
 import { startRun } from './round.js';
 
 console.log(`[balatro] ${GAME_NAME} v${VERSION} booting…`);
@@ -16,6 +19,7 @@ initDrag(handArea);
 initHover3d(handArea);
 initKeyboard();
 initAudio();
+initBackground();
+initParticles();
+initHandPanel();
 startRun({});     // Task 12：改为主菜单（新游戏/继续存档）
-
-// Task 10: 背景着色器 + 逐步跳分
