@@ -164,3 +164,13 @@
   #sidebar { width: 170px; }
   :root { --card-w: 76px; --card-h: 108px; }
 }
+
+@media (min-width: 1600px) {
+  #sidebar { width: 240px; }
+  #blind-name { font-size: 17px; }
+  #target-score { font-size: 24px; }
+  #round-score { font-size: 34px; }
+  #money { font-size: 30px; }
+  .counter .num { font-size: 22px; }
+  .btn { font-size: 16px; padding: 14px 34px; }
+}
