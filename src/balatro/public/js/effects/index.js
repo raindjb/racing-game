@@ -19,6 +19,7 @@ export function clearRegistry() { registry.clear(); }
  * 复制目标仍是复制者 → 空效果（与原作：蓝图指向蓝图链合法，环断掉）。
  */
 export function resolveHandlers(jokers, j, depth = 0) {
+  if (j.disabled) return {};                  // 「绯红之心」禁用
   const h = getJokerHandlers(j.id);
   if (!h.copy) return h;
   if (depth >= 3) return {};

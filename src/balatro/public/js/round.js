@@ -11,7 +11,7 @@ import { dispatchHook } from './effects/index.js';
 import { blindTarget, interestOf, BLINDS, ANTE_MAX } from './data/blinds.js';
 import { pickBoss, BOSS_MAP } from './data/bosses.js';
 import { cardOrder, SUITS } from './data/card-data.js';
-import { applyBossOnBlindStart, applyBossOnCardDrawn, validatePlay, applyBossAfterPlay } from './boss-effects.js';
+import { applyBossOnBlindStart, applyBossOnCardDrawn, validatePlay, applyBossAfterPlay, bossFirstDrawDone } from './boss-effects.js';
 import { makeConsumable, addConsumable, randomTarotId, randomSpectralId } from './consumable-manager.js';
 import { PLANETS } from './data/planets.js';
 import { enterShopGen } from './shop.js';
@@ -37,7 +37,7 @@ export function startRun({ seed } = {}) {
 /** 进入盲注选择（预生成本 Ante 的 Boss，供封面展示） */
 export function gotoBlindSelect() {
   if (!G.upcomingBoss || G.upcomingBossAnte !== G.ante) {
-    G.upcomingBoss = pickBoss(G.rng, G.recentBosses ?? []);
+    G.upcomingBoss = pickBoss(G.rng, G.recentBosses ?? [], G.ante);
     G.upcomingBossAnte = G.ante;
   }
   setPhase(PHASES.BLIND_SELECT);
@@ -85,11 +85,13 @@ export function startBlind({ forceBossId } = {}) {
     G.boss = null;
   }
   G.bossDisabled = false;              // 小丑「奇科」等可禁用 Boss
+  for (const j of G.jokers) j.disabled = false;   // 清除绯红之心禁用
   applyBossOnBlindStart();
   G.target = blindTarget(G.ante, G.blindIndex, G.boss);
 
   const drawn = drawToHandSize();
   for (const c of drawn) applyBossOnCardDrawn(c);
+  bossFirstDrawDone();                 // 房子/柱子：首发标记
 
   dispatchHook(G.jokers, 'onBlindStart', G);
 
@@ -100,6 +102,10 @@ export function startBlind({ forceBossId } = {}) {
 /** 选牌/取消（最多 5 张） */
 export function toggleSelect(cardId) {
   if (G.phase !== PHASES.PLAYING) return;
+  // Boss「蔚蓝之铃」：强制选中的牌不可取消
+  if (G.bossState?.forcedCard === cardId && G.selected.includes(cardId) && !G.bossDisabled) {
+    return bus.emit('ui:reject', { reason: '蔚蓝之铃：这张牌无法取消选择' });
+  }
   const i = G.selected.indexOf(cardId);
   if (i >= 0) G.selected.splice(i, 1);
   else {
@@ -193,7 +199,9 @@ export function resolveAfterScoring() {
     return gameOver(false);
   }
 
-  const drawn = drawToHandSize();
+  // Boss「蛇」：出牌后固定抽 3 张
+  const serpent = G.boss?.fx === 'serpent' && !G.bossDisabled;
+  const drawn = drawToHandSize(serpent ? 3 : Infinity);
   for (const c of drawn) applyBossOnCardDrawn(c);
   setPhase(PHASES.PLAYING);
   bus.emit('hand:resolved');
@@ -213,7 +221,9 @@ export function discardSelected() {
     if (c.seal === 'purple') addConsumable(makeConsumable('tarot', randomTarotId(G.rng)));
   }
   discardFromHand(cards);
-  const drawn = drawToHandSize();
+  // Boss「蛇」：弃牌后固定抽 3 张
+  const serpentD = G.boss?.fx === 'serpent' && !G.bossDisabled;
+  const drawn = drawToHandSize(serpentD ? 3 : Infinity);
   for (const c of drawn) applyBossOnCardDrawn(c);
   bus.emit('hand:discarded', { cards });
   return true;

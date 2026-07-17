@@ -2,6 +2,7 @@
 import { JOKER_MAP } from './data/jokers.js';
 import { getJokerHandlers } from './effects/index.js';
 import { bus } from './state.js';
+import { clearVerdantOnSell } from './boss-effects.js';
 
 let nextUid = 1;
 export function setNextJokerUid(n) { nextUid = Math.max(1, n); }
@@ -55,6 +56,7 @@ export function sellJoker(G, uid) {
   G.money += sellValue(j);
   // 通知剩余 Joker（篝火等成长型）+ 出售联动（菜单可乐/摔跤手等）
   for (const other of G.jokers) getJokerHandlers(other.id).onJokerSold?.(G, j, other);
+  clearVerdantOnSell();   // Boss「翠绿叶片」：出售解除全体失效
   bus.emit('jokers:change');
   return true;
 }

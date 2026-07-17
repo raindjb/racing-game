@@ -30,6 +30,7 @@ export function buildContext(G, evalResult, playedCards) {
     handZh: evalResult.zh,
     handLevels: G.handLevels,
     levelDelta: G.bossState?.levelDelta ?? 0, // Boss「手臂」
+    halveBase: G.bossState?.halveBase && !G.bossDisabled, // Boss「燧石」
     jokers: G.jokers,
     heldCards: G.hand.filter(c => !playedCards.includes(c)),
     rng,
@@ -59,6 +60,7 @@ export function scoreHand(ctx) {
   let chips = 0, mult = 0, moneyDelta = 0, luckyProcs = 0;
   const steps = [];      // 逐步日志：UI 按序重放动画
   const destroyed = [];  // 玻璃碎裂等待销毁的牌
+  const halveBase = ctx.halveBase;    // Boss「燧石」
 
   const api = {
     get chips() { return chips; },
@@ -75,6 +77,7 @@ export function scoreHand(ctx) {
   const level = Math.max(1, (ctx.handLevels[ctx.handType] ?? 1) + (ctx.levelDelta ?? 0));
   chips = ht.chips + ht.lvChips * (level - 1);
   mult = ht.mult + ht.lvMult * (level - 1);
+  if (halveBase) { chips = Math.ceil(chips / 2); mult = Math.ceil(mult / 2); }
   steps.push({ type: 'base', value: 0, source: { kind: 'base' }, label: `${ctx.handZh} Lv.${level}`, chips, mult });
 
   // ── 2. 逐张计分牌 ──

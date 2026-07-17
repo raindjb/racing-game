@@ -2,10 +2,12 @@
 import { G, bus } from './state.js';
 import { dispatchHook } from './effects/index.js';
 
-/** 从抽牌堆补满手牌（牌堆不足则能抽几张抽几张，不重洗——与原作一致） */
-export function drawToHandSize() {
+/** 从抽牌堆补满手牌（牌堆不足则能抽几张抽几张，不重洗——与原作一致）
+ *  Boss「镣铐」：上限 -1；Boss「蛇」：出/弃后固定抽 3（round.js 传 limit） */
+export function drawToHandSize(limit = Infinity) {
+  const target = G.config.handSize + (G.bossState?.handSizeDelta ?? 0);
   const drawn = [];
-  while (G.hand.length < G.config.handSize && G.deck.length > 0) {
+  while (G.hand.length < target && G.deck.length > 0 && drawn.length < limit) {
     const card = G.deck.pop();
     G.hand.push(card);
     drawn.push(card);
