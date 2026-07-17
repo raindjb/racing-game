@@ -150,7 +150,11 @@ function syncJokers() {
 function syncHand(flip) {
   const apply = () => {
     // 协调子节点顺序与 G.hand 一致（appendChild 移动既有节点，不重建）
-    for (const card of G.hand) els.hand.appendChild(cardEl(card));
+    for (const card of G.hand) {
+      const el = cardEl(card);
+      el.classList.remove('static');      // 关键：打出区回收的元素清除流式布局类
+      els.hand.appendChild(el);
+    }
     for (const el of [...els.hand.children]) {
       if (!G.hand.some(c => c.id === Number(el.dataset.cid))) el.remove();
     }
@@ -166,6 +170,7 @@ function syncPlayed() {
     const el = cardEl(card);
     el.classList.add('static');
     el.classList.remove('selected');
+    el.style.removeProperty('transform');   // 清除悬停 3D 残留（removeProperty 而非 ''，避免空内联覆盖）
     el.style.removeProperty('--tx'); el.style.removeProperty('--ty'); el.style.removeProperty('--rot');
     els.played.appendChild(el);
   }

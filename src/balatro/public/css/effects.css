@@ -1,7 +1,8 @@
 /* effects.css — 版本特效 / 浮动文字 / 跳分反馈 / 背景降级 / 手型面板 */
 
 /* ===== 版本特效（卡牌与 Joker 通用：.ed-*） ===== */
-.card, .j-card { position: relative; }
+/* 注意：.card 的 position:absolute 来自 cards.css，这里只补 .j-card（默认 static） */
+.j-card { position: relative; }
 .card::after, .j-card::after {
   content: ''; position: absolute; inset: 0;
   border-radius: 9px; pointer-events: none;

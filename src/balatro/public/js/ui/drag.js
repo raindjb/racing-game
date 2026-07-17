@@ -59,7 +59,7 @@ export function initDrag(container) {
     if (st.dragging) {
       suppressClick = true;
       st.el.classList.remove('dragging');
-      st.el.style.transform = ''; // 回落到变量布局 → 平滑归位
+      st.el.style.removeProperty('transform'); // 回落到变量布局 → 平滑归位
       layoutHand(container, G.hand, new Set(G.selected));
       bus.emit('hand:reordered');
     }

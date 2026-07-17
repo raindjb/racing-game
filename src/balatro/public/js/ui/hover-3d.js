@@ -18,6 +18,6 @@ export function initHover3d(container) {
 
   container.addEventListener('pointerout', e => {
     const el = e.target.closest('.card');
-    if (el && !el.classList.contains('dragging')) el.style.transform = '';
+    if (el && !el.classList.contains('dragging')) el.style.removeProperty('transform');
   });
 }
