@@ -225,6 +225,7 @@ export function winRound() {
 
   // 推进进度
   if (G.blindIndex === 2) {
+    dispatchHook(G.jokers, 'onBossDefeated', G);
     G.ante++;
     G.blindIndex = 0;
     if (G.ante > ANTE_MAX) {

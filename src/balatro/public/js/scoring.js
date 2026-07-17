@@ -17,6 +17,7 @@ import { resolveHandlers, scoredCardTriggers, heldCardTriggers } from './effects
  * @returns ctx
  */
 export function buildContext(G, evalResult, playedCards) {
+  const owned = [...G.deck, ...G.hand, ...G.discardPile, ...playedCards];
   return {
     played: playedCards,
     scoring: evalResult.scoringCards,
@@ -35,14 +36,20 @@ export function buildContext(G, evalResult, playedCards) {
       ante: G.ante,
       handPlayed: G.handPlayed,
       jokerSlots: G.config.jokerSlots + G.jokers.filter(j => j.edition === 'negative').length,
-      totalDeckCount: G.deck.length + G.hand.length + G.discardPile.length + playedCards.length,
+      totalDeckCount: owned.length,
+      tarotUsed: G.tarotUsedCount ?? 0,
+      enhCounts: {
+        stone: owned.filter(c => c.enhancement === 'stone').length,
+        steel: owned.filter(c => c.enhancement === 'steel').length,
+        enhanced: owned.filter(c => c.enhancement).length,
+      },
     },
   };
 }
 
 /** 结算一手牌。返回 { chips, mult, score, steps, moneyDelta, destroyed } */
 export function scoreHand(ctx) {
-  let chips = 0, mult = 0, moneyDelta = 0;
+  let chips = 0, mult = 0, moneyDelta = 0, luckyProcs = 0;
   const steps = [];      // 逐步日志：UI 按序重放动画
   const destroyed = [];  // 玻璃碎裂等待销毁的牌
 
@@ -78,8 +85,8 @@ export function scoreHand(ctx) {
       else if (enh === 'mult') api.addMult(ENHANCEMENTS.mult.mult, src);
       else if (enh === 'glass') api.timesMult(ENHANCEMENTS.glass.xmult, src);
       else if (enh === 'lucky') {
-        if (ctx.rng.chance(ENHANCEMENTS.lucky.multChance)) api.addMult(ENHANCEMENTS.lucky.multValue, src, '幸运! +20 倍率');
-        if (ctx.rng.chance(ENHANCEMENTS.lucky.moneyChance)) api.addMoney(ENHANCEMENTS.lucky.moneyValue, src, '幸运! +$20');
+        if (ctx.rng.chance(ENHANCEMENTS.lucky.multChance)) { luckyProcs++; api.addMult(ENHANCEMENTS.lucky.multValue, src, '幸运! +20 倍率'); }
+        if (ctx.rng.chance(ENHANCEMENTS.lucky.moneyChance)) { luckyProcs++; api.addMoney(ENHANCEMENTS.lucky.moneyValue, src, '幸运! +$20'); }
       }
       // 版本
       const ed = card.edition;
@@ -127,5 +134,5 @@ export function scoreHand(ctx) {
 
   // ── 5. 最终 ──
   const score = Math.floor(chips * mult);
-  return { chips, mult, score, steps, moneyDelta, destroyed };
+  return { chips, mult, score, steps, moneyDelta, destroyed, luckyProcs };
 }

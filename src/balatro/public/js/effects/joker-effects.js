@@ -2,8 +2,21 @@
 // 每种 effect.type 是一个效果原语；M2 扩充 150 张时只需加数据（少数加原语）。
 import { registerJoker, isFaceCtx, cardSuitCtx } from './index.js';
 import { JOKERS } from '../data/jokers.js';
-import { cardHasSuit, isFaceCard, RANK_INFO } from '../data/card-data.js';
-import { sellValue } from '../joker-manager.js';
+import { cardHasSuit, isFaceCard, RANK_INFO, RANKS, SUITS } from '../data/card-data.js';
+import { sellValue, makeJokerInstance, addJoker } from '../joker-manager.js';
+import { makeConsumable, addConsumable, randomTarotId } from '../consumable-manager.js';
+import { destroyCards } from '../deck.js';
+import { bus } from '../state.js';
+
+/** 自毁（冰淇淋融化/大米歇尔烂掉/苏打水用尽等） */
+function selfDestroy(G, j) {
+  const i = G.jokers.indexOf(j);
+  if (i >= 0) {
+    G.jokers.splice(i, 1);
+    bus.emit('jokers:change');
+    bus.emit('ui:reject', { reason: `「${j.zh}」消失了` });
+  }
+}
 
 /** 「手牌包含某手型」映射（原作规则：葫芦含对子和三条等） */
 const CONTAINS = {
@@ -150,6 +163,228 @@ const COMPILERS = {
   // ── 复制委托（蓝图/头脑风暴） ──
   copy_right: () => ({ copy: 'right' }),
   copy_leftmost: () => ({ copy: 'leftmost' }),
+
+  // ════ M2-B 批次原语 ════
+
+  // ── 计分牌加成扩展 ──
+  scored_rank_bonus: e => ({ onScoredCard: (c, api, card, j) => {
+    if (card.enhancement !== 'stone' && e.ranks.includes(card.rank)) {
+      if (e.chips) api.addChips(e.chips, src(j));
+      if (e.mult) api.addMult(e.mult, src(j));
+    } } }),
+  face_mult: e => ({ onScoredCard: (c, api, card, j) => {
+    if (isFaceCtx(c.jokers, card)) api.addMult(e.v, src(j)); } }),
+  suit_scored_chips: e => ({ onScoredCard: (c, api, card, j) => {
+    if (cardSuitCtx(c.jokers, card, e.suit)) api.addChips(e.v, src(j)); } }),
+  suit_scored_money: e => ({ onScoredCard: (c, api, card, j) => {
+    if (cardSuitCtx(c.jokers, card, e.suit)) api.addMoney(e.v, src(j)); } }),
+  enh_scored_money: e => ({ onScoredCard: (c, api, card, j) => {
+    if (card.enhancement === e.enh) api.addMoney(e.v, src(j)); } }),
+  rank_chance_tarot: e => ({ onScoredCard: (c, api, card, j) => {
+    if (card.rank === e.rank && card.enhancement !== 'stone' && c.rng.chance(e.p)) {
+      if (addConsumable(makeConsumable('tarot', randomTarotId(c.rng)))) api.info(src(j), '生成塔罗!');
+    } } }),
+
+  // ── 轮换目标（每盲注随机） ──
+  rotating_suit_xmult: e => ({
+    onBlindStart: (G, j) => { j.target = G.rng.pick(SUITS); },
+    onScoredCard: (c, api, card, j) => {
+      if (j.target && cardSuitCtx(c.jokers, card, j.target)) api.timesMult(e.x, src(j));
+    },
+  }),
+  rotating_card_xmult: e => ({
+    onBlindStart: (G, j) => { j.target = { suit: G.rng.pick(SUITS), rank: G.rng.pick(RANKS) }; },
+    onScoredCard: (c, api, card, j) => {
+      if (j.target && card.suit === j.target.suit && card.rank === j.target.rank) api.timesMult(e.x, src(j));
+    },
+  }),
+
+  // ── 永久成长（state 累积） ──
+  grow_chips_on_rank: e => ({          // 小小丑：计分 2 → 永久 +8 筹
+    onIndependent: (c, api, j) => api.addChips(j.state, src(j)),
+    onHandPlayed: (G, ev, j) => { j.state += e.v * ev.scoringCards.filter(x => x.rank === e.rank && x.enhancement !== 'stone').length; },
+  }),
+  grow_chips_on_contains: e => ({      // 跑者：打出含顺子 → +15 筹
+    onIndependent: (c, api, j) => api.addChips(j.state, src(j)),
+    onHandPlayed: (G, ev, j) => { if (handContains(ev.handType, e.hand)) j.state += e.v; },
+  }),
+  grow_chips_on_size: e => ({          // 方块小丑：恰 4 张 → +4 筹
+    onIndependent: (c, api, j) => api.addChips(j.state, src(j)),
+    onHandPlayed: (G, ev, j) => { if (G.playedZone.length === e.size) j.state += e.v; },
+  }),
+  hiker: e => ({                       // 远足者：计分牌永久 +5 筹
+    onHandPlayed: (G, ev, j) => { for (const c of ev.scoringCards) c.permChips = (c.permChips ?? 0) + e.v; },
+  }),
+  decay_chips_per_hand: e => ({        // 冰淇淋：+100 筹，每出牌 -5，归零消失
+    onIndependent: (c, api, j) => api.addChips(Math.max(0, e.start - e.per * j.state), src(j)),
+    onHandPlayed: (G, ev, j) => { j.state++; if (e.start - e.per * j.state <= 0) selfDestroy(G, j); },
+  }),
+  decay_mult_per_round: e => ({        // 爆米花：+20 倍，每回合 -4
+    onIndependent: (c, api, j) => api.addMult(Math.max(0, e.start - e.per * j.state), src(j)),
+    onRoundEnd: (G, j) => { j.state++; if (e.start - e.per * j.state <= 0) selfDestroy(G, j); return 0; },
+  }),
+  turtle_bean: e => ({                 // 龟豆：手牌 +5，每回合 -1
+    onAdded: (G, j) => { j.state = e.start; G.config.handSize += e.start; },
+    onRemoved: (G, j) => { G.config.handSize -= j.state; },
+    onRoundEnd: (G, j) => {
+      if (j.state > 0) { j.state--; G.config.handSize--; }
+      if (j.state <= 0) selfDestroy(G, j);
+      return 0;
+    },
+  }),
+
+  // ── 成长型 ×倍率 ──
+  grow_xmult_on_consumable: e => ({    // 星群：每用星球 ×+0.1
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onConsumableUsed: (G, inst, j) => { if (inst.kind === e.kind) j.state++; },
+  }),
+  grow_xmult_on_card_added: e => ({    // 全息影像：每加牌入组 ×+0.25
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onCardAdded: (G, card, j) => { j.state++; },
+  }),
+  grow_xmult_on_glass_break: e => ({   // 玻璃小丑：每碎玻璃 ×+0.75
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onCardDestroyed: (G, cards, j) => { j.state += cards.filter(x => x.enhancement === 'glass').length; },
+  }),
+  grow_mult_on_reroll: e => ({         // 闪卡：每重掷 +2 倍
+    onIndependent: (c, api, j) => api.addMult(e.per * j.state, src(j)),
+    onReroll: (G, j) => { j.state++; },
+  }),
+  campfire: e => ({                    // 篝火：每卖 Joker ×+0.25，击败 Boss 重置
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onJokerSold: (G, sold, j) => { j.state++; },
+    onBossDefeated: (G, j) => { j.state = 0; },
+  }),
+  hit_the_road: e => ({                // 上路：本回合每弃 J ×+0.5
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onDiscard: (G, cards, j) => { j.state += cards.filter(x => x.rank === 'J' && x.enhancement !== 'stone').length; },
+    onBlindStart: (G, j) => { j.state = 0; },
+  }),
+  lucky_cat: e => ({                   // 招财猫：每次幸运触发 ×+0.25
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onHandPlayed: (G, ev, j) => { j.state += G.lastPlay?.result?.luckyProcs ?? 0; },
+  }),
+  vampire: e => ({                     // 吸血鬼：吸收打出牌的强化 ×+0.1
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onHandPlayed: (G, ev, j) => {
+      for (const c of ev.scoringCards) {
+        if (c.enhancement && c.enhancement !== 'stone') { c.enhancement = null; j.state++; }
+      }
+    },
+  }),
+  obelisk: e => ({                     // 方尖碑：连续打非最常用手型 ×+0.2
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onHandPlayed: (G, ev, j) => {
+      const max = Math.max(...Object.values(G.handPlayed));
+      j.state = (G.handPlayed[ev.handType] ?? 0) >= max ? 0 : j.state + 1;
+    },
+  }),
+  ceremonial_dagger: () => ({          // 仪式匕首：选盲注时吞右侧，卖价×2 入倍率
+    onIndependent: (c, api, j) => api.addMult(j.state, src(j)),
+    onBlindStart: (G, j) => {
+      const i = G.jokers.indexOf(j);
+      const victim = G.jokers[i + 1];
+      if (victim) {
+        j.state += sellValue(victim) * 2;
+        G.jokers.splice(i + 1, 1);
+        bus.emit('jokers:change');
+      }
+    },
+  }),
+
+  // ── 牌组构成 ──
+  per_enh_chips: e => ({ onIndependent: (c, api, j) =>
+    api.addChips(e.v * c.game.enhCounts[e.enh], src(j)) }),
+  per_enh_xmult: e => ({ onIndependent: (c, api, j) => {
+    const n = c.game.enhCounts[e.enh];
+    if (n) api.timesMult(1 + e.per * n, src(j)); } }),
+  enhanced_threshold_xmult: e => ({ onIndependent: (c, api, j) => {
+    if (c.game.enhCounts.enhanced >= e.n) api.timesMult(e.x, src(j)); } }),
+
+  // ── 计数联动 ──
+  per_tarot_used_mult: e => ({ onIndependent: (c, api, j) =>
+    api.addMult(e.v * c.game.tarotUsed, src(j)) }),
+  per_money_mult: e => ({ onIndependent: (c, api, j) =>
+    api.addMult(e.v * Math.floor(Math.max(0, c.game.money) / e.per), src(j)) }),
+
+  // ── 经济（回合末/弃牌） ──
+  money_end_per_9: e => ({ onRoundEnd: (G, j) =>
+    [...G.deck, ...G.hand, ...G.discardPile].filter(c => c.rank === '9' && c.enhancement !== 'stone').length * e.v }),
+  rocket: e => ({
+    onRoundEnd: (G, j) => e.base + j.state,
+    onBossDefeated: (G, j) => { j.state += e.perBoss; },
+  }),
+  gift_card: e => ({ onRoundEnd: (G, j) => {
+    for (const x of G.jokers) x.sellBonus = (x.sellBonus ?? 0) + e.v;
+    return 0; } }),
+  extra_interest: e => ({ onRoundEnd: (G, j) =>
+    Math.min(e.cap, Math.floor(Math.max(0, G.money) / 5)) }),
+  per_unique_planet_money: e => ({ onRoundEnd: (G, j) =>
+    (G.planetsUsed?.length ?? 0) * e.v }),
+  delayed_gratification: e => ({ onRoundEnd: (G, j) =>
+    G.discardsLeft === G.config.discards ? e.v * G.config.discards : 0 }),
+  reserved_parking: e => ({ onRoundEnd: (G, j) => {
+    let m = 0;
+    for (const c of G.hand) if (isFaceCtx(G.jokers, c) && G.rng.chance(e.p)) m += e.v;
+    return m; } }),
+  discard_rank_money: e => ({          // 邮寄回扣：弃[轮换点数]每张 +$5
+    onBlindStart: (G, j) => { j.target = G.rng.pick(RANKS); },
+    onDiscard: (G, cards, j) => {
+      const n = cards.filter(x => x.rank === j.target && x.enhancement !== 'stone').length;
+      if (n) { G.money += e.v * n; bus.emit('ui:reject', { reason: `邮寄回扣 +$${e.v * n}` }); }
+    },
+  }),
+  trading_card: e => ({                // 交换卡：首次弃单张 → 销毁+$3
+    onDiscard: (G, cards, j) => {
+      if (G.discardsLeft === G.config.discards - 1 && cards.length === 1) {
+        destroyCards(cards);
+        G.money += e.v;
+      }
+    },
+  }),
+  faceless_joker: e => ({ onDiscard: (G, cards, j) => {
+    if (cards.filter(x => isFaceCtx(G.jokers, x)).length >= e.n) G.money += e.v; } }),
+  matador: e => ({                     // 斗牛士（简化：Boss 回合每回合一次 +$8）
+    onHandPlayed: (G, ev, j) => {
+      if (G.blindIndex === 2 && G.boss && !G.bossDisabled && j.state !== G.round) {
+        j.state = G.round; G.money += e.v;
+      }
+    },
+  }),
+
+  // ── 概率/一次性 ──
+  gros_michel: e => ({
+    onIndependent: (c, api, j) => api.addMult(e.v, src(j)),
+    onRoundEnd: (G, j) => { if (G.rng.chance(e.destroyChance)) selfDestroy(G, j); return 0; },
+  }),
+  space_joker: e => ({ onHandPlayed: (G, ev, j) => {
+    if (G.rng.chance(e.p)) G.handLevels[ev.handType] = (G.handLevels[ev.handType] ?? 1) + 1; } }),
+  seltzer: e => ({
+    retriggerScored: () => 1,
+    onHandPlayed: (G, ev, j) => { j.state++; if (j.state >= e.uses) selfDestroy(G, j); },
+  }),
+  vagabond: e => ({ onHandPlayed: (G, ev, j) => {
+    if (G.money <= e.threshold) addConsumable(makeConsumable('tarot', randomTarotId(G.rng))); } }),
+  superposition: () => ({ onHandPlayed: (G, ev, j) => {
+    if (handContains(ev.handType, 'straight') && ev.scoringCards.some(x => x.rank === 'A')) {
+      addConsumable(makeConsumable('tarot', randomTarotId(G.rng)));
+    } } }),
+  midas_mask: () => ({ onHandPlayed: (G, ev, j) => {
+    for (const c of ev.scoringCards) if (isFaceCtx(G.jokers, c) && c.enhancement !== 'stone') c.enhancement = 'gold'; } }),
+
+  // ── 盲注开始 ──
+  burglar: e => ({ onBlindStart: (G, j) => { G.handsLeft += e.hands; G.discardsLeft = 0; } }),
+  riff_raff: e => ({ onBlindStart: (G, j) => {
+    const owned = new Set(G.jokers.map(x => x.id));
+    for (let i = 0; i < e.n; i++) {
+      const pool = JOKERS.filter(x => x.rarity === 'common' && !owned.has(x.id));
+      if (!pool.length) break;
+      const inst = makeJokerInstance(G.rng.pick(pool).id);
+      if (!addJoker(G, inst)) break;
+      owned.add(inst.id);
+    } } }),
+  cartomancer: () => ({ onBlindStart: (G, j) => {
+    addConsumable(makeConsumable('tarot', randomTarotId(G.rng))); } }),
 };
 
 function src(j) { return { kind: 'joker', id: j.uid ?? j.id }; }

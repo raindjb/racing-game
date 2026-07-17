@@ -97,10 +97,10 @@ export function resetCardIds() { nextCardId = 1; }
 export function setNextCardId(n) { nextCardId = Math.max(1, n); }
 export function peekNextCardId() { return nextCardId; }
 
-/** 牌面筹码（石头牌固定 50，不看点数） */
+/** 牌面筹码（石头牌固定 50，不看点数；permChips = 「远足者」等永久加成） */
 export function cardBaseChips(card) {
-  if (card.enhancement === 'stone') return ENHANCEMENTS.stone.chips;
-  return RANK_INFO[card.rank].chips;
+  const base = card.enhancement === 'stone' ? ENHANCEMENTS.stone.chips : RANK_INFO[card.rank].chips;
+  return base + (card.permChips ?? 0);
 }
 
 /** 点数序（石头牌无点数 → 0） */

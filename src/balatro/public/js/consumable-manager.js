@@ -72,6 +72,12 @@ export function useConsumable(uid) {
   if (res.ok) {
     if (inst.id !== 'fool') G.lastConsumableUsed = { kind: inst.kind, id: inst.id };
     G.consumableUsedCount = (G.consumableUsedCount ?? 0) + 1;
+    G.tarotUsedCount = (G.tarotUsedCount ?? 0) + (inst.kind === 'tarot' ? 1 : 0);
+    G.planetUsedCount = (G.planetUsedCount ?? 0) + (inst.kind === 'planet' ? 1 : 0);
+    if (inst.kind === 'planet') {
+      G.planetsUsed = G.planetsUsed ?? [];
+      if (!G.planetsUsed.includes(inst.id)) G.planetsUsed.push(inst.id);
+    }
     dispatchHook(G.jokers, 'onConsumableUsed', G, inst);
     bus.emit('consumables:change');
     bus.emit('consumable:used', { inst, msg: res.msg });

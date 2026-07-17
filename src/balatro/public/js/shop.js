@@ -178,6 +178,7 @@ export function pickBoosterItem(idx) {
   if (item.kind === 'card') {
     const pos = G.rng.int(0, G.deck.length);
     G.deck.splice(pos, 0, item.card);
+    dispatchHook(G.jokers, 'onCardAdded', G, item.card);   // 「全息影像」等
     res.msg = '已加入牌组';
   } else if (item.kind === 'joker') {
     const inst = makeJokerInstance(item.id);
