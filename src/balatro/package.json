@@ -1,0 +1,13 @@
+{
+  "name": "balatro",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "小丑牌（Balatro）复刻生产版 — vanilla JS + Express",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

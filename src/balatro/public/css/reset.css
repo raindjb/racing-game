@@ -1,0 +1,49 @@
+/* reset.css — 基础重置 + 设计变量 */
+:root {
+  /* 桌面/毛毡 */
+  --felt: #35573d;
+  --felt-dark: #1e3a26;
+  --bg-deep: #0f1f14;
+  /* 主色 */
+  --gold: #d4a843;
+  --gold-bright: #f0c060;
+  --blue: #009dff;
+  --red: #ff4c40;
+  --orange: #ff9800;
+  --green: #35bd68;
+  /* 卡牌 */
+  --card-bg: #f5f1e6;
+  --card-red: #d13b30;
+  --card-black: #2b2b33;
+  --card-w: 100px;
+  --card-h: 140px;
+  /* 面板 */
+  --panel: #23303b;
+  --panel-dark: #17222b;
+  --panel-line: rgba(255,255,255,0.08);
+  --text: #eee6d6;
+  --text-dim: #9aa3a0;
+  /* 稀有度 */
+  --rarity-common: #7b8ba0;
+  --rarity-uncommon: #35bd68;
+  --rarity-rare: #ff4c40;
+  --rarity-legendary: #b26cff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button { font-family: inherit; color: inherit; }
+
+.lbl { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+.dim { color: var(--text-dim); }

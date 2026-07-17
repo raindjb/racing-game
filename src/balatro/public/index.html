@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小丑牌 · Balatro</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/cards.css">
+<link rel="stylesheet" href="css/effects.css">
+<link rel="stylesheet" href="css/jokers.css">
+<link rel="stylesheet" href="css/overlay.css">
+</head>
+<body>
+
+<!-- 背景着色器画布（Task 10） -->
+<canvas id="bg-canvas"></canvas>
+<!-- 粒子画布 -->
+<canvas id="particle-canvas"></canvas>
+<!-- CRT 滤镜覆盖 -->
+<div id="crt"></div>
+
+<div id="app">
+  <!-- 左侧信息栏 -->
+  <aside id="sidebar">
+    <section id="blind-panel">
+      <div id="blind-badge">
+        <div id="blind-icon">●</div>
+        <div id="blind-name">小盲注</div>
+      </div>
+      <div id="blind-target"><span class="lbl">至少得分</span><span id="target-score">300</span></div>
+      <div id="reward-row">奖励 <span id="blind-reward">$$$</span></div>
+    </section>
+
+    <section id="score-panel">
+      <div class="lbl">回合分数</div>
+      <div id="round-score">0</div>
+    </section>
+
+    <section id="calc-panel">
+      <div id="hand-type-label">—</div>
+      <div id="calc-row">
+        <span id="calc-chips" class="chips-box">0</span>
+        <span class="calc-x">×</span>
+        <span id="calc-mult" class="mult-box">0</span>
+      </div>
+    </section>
+
+    <section id="counter-panel">
+      <div class="counter"><div class="lbl">出牌</div><div id="hands-left" class="num blue">4</div></div>
+      <div class="counter"><div class="lbl">弃牌</div><div id="discards-left" class="num red">3</div></div>
+    </section>
+
+    <section id="money-panel"><span id="money">$4</span></section>
+
+    <section id="meta-panel">
+      <div class="counter"><div class="lbl">底注</div><div id="ante-num" class="num gold">1<span class="dim">/8</span></div></div>
+      <div class="counter"><div class="lbl">回合</div><div id="round-num" class="num gold">0</div></div>
+    </section>
+
+    <button id="btn-hand-panel" class="btn btn-ghost">牌型等级</button>
+  </aside>
+
+  <!-- 主区域 -->
+  <main id="board">
+    <div id="top-row">
+      <div id="joker-row" class="card-row"></div>
+      <div id="consumable-row" class="card-row"></div>
+    </div>
+
+    <div id="play-area">
+      <div id="played-zone"></div>
+      <div id="score-pop"></div>
+    </div>
+
+    <div id="hand-wrap">
+      <div id="hand-area"></div>
+      <div id="deck-badge"><span id="deck-count">52</span>/52</div>
+    </div>
+
+    <div id="action-bar">
+      <button class="btn btn-play" id="btn-play" disabled>出牌</button>
+      <div id="sort-group">
+        <span class="lbl">理牌</span>
+        <button class="btn btn-sort" id="btn-sort-rank">点数</button>
+        <button class="btn btn-sort" id="btn-sort-suit">花色</button>
+      </div>
+      <button class="btn btn-discard" id="btn-discard" disabled>弃牌</button>
+    </div>
+  </main>
+</div>
+
+<!-- 浮层：主菜单 / 盲注选择 / 商店 / 卡包 / 牌型面板 / 游戏结束（Task 04/08/12 填充） -->
+<div id="overlay-root"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
