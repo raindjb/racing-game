@@ -1,5 +1,6 @@
 // deck.js — 抽牌/弃牌/回收（纯逻辑）
 import { G, bus } from './state.js';
+import { dispatchHook } from './effects/index.js';
 
 /** 从抽牌堆补满手牌（牌堆不足则能抽几张抽几张，不重洗——与原作一致） */
 export function drawToHandSize() {
@@ -43,7 +44,10 @@ export function destroyCards(cards) {
     }
     G.removedCards.push(card);
   }
-  if (cards.length) bus.emit('cards:destroyed', { cards });
+  if (cards.length) {
+    dispatchHook(G.jokers, 'onCardDestroyed', G, cards);
+    bus.emit('cards:destroyed', { cards });
+  }
 }
 
 /** 当前整副牌数量（含手/弃/打出，不含已销毁） */

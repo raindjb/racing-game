@@ -10,7 +10,7 @@
 //
 // 计分逻辑参考 Balatrolator (https://github.com/kleinfreund/balatrolator, MIT)。
 import { HAND_TYPE_MAP, ENHANCEMENTS, EDITIONS, cardBaseChips } from './data/card-data.js';
-import { getJokerHandlers, scoredCardTriggers, heldCardTriggers } from './effects/index.js';
+import { resolveHandlers, scoredCardTriggers, heldCardTriggers } from './effects/index.js';
 
 /**
  * 从游戏状态构建计分上下文（round.js 调用；测试可手工构造）
@@ -88,9 +88,9 @@ export function scoreHand(ctx) {
       else if (ed === 'polychrome') api.timesMult(EDITIONS.polychrome.xmult, src);
       // 金蜡封
       if (card.seal === 'gold') api.addMoney(3, src, '金蜡封 +$3');
-      // Joker 逐张钩子（从左到右）
+      // Joker 逐张钩子（从左到右，经复制解析）
       for (const j of ctx.jokers) {
-        getJokerHandlers(j.id).onScoredCard?.(ctx, api, card, j);
+        resolveHandlers(ctx.jokers, j).onScoredCard?.(ctx, api, card, j);
       }
     }
     // 玻璃碎裂判定（每张打出的玻璃牌结算后掷一次）
@@ -104,24 +104,24 @@ export function scoreHand(ctx) {
   for (const card of ctx.heldCards) {
     if (card.debuffed) continue;
     const hasSteel = card.enhancement === 'steel';
-    const hasHooks = ctx.jokers.some(j => getJokerHandlers(j.id).onHeldCard);
+    const hasHooks = ctx.jokers.some(j => resolveHandlers(ctx.jokers, j).onHeldCard);
     if (!hasSteel && !hasHooks) continue;
     const triggers = heldCardTriggers(ctx, card);
     for (let t = 0; t < triggers; t++) {
       const src = { kind: 'held', id: card.id, retrigger: t > 0 };
       if (hasSteel) api.timesMult(ENHANCEMENTS.steel.heldXmult, src, '钢铁 ×1.5');
       for (const j of ctx.jokers) {
-        getJokerHandlers(j.id).onHeldCard?.(ctx, api, card, j);
+        resolveHandlers(ctx.jokers, j).onHeldCard?.(ctx, api, card, j);
       }
     }
   }
 
-  // ── 4. Joker 独立效果（从左到右；版本：闪箔/镭射先、多彩后） ──
+  // ── 4. Joker 独立效果（从左到右；版本：闪箔/镭射先、多彩后；复制解析） ──
   for (const j of ctx.jokers) {
     const src = { kind: 'joker', id: j.uid ?? j.id };
     if (j.edition === 'foil') api.addChips(EDITIONS.foil.chips, src);
     else if (j.edition === 'holographic') api.addMult(EDITIONS.holographic.mult, src);
-    getJokerHandlers(j.id).onIndependent?.(ctx, api, j);
+    resolveHandlers(ctx.jokers, j).onIndependent?.(ctx, api, j);
     if (j.edition === 'polychrome') api.timesMult(EDITIONS.polychrome.xmult, src);
   }
 

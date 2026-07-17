@@ -7,7 +7,7 @@ import { G, PHASES, bus, setPhase, initRun, selectedCards } from './state.js';
 import { drawToHandSize, discardFromHand, reclaimAll, destroyCards } from './deck.js';
 import { evalHand } from './hand-eval.js';
 import { buildContext, scoreHand } from './scoring.js';
-import { getJokerHandlers } from './effects/index.js';
+import { dispatchHook } from './effects/index.js';
 import { blindTarget, interestOf, BLINDS, ANTE_MAX } from './data/blinds.js';
 import { pickBoss, BOSS_MAP } from './data/bosses.js';
 import { cardOrder, SUITS } from './data/card-data.js';
@@ -43,10 +43,24 @@ export function gotoBlindSelect() {
   setPhase(PHASES.BLIND_SELECT);
 }
 
-/** 跳过当前盲注（仅小盲/大盲；标签奖励 M2） */
+/** 机制类 Joker → 手型判定选项（判定/预览共用） */
+export function evalOptsFromJokers() {
+  const has = id => G.jokers.some(j => j.id === id);
+  const four = has('four_fingers');
+  return {
+    minStraightLen: four ? 4 : 5,
+    minFlushLen: four ? 4 : 5,
+    shortcut: has('shortcut'),
+    smeared: has('smeared_joker'),
+    splash: has('splash'),
+  };
+}
+
+/** 跳过当前盲注（仅小盲/大盲；标签奖励在 M2-F 挂接） */
 export function skipBlind() {
   if (G.phase !== PHASES.BLIND_SELECT || G.blindIndex >= 2) return false;
   G.blindIndex++;
+  dispatchHook(G.jokers, 'onBlindSkipped', G);
   bus.emit('blind:skipped');
   gotoBlindSelect();
   return true;
@@ -69,13 +83,14 @@ export function startBlind({ forceBossId } = {}) {
   } else {
     G.boss = null;
   }
+  G.bossDisabled = false;              // 小丑「奇科」等可禁用 Boss
   applyBossOnBlindStart();
   G.target = blindTarget(G.ante, G.blindIndex, G.boss);
 
   const drawn = drawToHandSize();
   for (const c of drawn) applyBossOnCardDrawn(c);
 
-  for (const j of G.jokers) getJokerHandlers(j.id).onBlindStart?.(G, j);
+  dispatchHook(G.jokers, 'onBlindStart', G);
 
   setPhase(PHASES.PLAYING);
   bus.emit('blind:start', { ante: G.ante, blindIndex: G.blindIndex, boss: G.boss, target: G.target });
@@ -114,7 +129,7 @@ export function playSelected({ instant = true } = {}) {
   const cards = selectedCards();
   if (cards.length === 0) return null;
 
-  const ev = evalHand(cards);
+  const ev = evalHand(cards, evalOptsFromJokers());
   const check = validatePlay(cards, ev);
   if (!check.ok) { bus.emit('ui:reject', { reason: check.reason }); return null; }
 
@@ -137,8 +152,8 @@ export function playSelected({ instant = true } = {}) {
   G.stats.totalHandsPlayed++;
   if (result.score > G.stats.bestHandScore) G.stats.bestHandScore = result.score;
 
-  // Joker 出牌后钩子（累积型计数等）
-  for (const j of G.jokers) getJokerHandlers(j.id).onHandPlayed?.(G, ev, j);
+  // Joker 出牌后钩子（累积型计数等，经复制解析）
+  dispatchHook(G.jokers, 'onHandPlayed', G, ev);
 
   G.lastPlay = { eval: ev, result };
   bus.emit('hand:played', { cards, eval: ev, result });
@@ -176,7 +191,7 @@ export function discardSelected() {
 
   G.discardsLeft--;
   G.selected = [];
-  for (const j of G.jokers) getJokerHandlers(j.id).onDiscard?.(G, cards, j);
+  dispatchHook(G.jokers, 'onDiscard', G, cards);
   // 紫蜡封：被弃置时生成塔罗牌
   for (const c of cards) {
     if (c.seal === 'purple') addConsumable(makeConsumable('tarot', randomTarotId(G.rng)));
@@ -193,8 +208,7 @@ export function winRound() {
   const reward = BLINDS[G.blindIndex].reward;
   const interest = interestOf(G.money, G.config);
   const handsBonus = G.handsLeft;                  // 每剩 1 次出牌 +$1
-  let jokerMoney = 0;
-  for (const j of G.jokers) jokerMoney += getJokerHandlers(j.id).onRoundEnd?.(G, j) ?? 0;
+  const jokerMoney = dispatchHook(G.jokers, 'onRoundEnd', G);
   const goldCards = G.hand.filter(c => c.enhancement === 'gold' && !c.debuffed).length * 3;
 
   // 蓝蜡封：回合结束留在手中 → 生成最后所打手型的星球牌

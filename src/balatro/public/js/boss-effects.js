@@ -5,7 +5,7 @@ import { discardFromHand } from './deck.js';
 /** 盲注开始时应用 Boss 静态规则（round.js 在发牌前调用） */
 export function applyBossOnBlindStart() {
   const boss = G.boss;
-  if (!boss) return;
+  if (!boss || G.bossDisabled) return;
   G.bossState = {};
   switch (boss.fx) {
     case 'water':  G.discardsLeft = 0; break;
@@ -18,7 +18,7 @@ export function applyBossOnBlindStart() {
 /** 每张牌进入手牌时（发牌钩子） */
 export function applyBossOnCardDrawn(card) {
   const boss = G.boss;
-  if (!boss) return;
+  if (!boss || G.bossDisabled) return;
   if (boss.fx === 'wheel' && G.rng.chance(boss.flipChance)) card.faceDown = true;
   if (boss.fx === 'suit_debuff' && card.suit === boss.suit) card.debuffed = true;
 }
@@ -26,7 +26,7 @@ export function applyBossOnCardDrawn(card) {
 /** 出牌合法性校验（拒绝时不消耗次数） */
 export function validatePlay(cards, evalResult) {
   const boss = G.boss;
-  if (!boss) return { ok: true };
+  if (!boss || G.bossDisabled) return { ok: true };
   if (boss.fx === 'psychic' && cards.length !== 5) {
     return { ok: false, reason: '灵媒：必须打出 5 张牌' };
   }
@@ -42,7 +42,7 @@ export function validatePlay(cards, evalResult) {
 /** 出牌结算完成后触发（钩子/嘴的状态推进） */
 export function applyBossAfterPlay(evalResult) {
   const boss = G.boss;
-  if (!boss) return;
+  if (!boss || G.bossDisabled) return;
   if (boss.fx === 'mouth' && !G.bossState.lockedType) {
     G.bossState.lockedType = evalResult.handType;
   }

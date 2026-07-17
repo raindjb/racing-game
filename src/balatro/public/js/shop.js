@@ -6,6 +6,7 @@ import { PLANETS } from './data/planets.js';
 import { SUITS, RANKS, makeCard } from './data/card-data.js';
 import { makeConsumable, addConsumable, randomPlanetId, randomTarotId } from './consumable-manager.js';
 import { makeJokerInstance, addJoker } from './joker-manager.js';
+import { dispatchHook } from './effects/index.js';
 
 export const PACKS = [
   { id: 'standard',  zh: '标准包', desc: '3 张游戏牌选 1 加入牌组', price: 4, picks: 1, count: 3 },
@@ -118,6 +119,7 @@ export function rerollShop() {
   if (!pay(rerollCost())) return false;
   G.shopReroll++;
   G.shop.slots = genSlots();     // 卡包/优惠券不重掷（与原作一致）
+  dispatchHook(G.jokers, 'onReroll', G);
   bus.emit('shop:stock');
   return true;
 }
@@ -196,6 +198,7 @@ export function pickBoosterItem(idx) {
 }
 
 export function closeBooster() {
+  if (G.booster && G.booster.picks > 0) dispatchHook(G.jokers, 'onBoosterSkipped', G);
   G.booster = null;
   setPhase(PHASES.SHOP);
   bus.emit('shop:stock');

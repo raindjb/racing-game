@@ -118,6 +118,24 @@ export const JOKERS = [
     effect: { type: 'flat_xmult', x: 3 }, art: { color: '#e8d33d', icon: 'moon' } },
   { id: 'stuntman',         zh: '特技演员',   rarity: 'rare', cost: 7, desc: '+250 筹码，手牌上限 -2',
     effect: { type: 'stuntman', chips: 250, handSize: -2 }, art: { color: '#b8593d', icon: 'skull' } },
+
+  // ── 机制类（改变判定/计分规则本身） ──
+  { id: 'four_fingers',     zh: '四指',       rarity: 'uncommon', cost: 7, desc: '同花和顺子只需 4 张牌',
+    effect: { type: 'mechanic' }, art: { color: '#4f8cd6', icon: 'fist' } },
+  { id: 'shortcut',         zh: '捷径',       rarity: 'uncommon', cost: 7, desc: '顺子允许隔 1 个点数（如 2 3 5 6 8）',
+    effect: { type: 'mechanic' }, art: { color: '#38b877', icon: 'bolt' } },
+  { id: 'smeared_joker',    zh: '涂抹小丑',   rarity: 'uncommon', cost: 7, desc: '♥♦ 视为同一花色，♠♣ 视为同一花色',
+    effect: { type: 'mechanic' }, art: { color: '#c94fd6', icon: 'heart' } },
+  { id: 'splash',           zh: '溅射',       rarity: 'common', cost: 3, desc: '打出的每张牌都参与计分',
+    effect: { type: 'mechanic' }, art: { color: '#2fb8c9', icon: 'star' } },
+  { id: 'pareidolia',       zh: '空想性错视', rarity: 'uncommon', cost: 5, desc: '所有牌视为人头牌',
+    effect: { type: 'mechanic' }, art: { color: '#5c5470', icon: 'eye' } },
+
+  // ── 复制类 ──
+  { id: 'blueprint',        zh: '蓝图',       rarity: 'rare', cost: 10, desc: '复制右侧小丑牌的效果',
+    effect: { type: 'copy_right' }, art: { color: '#3d8fb8', icon: 'question' } },
+  { id: 'brainstorm',       zh: '头脑风暴',   rarity: 'rare', cost: 10, desc: '复制最左侧小丑牌的效果',
+    effect: { type: 'copy_leftmost' }, art: { color: '#b03a3a', icon: 'spiral' } },
 ];
 
 export const JOKER_MAP = Object.fromEntries(JOKERS.map(j => [j.id, j]));

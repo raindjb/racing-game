@@ -1,6 +1,6 @@
 // effects/joker-effects.js — Joker 效果编译器：把数据定义编译为 handler 并注册
 // 每种 effect.type 是一个效果原语；M2 扩充 150 张时只需加数据（少数加原语）。
-import { registerJoker } from './index.js';
+import { registerJoker, isFaceCtx, cardSuitCtx } from './index.js';
 import { JOKERS } from '../data/jokers.js';
 import { cardHasSuit, isFaceCard, RANK_INFO } from '../data/card-data.js';
 import { sellValue } from '../joker-manager.js';
@@ -28,7 +28,7 @@ const COMPILERS = {
   flat_xmult: e => ({ onIndependent: (c, api, j) => api.timesMult(e.x, src(j)) }),
 
   suit_scored_mult: e => ({ onScoredCard: (c, api, card, j) => {
-    if (cardHasSuit(card, e.suit)) api.addMult(e.v, src(j)); } }),
+    if (cardSuitCtx(c.jokers, card, e.suit)) api.addMult(e.v, src(j)); } }),
 
   hand_cond: e => ({ onIndependent: (c, api, j) => {
     if (!handContains(c.handType, e.hand)) return;
@@ -45,13 +45,13 @@ const COMPILERS = {
     if (card.enhancement !== 'stone' && list.includes(card.rank)) api.addChips(e.v, src(j)); } }),
 
   face_chips: e => ({ onScoredCard: (c, api, card, j) => {
-    if (isFaceCard(card)) api.addChips(e.v, src(j)); } }),
+    if (isFaceCtx(c.jokers, card)) api.addChips(e.v, src(j)); } }),
   ranks_mult: e => ({ onScoredCard: (c, api, card, j) => {
     if (card.enhancement !== 'stone' && e.ranks.includes(card.rank)) api.addMult(e.v, src(j)); } }),
   face_money_chance: e => ({ onScoredCard: (c, api, card, j) => {
-    if (isFaceCard(card) && c.rng.chance(e.p)) api.addMoney(e.v, src(j)); } }),
+    if (isFaceCtx(c.jokers, card) && c.rng.chance(e.p)) api.addMoney(e.v, src(j)); } }),
   suit_chance_xmult: e => ({ onScoredCard: (c, api, card, j) => {
-    if (cardHasSuit(card, e.suit) && c.rng.chance(e.p)) api.timesMult(e.x, src(j)); } }),
+    if (cardSuitCtx(c.jokers, card, e.suit) && c.rng.chance(e.p)) api.timesMult(e.x, src(j)); } }),
 
   few_cards_mult: e => ({ onIndependent: (c, api, j) => {
     if (c.played.length <= e.maxCards) api.addMult(e.v, src(j)); } }),
@@ -84,7 +84,7 @@ const COMPILERS = {
   ride_the_bus: () => ({
     onIndependent: (c, api, j) => api.addMult(j.state, src(j)),
     onHandPlayed: (G, ev, j) => {
-      if (ev.scoringCards.some(isFaceCard)) j.state = 0; else j.state++;
+      if (ev.scoringCards.some(x => isFaceCtx(G.jokers, x))) j.state = 0; else j.state++;
     },
   }),
   loyalty: e => ({
@@ -112,12 +112,12 @@ const COMPILERS = {
   final_hand_xmult: e => ({ onIndependent: (c, api, j) => {
     if (c.game.handsLeft === 0) api.timesMult(e.x, src(j)); } }),
   photograph: e => ({ onScoredCard: (c, api, card, j) => {
-    if (isFaceCard(card) && !c._photoUsed) { c._photoUsed = true; api.timesMult(e.x, src(j)); } } }),
+    if (isFaceCtx(c.jokers, card) && !c._photoUsed) { c._photoUsed = true; api.timesMult(e.x, src(j)); } } }),
 
   // ── 重触发 ──
   retrigger_ranks: e => ({ retriggerScored: (c, card) =>
     (card.enhancement !== 'stone' && e.ranks.includes(card.rank)) ? 1 : 0 }),
-  retrigger_faces: () => ({ retriggerScored: (c, card) => isFaceCard(card) ? 1 : 0 }),
+  retrigger_faces: () => ({ retriggerScored: (c, card) => isFaceCtx(c.jokers, card) ? 1 : 0 }),
   retrigger_final: () => ({ retriggerScored: c => c.game.handsLeft === 0 ? 1 : 0 }),
   retrigger_held: () => ({ retriggerHeld: () => 1 }),
 
@@ -144,6 +144,12 @@ const COMPILERS = {
     onAdded: G => { G.config.handSize += e.handSize; },
     onRemoved: G => { G.config.handSize -= e.handSize; },
   }),
+
+  // ── 机制类（效果由 evalOpts / isFaceCtx / cardSuitCtx 读取，自身无 handler） ──
+  mechanic: () => ({ isMechanic: true }),
+  // ── 复制委托（蓝图/头脑风暴） ──
+  copy_right: () => ({ copy: 'right' }),
+  copy_leftmost: () => ({ copy: 'leftmost' }),
 };
 
 function src(j) { return { kind: 'joker', id: j.uid ?? j.id }; }

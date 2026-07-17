@@ -6,6 +6,7 @@ import { JOKERS } from './data/jokers.js';
 import { RANKS } from './data/card-data.js';
 import { destroyCards } from './deck.js';
 import { makeJokerInstance, addJoker, sellValue } from './joker-manager.js';
+import { dispatchHook } from './effects/index.js';
 
 let nextUid = 1000;
 export function setNextConsumableUid(n) { nextUid = Math.max(1000, n); }
@@ -70,6 +71,8 @@ export function useConsumable(uid) {
 
   if (res.ok) {
     if (inst.id !== 'fool') G.lastConsumableUsed = { kind: inst.kind, id: inst.id };
+    G.consumableUsedCount = (G.consumableUsedCount ?? 0) + 1;
+    dispatchHook(G.jokers, 'onConsumableUsed', G, inst);
     bus.emit('consumables:change');
     bus.emit('consumable:used', { inst, msg: res.msg });
   } else {

@@ -185,7 +185,7 @@ function syncPreview() {
     $('calc-chips').textContent = '0'; $('calc-mult').textContent = '0';
     return;
   }
-  const ev = evalHand(sel);
+  const ev = evalHand(sel, round.evalOptsFromJokers());
   const ht = HAND_TYPE_MAP[ev.handType];
   const lv = G.handLevels[ev.handType] ?? 1;
   $('hand-type-label').textContent = `${ev.zh} Lv.${lv}`;

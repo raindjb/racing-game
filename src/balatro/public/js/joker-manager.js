@@ -51,6 +51,8 @@ export function sellJoker(G, uid) {
   getJokerHandlers(j.id).onRemoved?.(G, j);
   G.jokers.splice(i, 1);
   G.money += sellValue(j);
+  // 通知剩余 Joker（篝火等成长型）
+  for (const other of G.jokers) getJokerHandlers(other.id).onJokerSold?.(G, j, other);
   bus.emit('jokers:change');
   return true;
 }
