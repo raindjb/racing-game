@@ -59,6 +59,7 @@ export function evalOptsFromJokers() {
 /** 跳过当前盲注（仅小盲/大盲；标签奖励在 M2-F 挂接） */
 export function skipBlind() {
   if (G.phase !== PHASES.BLIND_SELECT || G.blindIndex >= 2) return false;
+  G.blindsSkipped = (G.blindsSkipped ?? 0) + 1;
   G.blindIndex++;
   dispatchHook(G.jokers, 'onBlindSkipped', G);
   bus.emit('blind:skipped');
@@ -175,7 +176,17 @@ export function resolveAfterScoring() {
   applyBossAfterPlay(ev);                         // 钩子弃牌 / 嘴锁定
 
   if (G.roundScore >= G.target) return winRound();
-  if (G.handsLeft <= 0) return gameOver(false);
+  // Mr. Bones：得分≥目标 25% 时救回一命
+  if (G.handsLeft <= 0) {
+    if (G.roundScore >= G.target * 0.25 && G.jokers.some(j => j.id === 'mr_bones')) {
+      const i = G.jokers.findIndex(j => j.id === 'mr_bones');
+      G.jokers.splice(i, 1);
+      bus.emit('jokers:change');
+      bus.emit('ui:reject', { reason: '「骨头先生」救了你一命!' });
+      return winRound({ noReward: true });
+    }
+    return gameOver(false);
+  }
 
   const drawn = drawToHandSize();
   for (const c of drawn) applyBossOnCardDrawn(c);
@@ -203,9 +214,9 @@ export function discardSelected() {
   return true;
 }
 
-/** 过关：现金结算 */
-export function winRound() {
-  const reward = BLINDS[G.blindIndex].reward;
+/** 过关：现金结算；opts.noReward = Mr. Bones 救回（0 奖励推进） */
+export function winRound(opts = {}) {
+  const reward = opts.noReward ? 0 : BLINDS[G.blindIndex].reward;
   const interest = interestOf(G.money, G.config);
   const handsBonus = G.handsLeft;                  // 每剩 1 次出牌 +$1
   const jokerMoney = dispatchHook(G.jokers, 'onRoundEnd', G);

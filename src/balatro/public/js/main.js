@@ -1,3 +1,4 @@
+// Balatro — poker roguelike entry point
 // main.js — 引导启动
 import { VERSION, GAME_NAME } from './version.js';
 import './effects/joker-effects.js';   // 注册全部 Joker 效果（副作用导入）

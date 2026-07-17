@@ -258,6 +258,96 @@ export const JOKERS = [
     effect: { type: 'riff_raff', n: 2 }, art: { color: '#7b8ba0', icon: 'mask' } },
   { id: 'cartomancer',   zh: '纸牌师',     rarity: 'rare', cost: 8, desc: '盲注开始时生成一张塔罗牌',
     effect: { type: 'cartomancer' }, art: { color: '#8a5cd1', icon: 'moon' } },
+
+  // ════ M2-C 批次（→150 + 5 传奇） ════
+
+  // ── 计分修饰 ──
+  { id: 'erosion',       zh: '侵蚀',       rarity: 'uncommon', cost: 6, desc: '牌组每比 52 张少 1 张 +4 倍率',
+    effect: { type: 'erosion', v: 4 }, art: { color: '#6e6e78', icon: 'mountain' } },
+  { id: 'flower_pot',    zh: '花盆',       rarity: 'uncommon', cost: 6, desc: '计分包含全部 4 种花色时 ×3 倍率',
+    effect: { type: 'flower_pot', x: 3 }, art: { color: '#43b76a', icon: 'club' } },
+  { id: 'card_sharp',    zh: '老千',       rarity: 'uncommon', cost: 6, desc: '打出本回合已打过的手型 ×3 倍率',
+    effect: { type: 'card_sharp', x: 3 }, art: { color: '#d43a5e', icon: 'eye' } },
+  { id: 'baseball_card', zh: '棒球卡',     rarity: 'rare', cost: 8, desc: '每张罕见小丑牌 ×1.5 倍率',
+    effect: { type: 'per_uncommon_xmult', x: 1.5 }, art: { color: '#c0c4cc', icon: 'star' } },
+  { id: 'throwback',     zh: '回溯',       rarity: 'uncommon', cost: 6, desc: '本局每跳过一个盲注 ×+0.25 倍率',
+    effect: { type: 'throwback', per: 0.25 }, art: { color: '#8f7a3d', icon: 'flag' } },
+  { id: 'hanging_chad',  zh: '悬孔纸屑',   rarity: 'common', cost: 4, desc: '首张计分牌额外触发 2 次',
+    effect: { type: 'hanging_chad' }, art: { color: '#d9d9e0', icon: 'question' } },
+  { id: 'ramen',         zh: '拉面',       rarity: 'uncommon', cost: 6, desc: '×2 倍率，每弃 1 张牌 -0.01，降到 ×1 吃完',
+    effect: { type: 'ramen', per: 0.01 }, art: { color: '#e8a33d', icon: 'moon' } },
+  { id: 'spare_trousers', zh: '备用裤子',  rarity: 'uncommon', cost: 6, desc: '打出含两对后本牌 +2 倍率',
+    effect: { type: 'grow_mult_on_contains', hand: 'two_pair', v: 2 }, art: { color: '#3d5a8f', icon: 'mask' } },
+
+  // ── 被动配置 ──
+  { id: 'merry_andy',    zh: '快活安迪',   rarity: 'uncommon', cost: 7, desc: '+3 次弃牌，手牌上限 -1',
+    effect: { type: 'merry_andy', discards: 3, handSize: -1 }, art: { color: '#ff8c42', icon: 'mask' } },
+  { id: 'troubadour',    zh: '吟游诗人',   rarity: 'uncommon', cost: 7, desc: '手牌上限 +2，每回合出牌 -1',
+    effect: { type: 'troubadour', handSize: 2, hands: -1 }, art: { color: '#8a5cd1', icon: 'moon' } },
+
+  // ── 盲注开始 ──
+  { id: 'marble_joker',  zh: '大理石小丑', rarity: 'uncommon', cost: 6, desc: '盲注开始时将一张石头牌加入牌组',
+    effect: { type: 'marble_joker' }, art: { color: '#94a3b8', icon: 'mountain' } },
+  { id: 'certificate',   zh: '证书',       rarity: 'uncommon', cost: 6, desc: '盲注开始时手中出现一张带蜡封的随机牌',
+    effect: { type: 'certificate' }, art: { color: '#d4a843', icon: 'coin' } },
+  { id: 'madness',       zh: '疯狂',       rarity: 'uncommon', cost: 7, desc: '选择小盲/大盲时 ×+0.5 倍率并摧毁一张随机小丑',
+    effect: { type: 'madness', per: 0.5 }, art: { color: '#b03a3a', icon: 'skull' } },
+  { id: 'to_do_list',    zh: '待办清单',   rarity: 'common', cost: 4, desc: '打出[每回合指定手型] +$4',
+    effect: { type: 'to_do_list', v: 4 }, art: { color: '#c0c4cc', icon: 'flag' } },
+
+  // ── 弃牌/出售联动 ──
+  { id: 'burnt_joker',   zh: '烧焦小丑',   rarity: 'rare', cost: 8, desc: '每回合首次弃牌时升级所弃手型的等级',
+    effect: { type: 'burnt_joker' }, art: { color: '#e05545', icon: 'bolt' } },
+  { id: 'invisible_joker', zh: '隐形小丑', rarity: 'rare', cost: 8, desc: '存活 2 回合后出售时复制一张随机小丑',
+    effect: { type: 'invisible_joker' }, art: { color: '#4b4b55', icon: 'question' } },
+  { id: 'diet_cola',     zh: '无糖可乐',   rarity: 'uncommon', cost: 6, desc: '出售时获得一个「加倍」标签',
+    effect: { type: 'diet_cola' }, art: { color: '#d13b30', icon: 'bolt' } },
+  { id: 'luchador',      zh: '摔跤手',     rarity: 'uncommon', cost: 5, desc: 'Boss 盲注中出售时禁用 Boss 效果',
+    effect: { type: 'luchador' }, art: { color: '#2fb8c9', icon: 'mask' } },
+
+  // ── 出牌联动 ──
+  { id: 'dna',           zh: 'DNA',        rarity: 'rare', cost: 8, desc: '每回合首次出牌若只打 1 张：复制它加入手牌',
+    effect: { type: 'dna' }, art: { color: '#38b877', icon: 'spiral' } },
+  { id: 'sixth_sense',   zh: '第六感',     rarity: 'uncommon', cost: 6, desc: '首次出牌若为单张 6：销毁并生成幻灵牌',
+    effect: { type: 'sixth_sense' }, art: { color: '#5c6cff', icon: 'eye' } },
+  { id: 'seance',        zh: '降神会',     rarity: 'uncommon', cost: 6, desc: '打出同花顺时生成一张幻灵牌',
+    effect: { type: 'seance' }, art: { color: '#54397a', icon: 'moon' } },
+  { id: 'hallucination', zh: '幻觉',       rarity: 'common', cost: 4, desc: '打开卡包时 1/2 概率生成塔罗牌',
+    effect: { type: 'hallucination', p: 0.5 }, art: { color: '#c94fd6', icon: 'question' } },
+  { id: 'mr_bones',      zh: '骨头先生',   rarity: 'uncommon', cost: 5, desc: '得分达目标 25% 时免于失败并消失（round 检查）',
+    effect: { type: 'marker' }, art: { color: '#d9d9e0', icon: 'skull' } },
+
+  // ── 传奇 ──
+  { id: 'canio',         zh: '卡尼奥',     rarity: 'legendary', cost: 20, desc: '每有人头牌被销毁 ×+1 倍率',
+    effect: { type: 'canio' }, art: { color: '#b26cff', icon: 'mask' } },
+  { id: 'triboulet',     zh: '特里布莱',   rarity: 'legendary', cost: 20, desc: '计分的 K 和 Q 各 ×2 倍率',
+    effect: { type: 'triboulet' }, art: { color: '#b26cff', icon: 'crown' } },
+  { id: 'yorick',        zh: '约里克',     rarity: 'legendary', cost: 20, desc: '每弃满 23 张牌 ×+1 倍率',
+    effect: { type: 'yorick', per: 23 }, art: { color: '#b26cff', icon: 'skull' } },
+  { id: 'perkeo',        zh: '佩尔科',     rarity: 'legendary', cost: 20, desc: '回合结束时复制一张持有的消耗牌',
+    effect: { type: 'perkeo' }, art: { color: '#b26cff', icon: 'coin' } },
+  { id: 'chicot',        zh: '奇科',       rarity: 'legendary', cost: 20, desc: '禁用所有 Boss 盲注效果',
+    effect: { type: 'chicot' }, art: { color: '#b26cff', icon: 'star' } },
+
+  // ── 标记/规则类（shop/scoring 读取） ──
+  { id: 'oops_all_6s',   zh: '全是 6!',    rarity: 'uncommon', cost: 4, desc: '概率翻倍（幸运牌/血石等）',
+    effect: { type: 'marker' }, art: { color: '#d13b30', icon: 'question' } },
+  { id: 'showman',       zh: '主持人',     rarity: 'uncommon', cost: 6, desc: '小丑牌/塔罗/星球可重复出现',
+    effect: { type: 'marker' }, art: { color: '#e8d33d', icon: 'mask' } },
+  { id: 'astronomer',    zh: '天文学家',   rarity: 'uncommon', cost: 6, desc: '星球牌和天体包免费',
+    effect: { type: 'marker' }, art: { color: '#28486e', icon: 'star' } },
+  { id: 'chaos_the_clown', zh: '混沌小丑', rarity: 'common', cost: 4, desc: '每个商店免费重掷 1 次',
+    effect: { type: 'marker' }, art: { color: '#ff8c42', icon: 'mask' } },
+  { id: 'the_order',     zh: '指令',       rarity: 'rare', cost: 8, desc: '含顺子 ×3 倍率',
+    effect: { type: 'hand_cond_xmult', hand: 'straight', x: 3 }, art: { color: '#3d8fb8', icon: 'crown' } },
+  { id: 'the_tribe',     zh: '部落',       rarity: 'rare', cost: 8, desc: '含同花 ×2 倍率',
+    effect: { type: 'hand_cond_xmult', hand: 'flush', x: 2 }, art: { color: '#43b76a', icon: 'crown' } },
+  { id: 'red_card',      zh: '红牌',       rarity: 'common', cost: 6, desc: '跳过卡包（不选）本牌 +3 倍率',
+    effect: { type: 'red_card', v: 3 }, art: { color: '#d13b30', icon: 'flag' } },
+  { id: 'castle',        zh: '城堡',       rarity: 'uncommon', cost: 6, desc: '弃置[每回合轮换花色]每张使本牌 +3 筹码',
+    effect: { type: 'castle', v: 3 }, art: { color: '#6e6e78', icon: 'mountain' } },
+  { id: 'credit_card',   zh: '信用卡',     rarity: 'common', cost: 1, desc: '可透支至 -$20',
+    effect: { type: 'marker' }, art: { color: '#d4a843', icon: 'coin' } },
 ];
 
 export const JOKER_MAP = Object.fromEntries(JOKERS.map(j => [j.id, j]));
@@ -266,4 +356,5 @@ export const RARITY_INFO = {
   common:    { zh: '普通', weight: 0.70 },
   uncommon:  { zh: '罕见', weight: 0.25 },
   rare:      { zh: '稀有', weight: 0.05 },
+  legendary: { zh: '传奇', weight: 0 },   // 仅由幻灵「灵魂」生成
 };

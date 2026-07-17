@@ -18,6 +18,11 @@ import { resolveHandlers, scoredCardTriggers, heldCardTriggers } from './effects
  */
 export function buildContext(G, evalResult, playedCards) {
   const owned = [...G.deck, ...G.hand, ...G.discardPile, ...playedCards];
+  // 「全是 6!」：概率翻倍（可叠加）
+  const oops = G.jokers.filter(j => j.id === 'oops_all_6s').length;
+  const rng = oops
+    ? { ...G.rng, chance: p => G.rng.chance(Math.min(1, p * 2 ** oops)) }
+    : G.rng;
   return {
     played: playedCards,
     scoring: evalResult.scoringCards,
@@ -27,7 +32,7 @@ export function buildContext(G, evalResult, playedCards) {
     levelDelta: G.bossState?.levelDelta ?? 0, // Boss「手臂」
     jokers: G.jokers,
     heldCards: G.hand.filter(c => !playedCards.includes(c)),
-    rng: G.rng,
+    rng,
     game: {
       money: G.money,
       handsLeft: G.handsLeft,
@@ -37,6 +42,8 @@ export function buildContext(G, evalResult, playedCards) {
       handPlayed: G.handPlayed,
       jokerSlots: G.config.jokerSlots + G.jokers.filter(j => j.edition === 'negative').length,
       totalDeckCount: owned.length,
+      roundPlayedTypes: G.roundPlayedTypes,
+      blindsSkipped: G.blindsSkipped ?? 0,
       tarotUsed: G.tarotUsedCount ?? 0,
       enhCounts: {
         stone: owned.filter(c => c.enhancement === 'stone').length,

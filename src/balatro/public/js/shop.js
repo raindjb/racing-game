@@ -40,22 +40,25 @@ export function enterShopGen() {
 
 function genSlots() {
   const out = [];
+  const freePlanets = G.jokers.some(j => j.id === 'astronomer');
   for (let i = 0; i < G.config.shopSlots; i++) {
     const r = G.rng.random();
     if (r < 0.6) out.push(genJokerItem());
     else if (r < 0.8) out.push({ kind: 'tarot', id: randomTarotId(G.rng), price: price(3) });
-    else out.push({ kind: 'planet', id: randomPlanetId(G.rng), price: price(3) });
+    else out.push({ kind: 'planet', id: randomPlanetId(G.rng), price: freePlanets ? 0 : price(3) });
   }
   return out;
 }
 
 function genJokerItem() {
-  const owned = new Set(G.jokers.map(j => j.id));
+  // 「主持人」：允许重复出现
+  const showman = G.jokers.some(j => j.id === 'showman');
+  const owned = showman ? new Set() : new Set(G.jokers.map(j => j.id));
   const rr = G.rng.random();
   const rarity = rr < 0.70 ? 'common' : rr < 0.95 ? 'uncommon' : 'rare';
   let pool = JOKERS.filter(j => j.rarity === rarity && !owned.has(j.id));
-  if (!pool.length) pool = JOKERS.filter(j => !owned.has(j.id));
-  if (!pool.length) pool = JOKERS;
+  if (!pool.length) pool = JOKERS.filter(j => j.rarity !== 'legendary' && !owned.has(j.id));
+  if (!pool.length) pool = JOKERS.filter(j => j.rarity !== 'legendary');
   const def = G.rng.pick(pool);
   const edition = rollEdition(G.rng, G.config.editionRateMult);
   return { kind: 'joker', id: def.id, edition,
@@ -63,7 +66,9 @@ function genJokerItem() {
 }
 
 function genPacks() {
-  return [G.rng.pick(PACKS), G.rng.pick(PACKS)].map(p => ({ id: p.id, price: price(p.price) }));
+  const freeCelestial = G.jokers.some(j => j.id === 'astronomer');
+  return [G.rng.pick(PACKS), G.rng.pick(PACKS)].map(p =>
+    ({ id: p.id, price: p.id === 'celestial' && freeCelestial ? 0 : price(p.price) }));
 }
 
 function genVoucher() {
@@ -72,7 +77,9 @@ function genVoucher() {
 }
 
 function pay(cost) {
-  if (G.money < cost) { bus.emit('ui:reject', { reason: '资金不足' }); return false; }
+  // 「信用卡」：可透支至 -$20
+  const floor = G.jokers.some(j => j.id === 'credit_card') ? -20 : 0;
+  if (G.money - cost < floor) { bus.emit('ui:reject', { reason: '资金不足' }); return false; }
   G.money -= cost;
   return true;
 }
@@ -112,6 +119,8 @@ export function buyVoucher() {
 }
 
 export function rerollCost() {
+  // 「混沌小丑」：每个商店首次重掷免费
+  if (G.shopReroll === 0 && G.jokers.some(j => j.id === 'chaos_the_clown')) return 0;
   return Math.max(0, G.config.rerollBase + G.shopReroll - G.config.rerollDiscount);
 }
 
@@ -133,6 +142,7 @@ export function buyPack(i) {
   p.sold = true;
   const def = PACK_MAP[p.id];
   G.booster = { packId: p.id, zh: def.zh, picks: def.picks, items: genPackItems(p.id, def.count) };
+  dispatchHook(G.jokers, 'onPackOpened', G);    // 幻觉：开包 50% 生成塔罗
   setPhase(PHASES.BOOSTER);
   return true;
 }

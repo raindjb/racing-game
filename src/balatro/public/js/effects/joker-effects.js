@@ -1,12 +1,18 @@
 // effects/joker-effects.js — Joker 效果编译器：把数据定义编译为 handler 并注册
 // 每种 effect.type 是一个效果原语；M2 扩充 150 张时只需加数据（少数加原语）。
-import { registerJoker, isFaceCtx, cardSuitCtx } from './index.js';
+import { registerJoker, isFaceCtx, cardSuitCtx, getJokerHandlers } from './index.js';
 import { JOKERS } from '../data/jokers.js';
-import { cardHasSuit, isFaceCard, RANK_INFO, RANKS, SUITS } from '../data/card-data.js';
+import { cardHasSuit, isFaceCard, RANK_INFO, RANKS, SUITS, makeCard } from '../data/card-data.js';
 import { sellValue, makeJokerInstance, addJoker } from '../joker-manager.js';
 import { makeConsumable, addConsumable, randomTarotId } from '../consumable-manager.js';
 import { destroyCards } from '../deck.js';
+import { evalHand } from '../hand-eval.js';
 import { bus } from '../state.js';
+
+/** 通知牌加入（全息影像等） */
+function notifyCardAdded(G, card) {
+  for (const j of G.jokers) getJokerHandlers(j.id).onCardAdded?.(G, card, j);
+}
 
 /** 自毁（冰淇淋融化/大米歇尔烂掉/苏打水用尽等） */
 function selfDestroy(G, j) {
@@ -385,7 +391,161 @@ const COMPILERS = {
     } } }),
   cartomancer: () => ({ onBlindStart: (G, j) => {
     addConsumable(makeConsumable('tarot', randomTarotId(G.rng))); } }),
+
+  // ════ M2-C 批次原语（补满 150 + 传奇） ════
+
+  // ── 计分修饰 ──
+  erosion: e => ({ onIndependent: (c, api, j) => {
+    const below = Math.max(0, 52 - c.game.totalDeckCount);
+    if (below) api.addMult(e.v * below, src(j)); } }),
+  flower_pot: e => ({ onIndependent: (c, api, j) => {
+    const need = ['spades', 'hearts', 'diamonds', 'clubs'];
+    if (need.every(s => c.scoring.some(x => cardSuitCtx(c.jokers, x, s)))) api.timesMult(e.x, src(j)); } }),
+  card_sharp: e => ({ onIndependent: (c, api, j) => {
+    if (c.game.roundPlayedTypes?.includes(c.handType)) api.timesMult(e.x, src(j)); } }),
+  per_uncommon_xmult: e => ({ onIndependent: (c, api, j) => {   // 棒球卡
+    for (const x of c.jokers) if (x !== j && x.rarity === 'uncommon') api.timesMult(e.x, src(j)); } }),
+  throwback: e => ({ onIndependent: (c, api, j) => {
+    const n = c.game.blindsSkipped ?? 0;
+    if (n) api.timesMult(1 + e.per * n, src(j)); } }),
+  hanging_chad: () => ({ retriggerScored: (c, card) => card === c.scoring[0] ? 2 : 0 }),
+  ramen: e => ({
+    onIndependent: (c, api, j) => api.timesMult(Math.max(1, 2 - e.per * j.state), src(j)),
+    onDiscard: (G, cards, j) => { j.state += cards.length; if (2 - e.per * j.state <= 1) selfDestroy(G, j); },
+  }),
+  grow_mult_on_contains: e => ({       // 备用裤子：含两对 → +2 倍(累积)
+    onIndependent: (c, api, j) => api.addMult(j.state, src(j)),
+    onHandPlayed: (G, ev, j) => { if (handContains(ev.handType, e.hand)) j.state += e.v; },
+  }),
+
+  // ── 被动配置 ──
+  merry_andy: e => ({
+    onAdded: G => { G.config.discards += e.discards; G.discardsLeft += e.discards; G.config.handSize += e.handSize; },
+    onRemoved: G => { G.config.discards -= e.discards; G.config.handSize -= e.handSize; },
+  }),
+  troubadour: e => ({
+    onAdded: G => { G.config.handSize += e.handSize; G.config.hands += e.hands; },
+    onRemoved: G => { G.config.handSize -= e.handSize; G.config.hands -= e.hands; },
+  }),
+
+  // ── 标记类（由 shop/round/scoring 读取） ──
+  marker: () => ({ isMarker: true }),  // 全是6/主持人/天文学家/混沌小丑/骨头先生/信用卡
+
+  // ── 盲注开始 ──
+  marble_joker: () => ({ onBlindStart: (G, j) => {
+    const card = makeCard(G.rng.pick(SUITS), G.rng.pick(RANKS), { enhancement: 'stone' });
+    G.deck.splice(G.rng.int(0, Math.max(0, G.deck.length - 1)), 0, card);
+    notifyCardAdded(G, card); } }),
+  certificate: () => ({ onBlindStart: (G, j) => {
+    const card = makeCard(G.rng.pick(SUITS), G.rng.pick(RANKS), { seal: G.rng.pick(['red', 'gold', 'blue', 'purple']) });
+    G.hand.push(card);
+    notifyCardAdded(G, card); } }),
+  madness: e => ({
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
+    onBlindStart: (G, j) => {
+      if (G.blindIndex < 2) {
+        j.state++;
+        const others = G.jokers.filter(x => x !== j);
+        if (others.length) {
+          const victim = G.rng.pick(others);
+          G.jokers.splice(G.jokers.indexOf(victim), 1);
+          bus.emit('jokers:change');
+        }
+      }
+    },
+  }),
+  to_do_list: e => ({
+    onBlindStart: (G, j) => { j.target = G.rng.pick(['high_card', 'pair', 'two_pair', 'three_of_a_kind', 'straight', 'flush']); },
+    onHandPlayed: (G, ev, j) => { if (ev.handType === j.target) G.money += e.v; },
+  }),
+
+  // ── 弃牌联动 ──
+  burnt_joker: () => ({ onDiscard: (G, cards, j) => {
+    if (G.discardsLeft === G.config.discards - 1) {
+      const ev = cards.length ? evalHand(cards) : null;
+      if (ev) G.handLevels[ev.handType] = (G.handLevels[ev.handType] ?? 1) + 1;
+    } } }),
+
+  // ── 出售联动 ──
+  invisible_joker: () => ({
+    onRoundEnd: (G, j) => { j.state++; return 0; },
+    onSelfSold: (G, j) => {
+      if (j.state >= 2 && G.jokers.length > 1) {
+        const others = G.jokers.filter(x => x !== j);
+        const target = G.rng.pick(others);
+        const dup = makeJokerInstance(target.id, { edition: target.edition });
+        dup.state = target.state;
+        addJoker(G, dup);
+      }
+    },
+  }),
+  diet_cola: () => ({ onSelfSold: (G, j) => {
+    (G.pendingTags ??= []).push('double'); } }),
+  luchador: () => ({ onSelfSold: (G, j) => {
+    if (G.blindIndex === 2 && G.boss && !G.bossDisabled) {
+      G.bossDisabled = true;
+      for (const pile of [G.hand, G.deck, G.discardPile]) for (const c of pile) { c.debuffed = false; c.faceDown = false; }
+      bus.emit('ui:reject', { reason: `摔跤手封印了「${G.boss.zh}」!` });
+    } } }),
+
+  // ── 出牌联动 ──
+  dna: () => ({ onHandPlayed: (G, ev, j) => {
+    if (G.handsLeft === G.config.hands - 1 && G.playedZone.length === 1) {
+      const orig = G.playedZone[0];
+      const copy = makeCard(orig.suit, orig.rank, { enhancement: orig.enhancement, edition: orig.edition, seal: orig.seal });
+      G.hand.push(copy);
+      notifyCardAdded(G, copy);
+    } } }),
+  sixth_sense: () => ({ onHandPlayed: (G, ev, j) => {
+    if (G.handsLeft === G.config.hands - 1 && G.playedZone.length === 1
+        && G.playedZone[0].rank === '6' && G.playedZone[0].enhancement !== 'stone') {
+      destroyCards([G.playedZone[0]]);   // 幻灵生成：M2-D 接入
+      G.pendingSpectral = (G.pendingSpectral ?? 0) + 1;
+    } } }),
+  seance: () => ({ onHandPlayed: (G, ev, j) => {
+    if (ev.handType === 'straight_flush') G.pendingSpectral = (G.pendingSpectral ?? 0) + 1; } }),
+  hallucination: e => ({ onPackOpened: (G, j) => {
+    if (G.rng.chance(e.p)) addConsumable(makeConsumable('tarot', randomTarotId(G.rng))); } }),
+
+  // ── 传奇 ──
+  canio: () => ({
+    onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + j.state, src(j)); },
+    onCardDestroyed: (G, cards, j) => { j.state += cards.filter(x => isFaceCtx(G.jokers, x)).length; },
+  }),
+  triboulet: () => ({ onScoredCard: (c, api, card, j) => {
+    if ((card.rank === 'K' || card.rank === 'Q') && card.enhancement !== 'stone') api.timesMult(2, src(j)); } }),
+  yorick: e => ({
+    onIndependent: (c, api, j) => { const lv = Math.floor((j.count ?? 0) / e.per); if (lv) api.timesMult(1 + lv, src(j)); },
+    onDiscard: (G, cards, j) => { j.count = (j.count ?? 0) + cards.length; },
+  }),
+  perkeo: () => ({ onRoundEnd: (G, j) => {
+    if (G.consumables.length) {
+      const pick = G.rng.pick(G.consumables);
+      addConsumable(makeConsumable(pick.kind, pick.id));
+    }
+    return 0; } }),
+  chicot: () => ({ onBlindStart: (G, j) => {
+    if (G.blindIndex === 2) {
+      G.bossDisabled = true;
+      for (const pile of [G.hand, G.deck, G.discardPile]) for (const c of pile) { c.debuffed = false; c.faceDown = false; }
+    } } }),
+
+  // ── 防守 / 弃牌成长 ──
+  castle: e => ({
+    onIndependent: (c, api, j) => api.addChips(j.state, src(j)),
+    onBlindStart: (G, j) => { j.target = G.rng.pick(SUITS); },
+    onDiscard: (G, cards, j) => {
+      if (!j.target) return;
+      j.state += cards.filter(x => cardSuitCtx(G.jokers, x, j.target) && x.enhancement !== 'stone').length * e.v;
+    },
+  }),
+  red_card: e => ({
+    onIndependent: (c, api, j) => api.addMult(j.state, src(j)),
+    onBoosterSkipped: (G, j) => { j.state += e.v; },
+  }),
 };
+
+// dispatchHookSafe → notifyCardAdded（见顶部）；evalHand 已静态导入
 
 function src(j) { return { kind: 'joker', id: j.uid ?? j.id }; }
 

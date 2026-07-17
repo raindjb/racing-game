@@ -48,10 +48,12 @@ export function sellJoker(G, uid) {
   const i = G.jokers.findIndex(j => j.uid === uid);
   if (i < 0) return false;
   const j = G.jokers[i];
+  // 出售联动（可免 Boss / 复制等）：在删除前调用以允许引用右侧邻位
+  getJokerHandlers(j.id).onSelfSold?.(G, j);
   getJokerHandlers(j.id).onRemoved?.(G, j);
   G.jokers.splice(i, 1);
   G.money += sellValue(j);
-  // 通知剩余 Joker（篝火等成长型）
+  // 通知剩余 Joker（篝火等成长型）+ 出售联动（菜单可乐/摔跤手等）
   for (const other of G.jokers) getJokerHandlers(other.id).onJokerSold?.(G, j, other);
   bus.emit('jokers:change');
   return true;
