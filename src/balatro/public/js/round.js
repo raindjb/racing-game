@@ -12,6 +12,9 @@ import { blindTarget, interestOf, BLINDS, ANTE_MAX } from './data/blinds.js';
 import { pickBoss, BOSS_MAP } from './data/bosses.js';
 import { cardOrder, SUITS } from './data/card-data.js';
 import { applyBossOnBlindStart, applyBossOnCardDrawn, validatePlay, applyBossAfterPlay } from './boss-effects.js';
+import { makeConsumable, addConsumable, randomTarotId } from './consumable-manager.js';
+import { PLANETS } from './data/planets.js';
+import { enterShopGen } from './shop.js';
 
 /** 开新局 */
 export function startRun({ seed } = {}) {
@@ -163,7 +166,11 @@ export function discardSelected() {
   G.discardsLeft--;
   G.selected = [];
   for (const j of G.jokers) getJokerHandlers(j.id).onDiscard?.(G, cards, j);
-  discardFromHand(cards);                          // 紫蜡封生成塔罗：Task 08 监听 cards:discarded
+  // 紫蜡封：被弃置时生成塔罗牌
+  for (const c of cards) {
+    if (c.seal === 'purple') addConsumable(makeConsumable('tarot', randomTarotId(G.rng)));
+  }
+  discardFromHand(cards);
   const drawn = drawToHandSize();
   for (const c of drawn) applyBossOnCardDrawn(c);
   bus.emit('hand:discarded', { cards });
@@ -179,9 +186,13 @@ export function winRound() {
   for (const j of G.jokers) jokerMoney += getJokerHandlers(j.id).onRoundEnd?.(G, j) ?? 0;
   const goldCards = G.hand.filter(c => c.enhancement === 'gold' && !c.debuffed).length * 3;
 
-  // 蓝蜡封：回合结束留在手中 → 生成星球牌（Task 08 监听）
+  // 蓝蜡封：回合结束留在手中 → 生成最后所打手型的星球牌
   const blueSeals = G.hand.filter(c => c.seal === 'blue');
-  if (blueSeals.length) bus.emit('seal:blue', { cards: blueSeals });
+  if (blueSeals.length && G.lastPlay) {
+    const planet = PLANETS.find(p => p.hand === G.lastPlay.eval.handType);
+    if (planet) for (const _ of blueSeals) addConsumable(makeConsumable('planet', planet.id));
+    bus.emit('seal:blue', { cards: blueSeals });
+  }
 
   const total = reward + interest + handsBonus + jokerMoney + goldCards;
   G.money += total;
@@ -207,8 +218,9 @@ export function winRound() {
 /** 离开现金结算 → 商店 */
 export function leaveRoundEnd() {
   if (G.phase !== PHASES.ROUND_END) return;
+  enterShopGen();                                  // 生成货架
   setPhase(PHASES.SHOP);
-  bus.emit('shop:enter');                          // Task 08 生成货架
+  bus.emit('shop:enter');
 }
 
 /** 离开商店 → 盲注选择 */

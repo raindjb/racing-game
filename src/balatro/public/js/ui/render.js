@@ -10,6 +10,13 @@ import { layoutHand, withFlip } from './hand-layout.js';
 import { consumeSuppressedClick } from './drag.js';
 import { jokerSlotsOf, sellJoker, sellValue } from '../joker-manager.js';
 import { jokerArtSVG } from '../svg/joker-art.js';
+import { cardFaceSVG } from '../svg/card-face.js';
+import { useConsumable, sellConsumable, consumableSlotsOf } from '../consumable-manager.js';
+import * as shop from '../shop.js';
+import { JOKER_MAP } from '../data/jokers.js';
+import { TAROT_MAP } from '../data/tarots.js';
+import { PLANET_MAP } from '../data/planets.js';
+import { VOUCHER_MAP } from '../data/vouchers.js';
 
 const $ = id => document.getElementById(id);
 let els = {};
@@ -48,6 +55,10 @@ export function initRender() {
   bus.on('cards:destroyed', ({ cards }) => cards.forEach(c => releaseCard(c.id)));
   bus.on('ui:reject', ({ reason }) => flashMessage(reason));
   bus.on('jokers:change', () => { syncJokers(); syncSidebar(); });
+  bus.on('consumables:change', () => { syncConsumables(); syncSidebar(); });
+  bus.on('consumable:used', ({ msg }) => { flashMessage(msg); syncAll(); });
+  bus.on('shop:stock', () => { if (G.phase === PHASES.SHOP) showShop(); });
+  bus.on('booster:change', () => { if (G.phase === PHASES.BOOSTER) showBooster(); });
 
   window.addEventListener('resize', () => syncHand(false));
 }
@@ -57,7 +68,8 @@ function onPhase({ phase }) {
     case PHASES.BLIND_SELECT: showBlindSelect(); break;
     case PHASES.PLAYING: hideOverlay(); syncAll(); break;
     case PHASES.ROUND_END: showRoundEnd(); break;
-    case PHASES.SHOP: showShopPlaceholder(); break;   // Task 08 接管
+    case PHASES.SHOP: showShop(); break;
+    case PHASES.BOOSTER: showBooster(); break;
     case PHASES.GAME_OVER: showGameEnd(false); break;
     case PHASES.WIN: showGameEnd(true); break;
   }
@@ -66,7 +78,37 @@ function onPhase({ phase }) {
 // ===== 主区域同步 =====
 
 export function syncAll() {
-  syncHand(false); syncPlayed(); syncSidebar(); syncSelection(); syncPreview(); syncButtons(); syncJokers();
+  syncHand(false); syncPlayed(); syncSidebar(); syncSelection(); syncPreview(); syncButtons();
+  syncJokers(); syncConsumables();
+}
+
+/** 消耗牌行：点击使用（回合中）、右键出售 $1 */
+function syncConsumables() {
+  const row = $('consumable-row');
+  row.innerHTML = '';
+  const slots = consumableSlotsOf(G);
+  for (let i = 0; i < slots; i++) {
+    const c = G.consumables[i];
+    if (!c) {
+      const s = document.createElement('div');
+      s.className = 'j-slot'; s.textContent = '◇';
+      row.appendChild(s);
+      continue;
+    }
+    const el = document.createElement('div');
+    el.className = `j-card c-card c-${c.kind}`;
+    el.innerHTML =
+      `<div class="c-icon">${c.kind === 'tarot' ? '🔮' : '🪐'}</div>` +
+      `<div class="j-name">${c.zh}</div><div class="j-desc">${c.desc}</div>` +
+      `<div class="sell-tip">点击使用 · 右键卖 $1</div>`;
+    el.title = `${c.zh}：${c.desc}`;
+    el.addEventListener('click', () => {
+      const r = useConsumable(c.uid);
+      if (!r.ok) flashMessage(r.msg);
+    });
+    el.addEventListener('contextmenu', e => { e.preventDefault(); sellConsumable(c.uid); });
+    row.appendChild(el);
+  }
 }
 
 /** Joker 行：实例卡 + 空槽；右键出售 */
@@ -252,15 +294,93 @@ function showRoundEnd() {
   $('ov-shop').addEventListener('click', () => round.leaveRoundEnd());
 }
 
-function showShopPlaceholder() {
-  // Task 08 用完整商店渲染替换本函数
+function showShop() {
+  const s = G.shop;
+  if (!s) return;
+  const slotHTML = (item, i) => {
+    if (item.sold) return `<div class="s-item sold">已售出</div>`;
+    let body = '';
+    if (item.kind === 'joker') {
+      const d = JOKER_MAP[item.id];
+      body = `<div class="s-art">${jokerArtSVG(d.art, d.id)}</div>` +
+        `<div class="s-name">${d.zh}${item.edition ? ' ✦' : ''}</div><div class="s-desc">${d.desc}</div>` +
+        `<div class="s-rarity r-${d.rarity}">${{ common: '普通', uncommon: '罕见', rare: '稀有' }[d.rarity]}</div>`;
+    } else if (item.kind === 'tarot') {
+      const d = TAROT_MAP[item.id];
+      body = `<div class="s-emoji">🔮</div><div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div>`;
+    } else {
+      const d = PLANET_MAP[item.id];
+      body = `<div class="s-emoji">🪐</div><div class="s-name">${d.zh}</div>` +
+        `<div class="s-desc">升级「${HAND_TYPE_MAP[d.hand].zh}」等级</div>`;
+    }
+    return `<div class="s-item" data-slot="${i}">${body}<div class="s-price">$${item.price}</div></div>`;
+  };
+  const packHTML = (p, i) => {
+    if (p.sold) return `<div class="s-item sold">已售出</div>`;
+    const d = shop.PACK_MAP[p.id];
+    return `<div class="s-item s-pack" data-pack="${i}">
+      <div class="s-emoji">🎁</div><div class="s-name">${d.zh}</div>
+      <div class="s-desc">${d.desc}</div><div class="s-price">$${p.price}</div></div>`;
+  };
+  const v = s.voucher;
+  const voucherHTML = !v ? '' : v.sold ? `<div class="s-item sold">已购</div>` :
+    `<div class="s-item s-voucher" id="shop-voucher">
+      <div class="s-emoji">🎟️</div><div class="s-name">${VOUCHER_MAP[v.id].zh}</div>
+      <div class="s-desc">${VOUCHER_MAP[v.id].desc}</div><div class="s-price">$${v.price}</div></div>`;
+
   showOverlay(`
     <div class="panel shop-panel">
       <h2>🏪 商店</h2>
-      <div class="panel-sub">建设中（Task 08）· 资金 $${G.money}</div>
-      <button class="btn btn-play" id="ov-next">继续 → 下一盲注</button>
+      <div class="panel-sub">资金 <b class="gold">$${G.money}</b></div>
+      <div class="shop-rows">
+        <div class="shop-sec"><h3>卡位</h3><div class="shop-row">${s.slots.map(slotHTML).join('')}</div></div>
+        <div class="shop-sec"><h3>卡包</h3><div class="shop-row">${s.packs.map(packHTML).join('')}</div></div>
+        <div class="shop-sec"><h3>优惠券</h3><div class="shop-row">${voucherHTML}</div></div>
+      </div>
+      <div class="panel-actions">
+        <button class="btn btn-discard" id="shop-reroll">重掷 $${shop.rerollCost()}</button>
+        <button class="btn btn-shop-go" id="shop-leave">下一盲注 →</button>
+      </div>
     </div>`);
-  $('ov-next').addEventListener('click', () => round.leaveShop());
+
+  els.overlay.querySelectorAll('[data-slot]').forEach(el =>
+    el.addEventListener('click', () => shop.buySlot(Number(el.dataset.slot))));
+  els.overlay.querySelectorAll('[data-pack]').forEach(el =>
+    el.addEventListener('click', () => shop.buyPack(Number(el.dataset.pack))));
+  $('shop-voucher')?.addEventListener('click', () => shop.buyVoucher());
+  $('shop-reroll').addEventListener('click', () => shop.rerollShop());
+  $('shop-leave').addEventListener('click', () => round.leaveShop());
+}
+
+function showBooster() {
+  const b = G.booster;
+  if (!b) return;
+  const itemHTML = (it, i) => {
+    if (it.taken) return `<div class="s-item sold">已选</div>`;
+    if (it.kind === 'card') {
+      return `<div class="s-item s-boostcard" data-bi="${i}"><div class="s-cardface">${cardFaceSVG(it.card)}</div>
+        ${it.card.enhancement ? `<div class="s-desc">${it.card.enhancement}</div>` : ''}</div>`;
+    }
+    if (it.kind === 'joker') {
+      const d = JOKER_MAP[it.id];
+      return `<div class="s-item" data-bi="${i}"><div class="s-art">${jokerArtSVG(d.art, d.id)}</div>
+        <div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div></div>`;
+    }
+    const d = it.kind === 'tarot' ? TAROT_MAP[it.id] : PLANET_MAP[it.id];
+    return `<div class="s-item" data-bi="${i}">
+      <div class="s-emoji">${it.kind === 'tarot' ? '🔮' : '🪐'}</div>
+      <div class="s-name">${d.zh}</div><div class="s-desc">${d.desc ?? ''}</div></div>`;
+  };
+  showOverlay(`
+    <div class="panel shop-panel">
+      <h2>🎁 ${b.zh}</h2>
+      <div class="panel-sub">选择 ${b.picks} 件</div>
+      <div class="shop-row">${b.items.map(itemHTML).join('')}</div>
+      <div class="panel-actions"><button class="btn btn-ghost" id="booster-skip">跳过</button></div>
+    </div>`);
+  els.overlay.querySelectorAll('[data-bi]').forEach(el =>
+    el.addEventListener('click', () => shop.pickBoosterItem(Number(el.dataset.bi))));
+  $('booster-skip').addEventListener('click', () => shop.closeBooster());
 }
 
 function showGameEnd(won) {

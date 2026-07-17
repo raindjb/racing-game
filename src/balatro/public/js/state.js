@@ -37,6 +37,12 @@ export function defaultConfig() {
     interestCap: 5,      // 利息上限 $5
     interestPer: 5,      // 每 $5 得 $1
     rerollBase: 5,       // 商店重掷起价
+    // 商店/优惠券相关
+    shopSlots: 2,
+    shopDiscount: 1,     // 清仓甩卖 → 0.75
+    rerollDiscount: 0,   // 重掷盈余 → 2
+    editionRateMult: 1,  // 磨砺 → 2
+    telescope: false,    // 望远镜
   };
 }
 
@@ -112,6 +118,11 @@ export function initRun({ seed } = {}) {
   G.roundPlayedTypes = [];
   G.boss = null; G.bossState = {};
   G.shop = null; G.vouchers = [];
+  G.booster = null;
+  G.shopReroll = 0;
+  G.lastConsumableUsed = null;
+  G.recentBosses = [];
+  G.upcomingBoss = null; G.upcomingBossAnte = 0;
   G.stats = { bestHandScore: 0, totalHandsPlayed: 0, jokersBought: 0 };
 
   bus.emit('run:new', { seed: G.seed });

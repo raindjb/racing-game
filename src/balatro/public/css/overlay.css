@@ -65,3 +65,51 @@
 
 /* 游戏结束 */
 .game-end.lose h1 { color: var(--red); text-shadow: 0 0 40px rgba(255, 76, 64, 0.4); }
+
+/* ===== 商店 / 卡包 ===== */
+.shop-panel { min-width: 640px; }
+.gold { color: var(--gold-bright); }
+.shop-rows { display: flex; flex-direction: column; gap: 14px; }
+.shop-sec h3 { font-size: 12px; color: var(--text-dim); letter-spacing: 3px; margin-bottom: 8px; }
+.shop-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.s-item {
+  position: relative;
+  width: 108px; min-height: 130px;
+  background: var(--panel);
+  border: 2px solid var(--panel-line);
+  border-radius: 11px;
+  padding: 8px 6px 26px;
+  cursor: pointer;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s, box-shadow 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.s-item:hover { transform: translateY(-8px) scale(1.04); border-color: var(--gold-bright); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45); }
+.s-item.sold {
+  cursor: default; opacity: 0.35;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--text-dim);
+}
+.s-item.sold:hover { transform: none; border-color: var(--panel-line); box-shadow: none; }
+
+.s-art { width: 58px; height: 81px; }
+.s-art svg { width: 100%; height: 100%; border-radius: 6px; }
+.s-cardface { width: 62px; height: 87px; }
+.s-cardface svg { width: 100%; height: 100%; }
+.s-emoji { font-size: 34px; line-height: 1.2; }
+.s-name { font-size: 12px; font-weight: 800; text-align: center; }
+.s-desc { font-size: 9px; color: var(--text-dim); text-align: center; line-height: 1.35; }
+.s-price {
+  position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+  font-size: 14px; font-weight: 900; color: var(--gold-bright);
+}
+.s-rarity { font-size: 8px; padding: 1px 6px; border-radius: 4px; }
+.s-rarity.r-common { background: #4a5462; color: #cdd6e0; }
+.s-rarity.r-uncommon { background: var(--rarity-uncommon); color: #0c2414; }
+.s-rarity.r-rare { background: var(--rarity-rare); color: #2c0906; }
+
+/* 消耗牌迷你卡 */
+.c-card.c-tarot { background: linear-gradient(160deg, #3a2158, #1d0f30); }
+.c-card.c-planet { background: linear-gradient(160deg, #1d3a58, #0d1b30); }
+.c-card .c-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); font-size: 30px; }
+.c-card { outline: 2px solid rgba(255, 255, 255, 0.18); outline-offset: -2px; }
