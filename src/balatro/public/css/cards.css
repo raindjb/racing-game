@@ -1,1 +1,104 @@
-/* cards.css — 卡牌基础样式（Task 05 填充扇形/选中/悬停细节） */
+/* cards.css — 卡牌：扇形定位变量 + 悬停/选中/失效/牌背 */
+
+.card {
+  position: absolute;
+  width: var(--card-w); height: var(--card-h);
+  border-radius: 9px;
+  cursor: pointer;
+  /* 布局由 hand-layout.js 写入 CSS 变量；悬停/选中基于变量叠加，互不冲突 */
+  transform: translate(var(--tx, 0), var(--ty, 0)) rotate(var(--rot, 0deg));
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+  will-change: transform;
+}
+.card .card-face, .card .card-face svg { width: 100%; height: 100%; display: block; }
+
+.card:hover {
+  transform: translate(var(--tx, 0), calc(var(--ty, 0px) - 14px)) rotate(var(--rot, 0deg)) scale(1.04);
+  z-index: 150 !important;
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.5));
+}
+.card.selected {
+  transform: translate(var(--tx, 0), calc(var(--ty, 0px) - 32px)) rotate(calc(var(--rot, 0deg) * 0.4));
+  filter: drop-shadow(0 0 14px rgba(240, 192, 96, 0.55)) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+}
+.card.selected:hover {
+  transform: translate(var(--tx, 0), calc(var(--ty, 0px) - 38px)) rotate(calc(var(--rot, 0deg) * 0.4)) scale(1.03);
+}
+
+/* 打出区/商店等静态场景：不用绝对定位 */
+.card.static {
+  position: relative;
+  transform: none;
+  cursor: default;
+}
+.card.static:hover { transform: translateY(-6px); }
+
+/* 失效（Boss 棍棒） */
+.card.debuffed { filter: grayscale(0.95) brightness(0.6) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)); }
+.card.debuffed::after {
+  content: '✕';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px; color: rgba(255, 60, 60, 0.7); font-weight: 900;
+}
+
+/* 背面朝上（Boss 车轮） */
+.card.face-down { cursor: pointer; }
+
+/* ===== 强化角标 ===== */
+.card-badges { position: absolute; inset: 0; pointer-events: none; }
+.enh-tag {
+  position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 800; color: #fff;
+  padding: 1px 7px; border-radius: 5px; white-space: nowrap;
+}
+.tag-bonus { background: #2f7fd4; }
+.tag-mult  { background: #d13b30; }
+.tag-wild  { background: #8e44ad; }
+.tag-glass { background: #5dade2; }
+.tag-steel { background: #7f8c9b; }
+.tag-gold  { background: #b8860b; }
+.tag-lucky { background: #279d5f; }
+
+/* 强化发光边框 */
+.card.enh-bonus .card-face { filter: drop-shadow(0 0 5px rgba(47, 127, 212, 0.6)); }
+.card.enh-mult .card-face  { filter: drop-shadow(0 0 5px rgba(209, 59, 48, 0.6)); }
+.card.enh-wild .card-face  { filter: drop-shadow(0 0 6px rgba(142, 68, 173, 0.7)); }
+.card.enh-glass .card-face { opacity: 0.82; filter: drop-shadow(0 0 6px rgba(93, 173, 226, 0.8)); }
+.card.enh-steel .card-face { filter: grayscale(0.3) drop-shadow(0 0 5px rgba(160, 170, 185, 0.8)); }
+.card.enh-gold .card-face  { filter: sepia(0.5) saturate(1.6) drop-shadow(0 0 5px rgba(212, 168, 67, 0.7)); }
+.card.enh-lucky .card-face { filter: drop-shadow(0 0 5px rgba(39, 157, 95, 0.6)); }
+
+/* 蜡封圆点（左上角） */
+.seal-dot {
+  position: absolute; top: 6px; right: 7px;
+  width: 13px; height: 13px; border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.seal-red    { background: radial-gradient(circle at 35% 35%, #ff7b6e, #b3271c); }
+.seal-gold   { background: radial-gradient(circle at 35% 35%, #ffe08a, #b8860b); }
+.seal-blue   { background: radial-gradient(circle at 35% 35%, #7ec3ff, #1c64b3); }
+.seal-purple { background: radial-gradient(circle at 35% 35%, #c99aff, #6a1cb3); }
+
+/* 提示消息 */
+.flash-msg {
+  position: fixed; top: 18%; left: 50%; transform: translateX(-50%);
+  z-index: 600; pointer-events: none;
+  background: rgba(20, 10, 10, 0.9); color: #ff9d94;
+  border: 1px solid rgba(255, 76, 64, 0.5);
+  padding: 10px 22px; border-radius: 10px;
+  font-size: 15px; font-weight: 700;
+  animation: flashIn 1.6s ease-out forwards;
+}
+@keyframes flashIn {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  12% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 分数弹出 */
+#score-pop { opacity: 0; transition: opacity 0.25s, transform 0.25s; transform: translateX(-50%) scale(0.6); }
+#score-pop.on { opacity: 1; transform: translateX(-50%) scale(1); text-shadow: 0 0 26px rgba(255, 255, 255, 0.6); }
