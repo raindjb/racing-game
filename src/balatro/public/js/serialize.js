@@ -8,6 +8,14 @@ import { setNextCardId, peekNextCardId } from './data/card-data.js';
 import { setNextJokerUid, peekNextJokerUid } from './joker-manager.js';
 import { setNextConsumableUid, peekNextConsumableUid } from './consumable-manager.js';
 
+/** M2 追加的顶层字段（统一透传，新增字段只需加在这里） */
+const EXTRA_KEYS = [
+  'blindsSkipped', 'tagDouble', 'pendingJokerEditions', 'investmentTags',
+  'shopFlags', 'activeShopFlags', 'nextBlindBonus', 'pendingMegaPacks',
+  'pendingSpectral', 'consumableUsedCount', 'tarotUsedCount', 'planetUsedCount',
+  'planetsUsed', 'bossDisabled',
+];
+
 /** G → 可 JSON 化对象 */
 export function serializeRun() {
   // 结算/卡包中不落档：把打出区并回弃牌堆、丢弃卡包，回退到安全阶段
@@ -36,6 +44,7 @@ export function serializeRun() {
     shop: G.shop, shopReroll: G.shopReroll,
     vouchers: G.vouchers, lastConsumableUsed: G.lastConsumableUsed,
     config: G.config, stats: G.stats,
+    extra: Object.fromEntries(EXTRA_KEYS.map(k => [k, G[k]])),
   };
 }
 
@@ -71,6 +80,7 @@ export function deserializeRun(data) {
   G.lastConsumableUsed = data.lastConsumableUsed ?? null;
   G.config = { ...G.config, ...data.config };
   G.stats = data.stats ?? G.stats;
+  for (const k of EXTRA_KEYS) G[k] = data.extra?.[k];
 
   setPhase(data.phase);
   return true;

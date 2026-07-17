@@ -61,6 +61,7 @@ export function initRender() {
   bus.on('consumable:used', ({ msg }) => { flashMessage(msg); syncAll(); });
   bus.on('shop:stock', () => { if (G.phase === PHASES.SHOP) showShop(); });
   bus.on('booster:change', () => { if (G.phase === PHASES.BOOSTER) showBooster(); });
+  bus.on("tag:gained", ({ zh, times }) => flashMessage(`获得标签「${zh}」${times > 1 ? " ×2!" : ""}`));
 
   window.addEventListener('resize', () => syncHand(false));
 }
@@ -300,6 +301,12 @@ function showShop() {
     } else if (item.kind === 'tarot') {
       const d = TAROT_MAP[item.id];
       body = `<div class="s-emoji">🔮</div><div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div>`;
+    } else if (item.kind === 'spectral') {
+      const d = SPECTRAL_MAP[item.id];
+      body = `<div class="s-emoji">👻</div><div class="s-name">${d.zh}</div><div class="s-desc">${d.desc}</div>`;
+    } else if (item.kind === 'card') {
+      body = `<div class="s-cardface">${cardFaceSVG(item.card)}</div>` +
+        (item.card.enhancement ? `<div class="s-desc">${item.card.enhancement}</div>` : '');
     } else {
       const d = PLANET_MAP[item.id];
       body = `<div class="s-emoji">🪐</div><div class="s-name">${d.zh}</div>` +
@@ -314,11 +321,11 @@ function showShop() {
       <div class="s-emoji">🎁</div><div class="s-name">${d.zh}</div>
       <div class="s-desc">${d.desc}</div><div class="s-price">$${p.price}</div></div>`;
   };
-  const v = s.voucher;
-  const voucherHTML = !v ? '' : v.sold ? `<div class="s-item sold">已购</div>` :
-    `<div class="s-item s-voucher" id="shop-voucher">
+  const vCard = (v, domId) => !v ? '' : v.sold ? `<div class="s-item sold">已购</div>` :
+    `<div class="s-item s-voucher" id="${domId}">
       <div class="s-emoji">🎟️</div><div class="s-name">${VOUCHER_MAP[v.id].zh}</div>
       <div class="s-desc">${VOUCHER_MAP[v.id].desc}</div><div class="s-price">$${v.price}</div></div>`;
+  const voucherHTML = vCard(s.voucher, 'shop-voucher') + vCard(s.voucher2, 'shop-voucher2');
 
   showOverlay(`
     <div class="panel shop-panel">
@@ -339,7 +346,8 @@ function showShop() {
     el.addEventListener('click', () => shop.buySlot(Number(el.dataset.slot))));
   els.overlay.querySelectorAll('[data-pack]').forEach(el =>
     el.addEventListener('click', () => shop.buyPack(Number(el.dataset.pack))));
-  $('shop-voucher')?.addEventListener('click', () => shop.buyVoucher());
+  $('shop-voucher')?.addEventListener('click', () => shop.buyVoucher('voucher'));
+  $('shop-voucher2')?.addEventListener('click', () => shop.buyVoucher('voucher2'));
   $('shop-reroll').addEventListener('click', () => shop.rerollShop());
   $('shop-leave').addEventListener('click', () => round.leaveShop());
 }

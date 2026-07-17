@@ -123,6 +123,19 @@ export function initRun({ seed } = {}) {
   G.lastConsumableUsed = null;
   G.recentBosses = [];
   G.upcomingBoss = null; G.upcomingBossAnte = 0;
+  // M2 字段（与 serialize.EXTRA_KEYS 对应）
+  G.blindsSkipped = 0;
+  G.tagDouble = false;
+  G.pendingJokerEditions = [];
+  G.investmentTags = 0;
+  G.shopFlags = null; G.activeShopFlags = null;
+  G.nextBlindBonus = null;
+  G.pendingMegaPacks = [];
+  G.pendingSpectral = 0;
+  G.consumableUsedCount = 0; G.tarotUsedCount = 0; G.planetUsedCount = 0;
+  G.planetsUsed = [];
+  G.boosterReturnPhase = null;
+  G.bossDisabled = false;
   G.stats = { bestHandScore: 0, totalHandsPlayed: 0, jokersBought: 0 };
 
   bus.emit('run:new', { seed: G.seed });

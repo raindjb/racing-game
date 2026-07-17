@@ -14,8 +14,9 @@ import { cardOrder, SUITS } from './data/card-data.js';
 import { applyBossOnBlindStart, applyBossOnCardDrawn, validatePlay, applyBossAfterPlay, bossFirstDrawDone } from './boss-effects.js';
 import { makeConsumable, addConsumable, randomTarotId, randomSpectralId } from './consumable-manager.js';
 import { PLANETS } from './data/planets.js';
-import { enterShopGen } from './shop.js';
+import { enterShopGen, openFreePack } from './shop.js';
 import { deserializeRun } from './serialize.js';
+import { gainRandomTag, applyNextBlindBonus, cashInvestmentTags } from './tags.js';
 
 /** 回主菜单 */
 export function toMenu() { setPhase(PHASES.MENU); }
@@ -40,6 +41,11 @@ export function gotoBlindSelect() {
     G.upcomingBoss = pickBoss(G.rng, G.recentBosses ?? [], G.ante);
     G.upcomingBossAnte = G.ante;
   }
+  if (G.pendingMegaPacks?.length) {
+    const packId = G.pendingMegaPacks.shift();
+    openFreePack(packId, PHASES.BLIND_SELECT);
+    return;
+  }
   setPhase(PHASES.BLIND_SELECT);
 }
 
@@ -61,6 +67,7 @@ export function skipBlind() {
   if (G.phase !== PHASES.BLIND_SELECT || G.blindIndex >= 2) return false;
   G.blindsSkipped = (G.blindsSkipped ?? 0) + 1;
   G.blindIndex++;
+  gainRandomTag();
   dispatchHook(G.jokers, 'onBlindSkipped', G);
   bus.emit('blind:skipped');
   gotoBlindSelect();
@@ -85,8 +92,10 @@ export function startBlind({ forceBossId } = {}) {
     G.boss = null;
   }
   G.bossDisabled = false;              // 小丑「奇科」等可禁用 Boss
+  G.bossState = {};                    // 清除上一盲注残留（镣铐 handSizeDelta 等）
   for (const j of G.jokers) j.disabled = false;   // 清除绯红之心禁用
   applyBossOnBlindStart();
+  applyNextBlindBonus();               // 顺手/杂耍标签：+出牌/弃牌/手牌
   G.target = blindTarget(G.ante, G.blindIndex, G.boss);
 
   const drawn = drawToHandSize();
@@ -252,6 +261,7 @@ export function winRound(opts = {}) {
   // 推进进度
   if (G.blindIndex === 2) {
     dispatchHook(G.jokers, 'onBossDefeated', G);
+    cashInvestmentTags();              // 投资标签：+$25/个
     G.ante++;
     G.blindIndex = 0;
     if (G.ante > ANTE_MAX) {

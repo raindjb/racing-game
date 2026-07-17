@@ -1,7 +1,7 @@
 // shop.js — 商店与卡包：货架生成/购买/重掷/卡包开启
 import { G, PHASES, bus, setPhase } from './state.js';
 import { JOKERS } from './data/jokers.js';
-import { VOUCHERS, VOUCHER_MAP } from './data/vouchers.js';
+import { VOUCHERS, VOUCHER_MAP, applyVoucher, purchasableVouchers } from './data/vouchers.js';
 import { PLANETS } from './data/planets.js';
 import { SUITS, RANKS, makeCard } from './data/card-data.js';
 import { makeConsumable, addConsumable, randomPlanetId, randomTarotId, randomSpectralId } from './consumable-manager.js';
@@ -32,21 +32,49 @@ export function rollEdition(rng, rateMult = 1) {
   return null;
 }
 
-/** 进入商店：生成货架（leaveRoundEnd 调用） */
+/** 进入商店：生成货架（leaveRoundEnd 调用）；消耗待生效的商店标签 */
 export function enterShopGen() {
   G.shopReroll = 0;
-  G.shop = { slots: genSlots(), packs: genPacks(), voucher: genVoucher() };
+  G.activeShopFlags = G.shopFlags ?? {};
+  G.shopFlags = null;
+  G.shop = {
+    slots: genSlots(),
+    packs: genPacks(),
+    voucher: genVoucher(),
+    voucher2: G.activeShopFlags.extraVoucher ? genVoucher(1) : null,
+  };
+  if (G.activeShopFlags.coupon) {
+    // 优惠券标签：初始卡包与优惠券免费
+    for (const p of G.shop.packs) p.price = 0;
+    if (G.shop.voucher) G.shop.voucher.price = 0;
+    if (G.shop.voucher2) G.shop.voucher2.price = 0;
+  }
   bus.emit('shop:stock');
 }
 
 function genSlots() {
   const out = [];
   const freePlanets = G.jokers.some(j => j.id === 'astronomer');
-  for (let i = 0; i < G.config.shopSlots; i++) {
-    const r = G.rng.random();
-    if (r < 0.6) out.push(genJokerItem());
-    else if (r < 0.8) out.push({ kind: 'tarot', id: randomTarotId(G.rng), price: price(3) });
-    else out.push({ kind: 'planet', id: randomPlanetId(G.rng), price: freePlanets ? 0 : price(3) });
+  const cfg = G.config;
+  // 权重：小丑 12 / 塔罗 2(+商人) / 星球 2(+商人) / 幻灵(幻象券) / 游戏牌(魔术戏法券)
+  const wJoker = 12;
+  const wTarot = 2 + (cfg.tarotWeight ?? 0) * 2;
+  const wPlanet = 2 + (cfg.planetWeight ?? 0) * 2;
+  const wSpectral = (cfg.spectralWeight ?? 0) * 2;
+  const wCard = (cfg.shopCards ?? 0) * 2;
+  const total = wJoker + wTarot + wPlanet + wSpectral + wCard;
+  for (let i = 0; i < cfg.shopSlots; i++) {
+    let r = G.rng.random() * total;
+    if ((r -= wJoker) < 0) { out.push(genJokerItem()); continue; }
+    if ((r -= wTarot) < 0) { out.push({ kind: 'tarot', id: randomTarotId(G.rng), price: price(3) }); continue; }
+    if ((r -= wPlanet) < 0) { out.push({ kind: 'planet', id: randomPlanetId(G.rng), price: freePlanets ? 0 : price(3) }); continue; }
+    if ((r -= wSpectral) < 0) { out.push({ kind: 'spectral', id: randomSpectralId(G.rng), price: price(4) }); continue; }
+    // 魔术戏法：游戏牌上架
+    const card = makeCard(G.rng.pick(SUITS), G.rng.pick(RANKS));
+    if ((cfg.shopCards ?? 0) >= 2 && G.rng.chance(0.5)) {
+      card.enhancement = G.rng.pick(['bonus', 'mult', 'wild', 'glass', 'steel', 'gold', 'lucky']);
+    }
+    out.push({ kind: 'card', card, price: price(1) });
   }
   return out;
 }
@@ -74,9 +102,23 @@ function genPacks() {
     ({ id: p.id, price: p.id === 'celestial' && freeCelestial ? 0 : price(p.price) }));
 }
 
-function genVoucher() {
-  const pool = VOUCHERS.filter(v => !G.vouchers.includes(v.id));
-  return pool.length ? { id: G.rng.pick(pool).id, price: price(10) } : null;
+function genVoucher(skip = 0) {
+  const pool = purchasableVouchers(G);
+  return pool.length > skip ? { id: G.rng.pick(pool).id, price: price(10) } : null;
+}
+
+function payAllowFree(cost) { return cost === 0 || pay(cost); }
+
+/** 购买优惠券（which: 'voucher' | 'voucher2'） */
+export function buyVoucher(which = 'voucher') {
+  const v = G.shop?.[which];
+  if (!v || v.sold) return false;
+  if (v.price > 0 && !pay(v.price)) return false;
+  applyVoucher(G, v.id);
+  v.sold = true;
+  bus.emit('shop:stock');
+  bus.emit('voucher:bought', { id: v.id });
+  return true;
 }
 
 function pay(cost) {
@@ -92,12 +134,21 @@ export function buySlot(i) {
   const s = G.shop?.slots[i];
   if (!s || s.sold) return false;
   if (s.kind === 'joker') {
-    const inst = makeJokerInstance(s.id, { edition: s.edition });
-    if (G.jokers.length >= G.config.jokerSlots + G.jokers.filter(j => j.edition === 'negative').length + (s.edition === 'negative' ? 1 : 0)) {
+    let ed = s.edition;
+    if (!ed && G.pendingJokerEditions?.length) ed = G.pendingJokerEditions.shift();
+    const inst = makeJokerInstance(s.id, { edition: ed });
+    if (G.jokers.length >= G.config.jokerSlots + G.jokers.filter(j => j.edition === 'negative').length + (ed === 'negative' ? 1 : 0)) {
       bus.emit('ui:reject', { reason: '小丑牌槽已满（右键出售）' }); return false;
     }
     if (!pay(s.price)) return false;
     addJoker(G, inst);
+  } else if (s.kind === 'card') {
+    if (!pay(s.price)) return false;
+    G.deck.splice(G.rng.int(0, G.deck.length), 0, s.card);
+    dispatchHook(G.jokers, 'onCardAdded', G, s.card);
+    s.sold = true;
+    bus.emit('shop:stock');
+    return true;
   } else {
     if (G.consumables.length >= G.config.consumableSlots) {
       bus.emit('ui:reject', { reason: '消耗牌槽已满' }); return false;
@@ -110,21 +161,11 @@ export function buySlot(i) {
   return true;
 }
 
-export function buyVoucher() {
-  const v = G.shop?.voucher;
-  if (!v || v.sold || !pay(v.price)) return false;
-  VOUCHER_MAP[v.id].apply(G);
-  G.vouchers.push(v.id);
-  v.sold = true;
-  bus.emit('shop:stock');
-  bus.emit('voucher:bought', { id: v.id });
-  return true;
-}
-
 export function rerollCost() {
-  // 「混沌小丑」：每个商店首次重掷免费
+  if (G.activeShopFlags?.d6) return 0;   // D6 标签：重掷从 $0 起
   if (G.shopReroll === 0 && G.jokers.some(j => j.id === 'chaos_the_clown')) return 0;
-  return Math.max(0, G.config.rerollBase + G.shopReroll - G.config.rerollDiscount);
+  const base = G.activeShopFlags?.d6 ? 0 : G.config.rerollBase;
+  return Math.max(0, (base + G.shopReroll) - G.config.rerollDiscount);
 }
 
 export function rerollShop() {
@@ -141,11 +182,23 @@ export function rerollShop() {
 export function buyPack(i) {
   const p = G.shop?.packs[i];
   if (!p || p.sold) return false;
-  if (!pay(p.price)) return false;
+  if (p.price > 0 && !pay(p.price)) return false;
   p.sold = true;
   const def = PACK_MAP[p.id];
+  G.boosterReturnPhase = PHASES.SHOP;
   G.booster = { packId: p.id, zh: def.zh, picks: def.picks, items: genPackItems(p.id, def.count) };
   dispatchHook(G.jokers, 'onPackOpened', G);    // 幻觉：开包 50% 生成塔罗
+  setPhase(PHASES.BOOSTER);
+  return true;
+}
+
+/** 免费开特大包（标签奖励：5 选 2；returnPhase = 开完回到的阶段） */
+export function openFreePack(packId, returnPhase = PHASES.SHOP) {
+  const def = PACK_MAP[packId];
+  if (!def) return false;
+  G.boosterReturnPhase = returnPhase;
+  G.booster = { packId, zh: `特大${def.zh}`, picks: 2, items: genPackItems(packId, def.count + 2), free: true };
+  dispatchHook(G.jokers, 'onPackOpened', G);
   setPhase(PHASES.BOOSTER);
   return true;
 }
@@ -196,7 +249,9 @@ export function pickBoosterItem(idx) {
     dispatchHook(G.jokers, 'onCardAdded', G, item.card);   // 「全息影像」等
     res.msg = '已加入牌组';
   } else if (item.kind === 'joker') {
-    const inst = makeJokerInstance(item.id);
+    let ed = item.edition ?? null;
+    if (!ed && G.pendingJokerEditions?.length) ed = G.pendingJokerEditions.shift();
+    const inst = makeJokerInstance(item.id, { edition: ed });
     res = addJoker(G, inst) ? { ok: true, msg: `获得「${inst.zh}」` } : { ok: false, msg: '小丑牌槽已满' };
   } else {
     // 塔罗/星球/幻灵统一进消耗牌槽
@@ -217,6 +272,12 @@ export function pickBoosterItem(idx) {
 export function closeBooster() {
   if (G.booster && G.booster.picks > 0) dispatchHook(G.jokers, 'onBoosterSkipped', G);
   G.booster = null;
-  setPhase(PHASES.SHOP);
-  bus.emit('shop:stock');
+  const ret = G.boosterReturnPhase ?? PHASES.SHOP;
+  G.boosterReturnPhase = null;
+  if (ret === PHASES.BLIND_SELECT && G.pendingMegaPacks?.length) {
+    openFreePack(G.pendingMegaPacks.shift(), PHASES.BLIND_SELECT);   // 连开多个标签包
+    return;
+  }
+  setPhase(ret);
+  if (ret === PHASES.SHOP) bus.emit('shop:stock');
 }
