@@ -336,18 +336,20 @@ function showShop() {
       <div class="s-desc">${VOUCHER_MAP[v.id].desc}</div><div class="s-price">$${v.price}</div></div>`;
   const voucherHTML = vCard(s.voucher, 'shop-voucher') + vCard(s.voucher2, 'shop-voucher2');
 
-  // Joker 持有行（商店内快速出售）
+  // Joker 持有行（商店内快速出售，带描述方便判断留谁卖谁）
   const ownedJokerHTML = G.jokers.length ? G.jokers.map((j, i) =>
-    `<div class="s-item s-owned" data-sell="${j.uid}">
-      <div class="s-art" style="width:46px;height:64px">${jokerArtSVG(j.art, j.id)}</div>
+    `<div class="s-item s-owned s-owned-joker" data-sell="${j.uid}">
+      <div class="s-art">${jokerArtSVG(j.art, j.id)}</div>
       <div class="s-name">${j.zh}</div>
+      <div class="s-desc">${j.desc}</div>
       <div class="s-price" style="color:#ff9d94">卖 $${sellValue(j)}</div>
     </div>`).join('') : `<div class="s-item" style="opacity:0.4;cursor:default;pointer-events:none"><div class="s-emoji">◇</div><div class="s-name" style="color:var(--text-dim)">暂无小丑</div></div>`;
   const ownedConsHTML = G.consumables.length ? G.consumables.map(c =>
     `<div class="s-item s-owned" data-sellc="${c.uid}">
-      <div class="s-emoji">${c.kind === 'tarot' ? tarotIcon() : c.kind === 'planet' ? planetIcon() : spectralIcon()}</div>
+      <div class="s-icon">${c.kind === 'tarot' ? tarotIcon() : c.kind === 'planet' ? planetIcon() : spectralIcon()}</div>
       <div class="s-name">${c.zh}</div>
-      <div class="s-price" style="color:#ff9d94">卖</div>
+      <div class="s-desc">${c.desc}</div>
+      <div class="s-price" style="color:#ff9d94">卖 $1</div>
     </div>`).join('') : `<div class="s-item" style="opacity:0.4;cursor:default;pointer-events:none"><div class="s-emoji">◇</div><div class="s-name" style="color:var(--text-dim)">暂无消耗牌</div></div>`;
 
   showOverlay(`
