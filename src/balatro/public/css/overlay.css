@@ -67,7 +67,7 @@
 .game-end.lose h1 { color: var(--red); text-shadow: 0 0 40px rgba(255, 76, 64, 0.4); }
 
 /* ===== 商店 / 卡包 ===== */
-.shop-panel { min-width: 780px; max-width: 960px; }
+.shop-panel { min-width: 780px; max-width: 960px; max-height: 92vh; overflow-y: auto; }
 .gold { color: var(--gold-bright); }
 .shop-rows { display: flex; flex-direction: column; gap: 18px; }
 .shop-sec h3 {
