@@ -187,7 +187,8 @@ export function resolveAfterScoring() {
   // 第六感/降神会：本手积攒的幻灵牌
   while (G.pendingSpectral > 0) {
     G.pendingSpectral--;
-    addConsumable(makeConsumable('spectral', randomSpectralId(G.rng)));
+    const ok = addConsumable(makeConsumable('spectral', randomSpectralId(G.rng)));
+    if (!ok) { G.pendingSpectral++; break; }  // 槽位满：退还，不静默丢失
   }
   discardFromHand([]);                            // no-op：保持接口一致
   G.discardPile.push(...G.playedZone);            // 打出的牌进弃牌堆
