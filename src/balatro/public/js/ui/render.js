@@ -62,7 +62,7 @@ export function initRender() {
   bus.on('jokers:change', () => { syncJokers(); syncSidebar(); });
   bus.on('consumables:change', () => { syncConsumables(); syncSidebar(); });
   bus.on('consumable:used', ({ msg }) => { flashMessage(msg); syncAll(); });
-  bus.on('shop:stock', () => { if (G.phase === PHASES.SHOP) showShop(); });
+  bus.on('shop:stock', () => { if (G.phase === PHASES.SHOP) { syncSidebar(); showShop(); } });
   bus.on('booster:change', () => { if (G.phase === PHASES.BOOSTER) showBooster(); });
   bus.on("tag:gained", ({ zh, times }) => flashMessage(`获得标签「${zh}」${times > 1 ? " ×2!" : ""}`));
 
