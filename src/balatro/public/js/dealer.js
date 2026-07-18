@@ -258,12 +258,8 @@ export function initDealer() {
   bus.on('shop:enter', () => say(LINES.shop_enter));
   bus.on('jokers:change', () => { if (G.phase === PHASES.SHOP) say(LINES.joker_bought); });
   bus.on('blind:start', ({ boss }) => {
-    if (boss) {
-      faceEl.innerHTML = renderPortrait(true);
-      say(LINES.boss_enter);
-    } else {
-      faceEl.innerHTML = renderPortrait(false);
-    }
+    faceEl.innerHTML = renderPortrait(!!boss);
+    if (boss) say(LINES.boss_enter);
   });
   bus.on('phase', ({ phase }) => {
     if (phase === PHASES.BLIND_SELECT && G.blindIndex === 0) faceEl.innerHTML = renderPortrait(false);
