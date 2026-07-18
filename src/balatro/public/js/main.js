@@ -11,7 +11,6 @@ import { initBackground } from './shaders/background.js';
 import { initParticles } from './ui/notifications.js';
 import { initHandPanel } from './ui/hand-panel.js';
 import { initSaveClient } from './save-client.js';
-import { initDealer } from './dealer.js';
 import { toMenu } from './round.js';
 
 console.log(`[balatro] ${GAME_NAME} v${VERSION} booting…`);
@@ -26,5 +25,19 @@ initBackground();
 initParticles();
 initHandPanel();
 initSaveClient();
-initDealer();
+// 背景花色装饰（play-area 内浮动黑红梅方）
+(function addBgSuits() {
+  const area = document.getElementById('play-area');
+  if (!area) return;
+  const suits = [
+    { c: '♠', r: 'black' }, { c: '♥', r: 'red' }, { c: '♦', r: 'red' },
+    { c: '♣', r: 'black' }, { c: '♠', r: 'black' }, { c: '♥', r: 'red' },
+  ];
+  suits.forEach(s => {
+    const el = document.createElement('div');
+    el.className = `bg-suit ${s.r}`;
+    el.textContent = s.c;
+    area.appendChild(el);
+  });
+})();
 toMenu();         // 主菜单：新游戏 / 继续存档

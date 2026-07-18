@@ -188,31 +188,23 @@
   .btn { font-size: 16px; padding: 14px 34px; }
 }
 
-/* ===== 发牌员（中央背景半身像） ===== */
-#dealer {
-  position: absolute; inset: 0; z-index: 2;
-  display: flex; align-items: center; justify-content: center;
-  pointer-events: none; opacity: 0.5;
-  transition: opacity 0.6s;
+/* ===== 背景花色装饰（play-area 内浮动黑红梅方） ===== */
+.bg-suit {
+  position: absolute; pointer-events: none; opacity: 0.06;
+  font-size: 80px; font-weight: 900;
+  animation: suitFloat 18s ease-in-out infinite;
 }
-#dealer-face {
-  width: 200px; height: 280px; cursor: pointer; pointer-events: auto;
-  filter: drop-shadow(0 12px 30px rgba(0,0,0,0.6));
-  transition: transform 0.3s;
-}
-#dealer-face:hover { transform: scale(1.04); }
-#dealer-face svg { width: 100%; height: 100%; }
-.dealer-bubble {
-  position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
-  background: rgba(16, 12, 8, 0.94); border: 1px solid var(--gold-bright);
-  border-radius: 14px; padding: 10px 18px; font-size: 15px; color: #fff;
-  white-space: nowrap; opacity: 0; transition: opacity 0.3s;
-  pointer-events: none; max-width: 240px; text-align: center;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.6); letter-spacing: 1px;
-  z-index: 3;
-}
-.dealer-bubble.show { opacity: 1; }
-.dealer-bubble::after {
-  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-  border: 8px solid transparent; border-top-color: var(--gold-bright);
+.bg-suit.red { color: #d13b30; }
+.bg-suit.black { color: #e8e4d8; }
+.bg-suit:nth-child(1) { top: 8%; left: 5%; animation-delay: 0s; font-size: 90px; }
+.bg-suit:nth-child(2) { top: 12%; right: 8%; animation-delay: -4s; font-size: 72px; }
+.bg-suit:nth-child(3) { bottom: 15%; left: 10%; animation-delay: -8s; font-size: 78px; }
+.bg-suit:nth-child(4) { bottom: 10%; right: 6%; animation-delay: -12s; font-size: 66px; }
+.bg-suit:nth-child(5) { top: 45%; left: 2%; animation-delay: -6s; font-size: 56px; }
+.bg-suit:nth-child(6) { top: 40%; right: 3%; animation-delay: -10s; font-size: 60px; }
+@keyframes suitFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-18px) rotate(8deg); }
+  60% { transform: translateY(12px) rotate(-6deg); }
+  85% { transform: translateY(-6px) rotate(3deg); }
 }
