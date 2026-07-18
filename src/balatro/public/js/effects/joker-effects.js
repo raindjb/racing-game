@@ -380,7 +380,12 @@ const COMPILERS = {
       addConsumable(makeConsumable('tarot', randomTarotId(G.rng)));
     } } }),
   midas_mask: () => ({ onHandPlayed: (G, ev, j) => {
-    for (const c of ev.scoringCards) if (isFaceCtx(G.jokers, c) && c.enhancement !== 'stone') c.enhancement = 'gold'; } }),
+    for (const c of ev.scoringCards) {
+      if (isFaceCtx(G.jokers, c) && c.enhancement !== 'stone' && c.enhancement !== 'gold') {
+        c.enhancement = 'gold';
+        G.money += 3;   // 迈达斯：黄金牌立即支付 $3
+      }
+    } } }),
 
   // ── 盲注开始 ──
   burglar: e => ({ onBlindStart: (G, j) => { G.handsLeft += e.hands; G.discardsLeft = 0; } }),
