@@ -11,6 +11,7 @@ import { initBackground } from './shaders/background.js';
 import { initParticles } from './ui/notifications.js';
 import { initHandPanel } from './ui/hand-panel.js';
 import { initSaveClient } from './save-client.js';
+import { initDealer } from './dealer.js';
 import { toMenu } from './round.js';
 
 console.log(`[balatro] ${GAME_NAME} v${VERSION} booting…`);
@@ -25,4 +26,5 @@ initBackground();
 initParticles();
 initHandPanel();
 initSaveClient();
+initDealer();
 toMenu();         // 主菜单：新游戏 / 继续存档
