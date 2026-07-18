@@ -46,17 +46,19 @@ const LINES = {
 
 // ===== 精致 SVG 半身像（viewBox 0 0 200 280） =====
 function renderPortrait(bossMode) {
-  const skin = bossMode ? '#4a2a30' : '#e8c8a0';
-  const skinShadow = bossMode ? '#2a1418' : '#c49870';
-  const skinHighlight = bossMode ? '#5a3840' : '#f4dcc0';
-  const jacket = bossMode ? '#1a0a10' : '#181825';
-  const vest = bossMode ? '#301020' : '#2a1a20';
-  const shirt = bossMode ? '#201010' : '#f0e8e0';
-  const tie = bossMode ? '#600020' : '#800028';
-  const hatC = bossMode ? '#0a0808' : '#1a1418';
-  const hatBand = bossMode ? '#400018' : '#600028';
-  const eye = bossMode ? '#ff2040' : '#1a1a1a';
-  const eyeGlow = bossMode ? '#ff0' : '#fff';
+  const S  = bossMode ? '#4a2832' : '#e6c49c';
+  const SD = bossMode ? '#28141a' : '#c0906c';
+  const SH = bossMode ? '#5c3642' : '#f8e4cc';
+  const J  = bossMode ? '#120810' : '#1a1828';
+  const JL = bossMode ? '#1e1018' : '#282840';
+  const V  = bossMode ? '#301020' : '#24181a';
+  const SK = bossMode ? '#140808' : '#f2ece4';
+  const BW = bossMode ? '#500018' : '#700020';
+  const HC = bossMode ? '#0a0608' : '#141018';
+  const HB = bossMode ? '#380014' : '#5a0028';
+  const E  = bossMode ? '#ff2040' : '#151518';
+  const EG = bossMode ? '#ff0' : '#fff';
+  const hairDark = bossMode ? '#040408' : '#0c0a10';
 
   // Boss 裂纹
   const cracks = bossMode ? `
@@ -76,87 +78,150 @@ function renderPortrait(bossMode) {
     <path d="M122 40 Q128 10 132 -5 Q126 12 120 32 Z" fill="#4a1828" opacity="0.5"/>
   ` : '';
 
-  return `<svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" class="dealer-portrait">
+  return `<svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <radialGradient id="sg" cx="0.45" cy="0.35" r="0.65">
-        <stop offset="0%" stop-color="${skinHighlight}"/><stop offset="55%" stop-color="${skin}"/><stop offset="100%" stop-color="${skinShadow}"/>
+        <stop offset="0%" stop-color="${SH}"/><stop offset="45%" stop-color="${S}"/><stop offset="100%" stop-color="${SD}"/>
+      </radialGradient>
+      <radialGradient id="fh" cx="0.5" cy="0.2" r="0.7">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/><stop offset="100%" stop-color="rgba(0,0,0,0.0)"/>
       </radialGradient>
       <linearGradient id="jg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${jacket}"/><stop offset="100%" stop-color="#0a0a14"/>
+        <stop offset="0%" stop-color="${JL}"/><stop offset="100%" stop-color="${J}"/>
       </linearGradient>
-      <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="rgba(255,255,255,0.08)"/><stop offset="50%" stop-color="rgba(255,255,255,0)"/><stop offset="100%" stop-color="rgba(0,0,0,0.2)"/>
+      <linearGradient id="rl" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.10)"/><stop offset="30%" stop-color="rgba(255,255,255,0.02)"/><stop offset="60%" stop-color="rgba(0,0,0,0.0)"/><stop offset="100%" stop-color="rgba(0,0,0,0.22)"/>
       </linearGradient>
     </defs>
 
-    <!-- 礼帽 -->
-    <ellipse cx="100" cy="28" rx="50" ry="18" fill="${hatC}"/>
-    <rect x="66" y="6" width="68" height="28" rx="5" fill="${hatC}"/>
-    <rect x="66" y="6" width="68" height="6" rx="3" fill="rgba(255,255,255,0.08)"/>
-    <rect x="68" y="22" width="64" height="6" fill="${hatBand}"/>
-    ${bossMode ? `<ellipse cx="100" cy="28" rx="52" ry="20" fill="none" stroke="#ff2040" stroke-width="0.8" opacity="0.3"/>` : ''}
+    <!-- 背景阴影 -->
+    <ellipse cx="100" cy="260" rx="70" ry="14" fill="rgba(0,0,0,0.3)"/>
 
-    <!-- 头发（帽檐下） -->
-    <path d="M56 40 Q58 62 60 80 Q80 72 100 68 Q120 72 140 80 Q142 62 144 40 Z" fill="#1a1010" opacity="0.85"/>
+    <!-- 礼帽 -->
+    <ellipse cx="100" cy="26" rx="52" ry="16" fill="${HC}"/>
+    <rect x="64" y="4" width="72" height="28" rx="5" fill="${HC}"/>
+    <rect x="64" y="4" width="72" height="5" rx="2.5" fill="rgba(255,255,255,0.10)"/>
+    <path d="M64 8 L136 8" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+    <rect x="66" y="22" width="68" height="5" rx="2.5" fill="${HB}"/>
+    <rect x="66" y="22" width="68" height="2" fill="rgba(255,255,255,0.06)"/>
+    ${bossMode ? `<ellipse cx="100" cy="26" rx="54" ry="18" fill="none" stroke="#ff2040" stroke-width="0.7" opacity="0.25"/>` : ''}
+
+    <!-- 头发 -->
+    <path d="M54 42 Q48 70 56 82 L60 78 Q56 64 58 48 Z" fill="${hairDark}" opacity="0.9"/>
+    <path d="M146 42 Q152 70 144 82 L140 78 Q144 64 142 48 Z" fill="${hairDark}" opacity="0.9"/>
+    <path d="M54 42 Q56 68 62 78 Q78 72 100 68 Q122 72 138 78 Q144 68 146 42 Z" fill="${hairDark}" opacity="0.85"/>
+    <path d="M68 50 Q80 46 100 44 Q120 46 132 50" stroke="rgba(255,255,255,0.04)" stroke-width="1.5" fill="none"/>
 
     <!-- 脖子 -->
-    <rect x="88" y="130" width="24" height="28" rx="7" fill="${skin}"/>
-    <rect x="88" y="132" width="8" height="24" rx="3" fill="${skinShadow}" opacity="0.3"/>
+    <rect x="88" y="128" width="24" height="30" rx="8" fill="${S}"/>
+    <rect x="88" y="130" width="7" height="26" rx="3" fill="${SD}" opacity="0.35"/>
+    <path d="M88 138 Q84 142 86 150" stroke="${SD}" stroke-width="2" fill="none" opacity="0.3"/>
+    <path d="M112 138 Q116 142 114 150" stroke="${SD}" stroke-width="2" fill="none" opacity="0.3"/>
 
-    <!-- 脸（更棱角的椭圆） -->
-    <path d="M58 105 Q58 60 100 58 Q142 60 142 105 Q142 150 110 156 Q100 160 90 156 Q58 150 58 105 Z" fill="url(#sg)"/>
-    <rect x="58" y="58" width="84" height="98" rx="42" fill="url(#rim)" opacity="0.5"/>
+    <!-- 脸 -->
+    <path d="M56 108 Q56 56 100 54 Q144 56 144 108 Q144 152 110 158 Q100 162 90 158 Q56 152 56 108 Z" fill="url(#sg)"/>
+    <path d="M56 108 Q56 56 100 54 Q144 56 144 108 Q144 152 110 158 Q100 162 90 158 Q56 152 56 108 Z" fill="url(#rl)" opacity="0.6"/>
+    <path d="M56 108 Q56 56 100 54 Q144 56 144 108 Q144 152 110 158 Q100 162 90 158 Q56 152 56 108 Z" fill="url(#fh)" opacity="0.5"/>
 
-    ${cracks}${horns}
+    <!-- 颧骨阴影 -->
+    <ellipse cx="78" cy="115" rx="14" ry="8" fill="${SD}" opacity="0.12"/>
+    <ellipse cx="122" cy="115" rx="14" ry="8" fill="${SD}" opacity="0.12"/>
+    <!-- 下巴阴影 -->
+    <path d="M80 148 Q100 158 120 148" fill="none" stroke="${SD}" stroke-width="3" opacity="0.2"/>
 
-    <!-- 眼睛（更深邃） -->
-    <ellipse cx="84" cy="102" rx="10" ry="7.5" fill="#fff" opacity="0.9"/>
-    <ellipse cx="116" cy="102" rx="10" ry="7.5" fill="#fff" opacity="0.9"/>
-    <circle cx="84" cy="102" r="5" fill="${eye}"/>
-    <circle cx="116" cy="102" r="5" fill="${eye}"/>
-    <circle cx="82" cy="100" r="2.2" fill="${eyeGlow}"/>
-    <circle cx="114" cy="100" r="2.2" fill="${eyeGlow}"/>
-    ${bossMode ? `<line x1="78" y1="98" x2="90" y2="106" stroke="#ff2040" stroke-width="0.7" opacity="0.6"/><line x1="110" y1="98" x2="122" y2="106" stroke="#ff2040" stroke-width="0.7" opacity="0.6"/>` : ''}
-    <!-- 下眼睑阴影 -->
-    <path d="M75 108 Q84 112 93 108" fill="none" stroke="${skinShadow}" stroke-width="1" opacity="0.4"/>
-    <path d="M107 108 Q116 112 125 108" fill="none" stroke="${skinShadow}" stroke-width="1" opacity="0.4"/>
+    ${bossMode ? cracks() : ''}
+    ${bossMode ? horns() : ''}
 
-    <!-- 眉毛（更粗犷） -->
-    <path d="M72 93 Q84 87 98 93" fill="none" stroke="${bossMode ? '#ff2040' : '#1a0a08'}" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="M102 93 Q116 87 128 93" fill="none" stroke="${bossMode ? '#ff2040' : '#1a0a08'}" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- 眼睛 -->
+    ${eyePair(82, 100, E, EG, bossMode)}
+    ${eyePair(118, 100, E, EG, bossMode)}
 
-    <!-- 鼻子（更立体） -->
-    <path d="M96 110 Q100 106 104 110 Q104 120 98 124 Q100 117 100 114 Z" fill="${skinShadow}" opacity="0.55"/>
-    <path d="M90 118 Q100 108 110 118" fill="none" stroke="${skinShadow}" stroke-width="1.3" opacity="0.35"/>
+    <!-- 眉毛 -->
+    <g opacity="0.9">
+      <path d="M70 93 Q82 85 96 91" fill="none" stroke="${bossMode ? '#ff2040' : '#0c0604'}" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M104 91 Q118 85 130 93" fill="none" stroke="${bossMode ? '#ff2040' : '#0c0604'}" stroke-width="3.2" stroke-linecap="round"/>
+    </g>
 
-    <!-- 嘴（更清晰唇形） -->
-    <path d="M86 132 Q100 142 114 132" fill="none" stroke="${bossMode ? '#ff2040' : '#5a2a18'}" stroke-width="2.8" stroke-linecap="round"/>
-    <path d="M88 132 Q100 134 112 132" fill="none" stroke="${bossMode ? '#ff2040' : '#8a4a30'}" stroke-width="1.2" opacity="0.5"/>
-    ${bossMode ? `<path d="M86 132 Q100 148 114 132" fill="none" stroke="#ff2040" stroke-width="1.8" opacity="0.5"/>` : ''}
+    <!-- 鼻子 -->
+    <path d="M96 108 Q100 103 104 108" fill="none" stroke="${SD}" stroke-width="1.6" opacity="0.6"/>
+    <ellipse cx="100" cy="112" rx="7" ry="4.5" fill="${SD}" opacity="0.25"/>
+    <circle cx="96" cy="118" r="2" fill="${SD}" opacity="0.4"/>
+    <circle cx="104" cy="118" r="2" fill="${SD}" opacity="0.4"/>
+    <path d="M98 120 L100 124 L102 120" fill="none" stroke="${SD}" stroke-width="1" opacity="0.35"/>
 
-    <!-- 下巴 -->
-    <ellipse cx="100" cy="150" rx="20" ry="5" fill="${skinShadow}" opacity="0.25"/>
+    <!-- 嘴 -->
+    <path d="M84 132 Q92 128 100 130 Q108 128 116 132" fill="none" stroke="${SD}" stroke-width="1.5" opacity="0.6"/>
+    <path d="M86 132 Q100 142 114 132" fill="none" stroke="${bossMode ? '#ff2040' : '#4a2210'}" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M88 133 Q100 135 112 133" fill="none" stroke="${bossMode ? '#ff2040' : '#7a3a20'}" stroke-width="1" opacity="0.4"/>
 
-    <!-- 衣领 + 西装（更锐利剪裁） -->
-    <path d="M52 158 Q72 142 88 150 L100 164 L112 150 Q128 142 148 158 L160 240 L140 240 L118 180 L110 185 L100 172 L90 185 L82 180 L60 240 L40 240 Z" fill="url(#jg)"/>
-    <!-- 衬衫 + 领结 -->
-    <path d="M88 150 L100 164 L112 150 L100 175 Z" fill="${shirt}" opacity="0.95"/>
-    <path d="M94 154 L100 162 L106 154 L102 148 L98 148 Z" fill="${tie}"/>
+    <!-- 胡渣阴影 -->
+    <ellipse cx="100" cy="135" rx="18" ry="10" fill="${hairDark}" opacity="0.06"/>
+    <ellipse cx="100" cy="148" rx="16" ry="5" fill="${hairDark}" opacity="0.04"/>
+
+    <!-- 西装 -->
+    <path d="M44 155 Q66 136 88 148 L100 168 L112 148 Q134 136 156 155 L160 250 L140 250 L116 182 L110 188 L100 175 L90 188 L84 182 L60 250 L40 250 Z" fill="url(#jg)"/>
     <!-- 翻领 -->
-    <path d="M52 158 Q78 144 88 150 L82 180 L60 190 Z" fill="${vest}" opacity="0.6"/>
-    <path d="M148 158 Q122 144 112 150 L118 180 L140 190 Z" fill="${vest}" opacity="0.6"/>
-    <!-- 左臂（持牌手） -->
-    <path d="M148 170 Q168 180 175 210 L180 210 Q172 185 160 175 Z" fill="url(#jg)"/>
-    <!-- 手持卡牌 -->
-    <rect x="170" y="200" width="16" height="22" rx="2" fill="#f5f1e6" stroke="${bossMode ? '#ff2040' : '#c9c0ab'}" stroke-width="0.8"/>
-    <text x="178" y="215" text-anchor="middle" font-size="7" fill="${bossMode ? '#ff2040' : '#d13b30'}">♥</text>
+    <path d="M44 155 Q72 140 88 148 L82 188 L60 200 Q52 190 44 180 Z" fill="${V}" opacity="0.55"/>
+    <path d="M156 155 Q128 140 112 148 L118 188 L140 200 Q148 190 156 180 Z" fill="${V}" opacity="0.55"/>
+    <!-- 衬衫 -->
+    <path d="M86 148 L100 168 L114 148 L100 185 Z" fill="${SK}" opacity="0.92"/>
+    <!-- 领结 -->
+    <path d="M92 155 L100 164 L108 155 L104 148 L96 148 Z" fill="${BW}"/>
+    <circle cx="100" cy="159" r="3.5" fill="${BW}"/>
     <!-- 纽扣 -->
-    <circle cx="100" cy="195" r="2.8" fill="${bossMode ? '#ff2040' : '#d4a843'}" opacity="0.5"/>
-    <circle cx="100" cy="215" r="2.8" fill="${bossMode ? '#ff2040' : '#d4a843'}" opacity="0.35"/>
+    <circle cx="100" cy="198" r="3" fill="rgba(255,255,255,0.15)"/>
+    <circle cx="100" cy="220" r="3" fill="rgba(255,255,255,0.10)"/>
 
-    ${bossMode ? `<ellipse cx="100" cy="145" rx="72" ry="100" fill="none" stroke="#ff2040" stroke-width="1.5" opacity="0.25"><animate attributeName="rx" values="72;78;72" dur="2s" repeatCount="indefinite"/><animate attributeName="ry" values="100;108;100" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.25;0.42;0.25" dur="2s" repeatCount="indefinite"/></ellipse>
-    ` : ''}
+    <!-- 右臂+持牌 -->
+    <path d="M150 165 Q170 178 178 218 L184 218 Q174 182 162 172 Z" fill="url(#jg)"/>
+    <rect x="172" y="208" width="18" height="25" rx="2.5" fill="#f8f4ec" stroke="${bossMode ? '#ff2040' : '#c8c0a8'}" stroke-width="0.8"/>
+    <rect x="174" y="210" width="14" height="21" rx="1.5" fill="none" stroke="${bossMode ? '#ff2040' : '#d8d0c0'}" stroke-width="0.5"/>
+    <text x="181" y="226" text-anchor="middle" font-size="8" fill="${bossMode ? '#ff2040' : '#c03028'}" font-family="serif">♥</text>
+
+    ${bossMode ? bossAura() : ''}
   </svg>`;
+}
+
+function eyePair(cx, cy, eyeColor, glowColor, boss) {
+  return `<g>
+    <ellipse cx="${cx}" cy="${cy}" rx="10.5" ry="8" fill="#fff" opacity="0.92"/>
+    <path d="M${cx-10} ${cy} Q${cx} ${cy-8} ${cx+10} ${cy}" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="5.5" fill="${eyeColor}"/>
+    <circle cx="${cx}" cy="${cy}" r="4" fill="${eyeColor}" opacity="0.8"/>
+    <circle cx="${cx-1.5}" cy="${cy-1.5}" r="2.4" fill="${glowColor}" opacity="0.95"/>
+    <circle cx="${cx+1}" cy="${cy+1.5}" r="1" fill="${glowColor}" opacity="0.6"/>
+    <path d="M${cx-12} ${cy+4} Q${cx} ${cy+12} ${cx+12} ${cy+4}" fill="none" stroke="${SD}" stroke-width="0.8" opacity="0.3"/>
+    ${boss ? `<line x1="${cx-8}" y1="${cy-4}" x2="${cx+8}" y2="${cy+4}" stroke="#ff2040" stroke-width="0.6" opacity="0.5"/>` : ''}
+  </g>`;
+}
+
+function cracks() {
+  return `<g opacity="0.55">
+    <line x1="78" y1="60" x2="88" y2="95" stroke="#400010" stroke-width="1.8"/>
+    <line x1="130" y1="52" x2="124" y2="84" stroke="#400010" stroke-width="1.4"/>
+    <line x1="100" y1="50" x2="100" y2="62" stroke="#400010" stroke-width="1.2"/>
+    <line x1="65" y1="125" x2="85" y2="140" stroke="#400010" stroke-width="1"/>
+    <circle cx="72" cy="115" r="1.8" fill="#ff2040" opacity="0.5"/>
+    <circle cx="135" cy="105" r="1.5" fill="#ff2040" opacity="0.4"/>
+    <circle cx="90" cy="145" r="1.2" fill="#ff2040" opacity="0.35"/>
+  </g>`;
+}
+
+function horns() {
+  return `<g>
+    <path d="M76 48 Q68 12 58 -8 Q70 8 80 38 Z" fill="#1a0a12"/>
+    <path d="M76 48 Q68 12 58 -8 Q66 14 78 40 Z" fill="#3a1020" opacity="0.5"/>
+    <path d="M124 48 Q132 12 142 -8 Q130 8 120 38 Z" fill="#1a0a12"/>
+    <path d="M124 48 Q132 12 142 -8 Q134 14 122 40 Z" fill="#3a1020" opacity="0.5"/>
+  </g>`;
+}
+
+function bossAura() {
+  return `<ellipse cx="100" cy="145" rx="76" ry="105" fill="none" stroke="#ff2040" stroke-width="1.4" opacity="0.22">
+    <animate attributeName="rx" values="76;84;76" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="ry" values="105;116;105" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.22;0.40;0.22" dur="2s" repeatCount="indefinite"/>
+  </ellipse>`;
 }
 
 // ===== 表情映射 → 嘴形/眼形调整 =====
