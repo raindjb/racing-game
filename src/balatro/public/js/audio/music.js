@@ -1,8 +1,9 @@
-// audio/music.js — 双模音乐引擎：普通 lo-fi + Boss 暗黑爵士（重律动+压迫和弦，不丢节奏）
+// audio/music.js — 三模音乐引擎：普通 lo-fi + Boss 诡异 + 商店暖爵
 import { ac, masterNode } from './sfx.js';
 
 const NORMAL_BPM = 84;
-const BOSS_BPM = 56;               // Boss 诡异慢速
+const BOSS_BPM = 56;
+const SHOP_BPM = 78;             // 商店轻松摇摆
 const SWING = 0.62;
 const LOOKAHEAD_MS = 25;
 const SCHEDULE_AHEAD = 0.15;
@@ -23,12 +24,26 @@ const PROG_NORMAL = [
   { bass: 'G2',  chord: ['G3','A#3','D4','F4'] },
   { bass: 'C2',  chord: ['C3','E3','G3','A#3'] },
 ];
-// Boss：Dm7–B♭m6–Gm7–A♭dim（诡异：半音移动 + 减和弦紧张，不定向）
+// Boss：Dm7–B♭m6–Gm7–A♭dim
 const PROG_BOSS = [
+  { bass: 'D2',  chord: ['D3','F3','A3','C4'] },
+  { bass: 'A#1', chord: ['A#2','C#3','F3','G3'] },
+  { bass: 'G2',  chord: ['G3','A#3','D4','F4'] },
+  { bass: 'G#1', chord: ['G#2','B2','D3','F3'] },
+];
+// 商店：Cmaj7–Am7–Dm7–G7（暖爵，轻松逛店感）
+const PROG_SHOP = [
+  { bass: 'C2',  chord: ['C3','E3','G3','B3'] },          // Cmaj7
+  { bass: 'A1',  chord: ['A2','C3','E3','G3'] },          // Am7
   { bass: 'D2',  chord: ['D3','F3','A3','C4'] },          // Dm7
-  { bass: 'A#1', chord: ['A#2','C#3','F3','G3'] },       // B♭m6（半音中音）
-  { bass: 'G2',  chord: ['G3','A#3','D4','F4'] },         // Gm7
-  { bass: 'G#1', chord: ['G#2','B2','D3','F3'] },         // G#dim（减和弦紧张，不定向）
+  { bass: 'G1',  chord: ['G2','B2','D3','F3'] },          // G7
+];
+// 旋律库：C 大调五声音阶 (C D E G A)，按和弦音挑
+const MELODY = [
+  [N['C5'], N['E5'], N['G5'], N['B5']],   // Cmaj7 上
+  [N['A4'], N['C5'], N['E5'], N['G5']],   // Am7 上
+  [N['D5'], N['F5'], N['A5'], N['C5']],   // Dm7 上
+  [N['G4'], N['B4'], N['D5'], N['F5']],   // G7 上
 ];
 
 let running = false;
@@ -39,16 +54,25 @@ let bpm = NORMAL_BPM;
 let prog = PROG_NORMAL;
 let rainNodes = [];
 let nextDrop = 0;
+let shopMode = false;
 
-// Boss 持续 pad（低通锯齿波和弦）
+// Boss 持续 pad
 let bossPadOscs = [];
 
 export function setBossMode(on) {
-  prog = on ? PROG_BOSS : PROG_NORMAL;
-  bpm = on ? BOSS_BPM : NORMAL_BPM;
-  if (musicGain) musicGain.gain.value = on ? 0.22 : 0.16;
-  if (on && running) startBossPad();
-  else stopBossPad();
+  if (on) { shopMode = false; prog = PROG_BOSS; bpm = BOSS_BPM; if (musicGain) musicGain.gain.value = 0.22; if (running) startBossPad(); }
+  else if (!shopMode) { prog = PROG_NORMAL; bpm = NORMAL_BPM; if (musicGain) musicGain.gain.value = 0.16; stopBossPad(); }
+}
+export function setShopMode(on) {
+  shopMode = on;
+  if (on) {
+    stopBossPad();
+    prog = PROG_SHOP; bpm = SHOP_BPM;
+    if (musicGain) musicGain.gain.value = 0.14;
+  } else {
+    prog = PROG_NORMAL; bpm = NORMAL_BPM;
+    if (musicGain) musicGain.gain.value = 0.16;
+  }
 }
 export function isMusicOn() { return running; }
 
@@ -57,12 +81,12 @@ export function startMusic() {
   const c = ac();
   running = true;
   musicGain = c.createGain();
-  musicGain.gain.value = prog === PROG_BOSS ? 0.22 : 0.16;
+  musicGain.gain.value = prog === PROG_BOSS ? 0.22 : shopMode ? 0.14 : 0.16;
   musicGain.connect(masterNode());
   nextBeat = c.currentTime + 0.1;
   nextDrop = c.currentTime + 0.1;
   beatIdx = 0;
-  startRain(c);
+  if (!shopMode) startRain(c);
   if (prog === PROG_BOSS) startBossPad();
   timer = setInterval(schedule, LOOKAHEAD_MS);
 }
@@ -82,17 +106,21 @@ function schedule() {
   const c = ac();
   const eighth = 60 / bpm / 2;
   const isBoss = prog === PROG_BOSS;
+  const isShop = shopMode;
+  // 商店模式：无雨声（室内逛店）
+  if (!isShop) {
+    const rainMin = isBoss ? 0.15 : 0.06;
+    const rainMax = isBoss ? 0.35 : 0.18;
+    while (nextDrop < c.currentTime + SCHEDULE_AHEAD) {
+      nextDrop += rainMin + Math.random() * (rainMax - rainMin);
+      raindrop(nextDrop, c);
+    }
+  }
   while (nextBeat < c.currentTime + SCHEDULE_AHEAD) {
-    scheduleBeat(beatIdx, nextBeat, c, isBoss);
+    if (isShop) shopBeat(beatIdx, nextBeat, c);
+    else scheduleBeat(beatIdx, nextBeat, c, isBoss);
     nextBeat += (beatIdx % 2 === 0) ? eighth * 2 * SWING : eighth * 2 * (1 - SWING);
     beatIdx++;
-  }
-  // 雨滴间隔：Boss 慢一倍（诡异稀疏感）
-  const rainMin = prog === PROG_BOSS ? 0.15 : 0.06;
-  const rainMax = prog === PROG_BOSS ? 0.35 : 0.18;
-  while (nextDrop < c.currentTime + SCHEDULE_AHEAD) {
-    nextDrop += rainMin + Math.random() * (rainMax - rainMin);
-    raindrop(nextDrop, c);
   }
 }
 
@@ -136,6 +164,73 @@ function kick(t, c) {
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
   o.connect(g); g.connect(musicGain);
   o.start(t); o.stop(t + 0.18);
+}
+
+// ===== 商店编曲（暖爵 lo-fi：软电钢+行走贝斯+刷鼓+五声旋律） =====
+function shopBeat(i, t, c) {
+  const eighthInBar = i % 8;
+  const bar = Math.floor(i / 8) % 4;
+  const ch = prog[bar];
+  if (eighthInBar === 0 || eighthInBar === 4) shopKick(t, c);
+  if (eighthInBar === 2 || eighthInBar === 6) shopSnare(t, c);
+  shopHat(t, c, eighthInBar % 2 === 1 ? 0.012 : 0.022);
+  const bi = (bar * 2 + (eighthInBar >= 4 ? 1 : 0)) % ch.chord.length;
+  shopBass(N[ch.chord[bi]] * 0.5, t, c, eighthInBar === 0 || eighthInBar === 4 ? 0.9 : 0.55);
+  if (eighthInBar === 0) shopChord(ch.chord, t, c, 0.05);
+  if (eighthInBar === 4) shopChord(ch.chord, t, c, 0.035);
+  if (eighthInBar === 0) shopMelodyNote(MELODY[bar][i % MELODY[bar].length], t, c);
+}
+function shopKick(t, c) {
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(90, t);
+  o.frequency.exponentialRampToValueAtTime(45, t + 0.08);
+  g.gain.setValueAtTime(0.32, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+  o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + 0.15);
+}
+function shopSnare(t, c) {
+  const len = Math.ceil(c.sampleRate * 0.07);
+  const buf = c.createBuffer(1, len, c.sampleRate); const d = buf.getChannelData(0);
+  for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / len, 1.8);
+  const src = c.createBufferSource(); src.buffer = buf;
+  const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 3200; f.Q.value = 0.4;
+  const g = c.createGain(); g.gain.setValueAtTime(0.08, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  src.connect(f); f.connect(g); g.connect(musicGain); src.start(t);
+}
+function shopHat(t, c, vol) {
+  const len = Math.ceil(c.sampleRate * 0.025);
+  const buf = c.createBuffer(1, len, c.sampleRate); const d = buf.getChannelData(0);
+  for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * (1 - k / len);
+  const src = c.createBufferSource(); src.buffer = buf;
+  const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6000;
+  const g = c.createGain(); g.gain.setValueAtTime(vol * (0.8 + Math.random() * 0.2), t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+  src.connect(f); f.connect(g); g.connect(musicGain); src.start(t);
+}
+function shopBass(freq, t, c, vol) {
+  const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+  o.type = 'sine'; o.frequency.value = freq; f.type = 'lowpass'; f.frequency.value = 380;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.22 * vol, t + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+  o.connect(f); f.connect(g); g.connect(musicGain); o.start(t); o.stop(t + 0.4);
+}
+function shopChord(chordNotes, t, c, vol) {
+  chordNotes.forEach((name, i) => {
+    const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+    o.type = 'triangle'; o.frequency.value = N[name] * (1 + (Math.random() - 0.5) * 0.002);
+    f.type = 'lowpass'; f.frequency.value = 1100;
+    const at = t + i * 0.018;
+    g.gain.setValueAtTime(0.0001, at); g.gain.linearRampToValueAtTime(vol, at + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, at + 1.4);
+    o.connect(f); f.connect(g); g.connect(musicGain); o.start(at); o.stop(at + 1.45);
+  });
+}
+function shopMelodyNote(freq, t, c) {
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = 'sine'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.06, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+  o.connect(g); g.connect(musicGain); o.start(t); o.stop(t + 0.65);
 }
 
 function snare(t, c) {

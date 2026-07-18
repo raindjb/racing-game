@@ -1,7 +1,7 @@
 // audio/hooks.js — 引擎事件 → 音效映射 + 手势解锁 + 静音按钮
 import { bus, G, PHASES } from '../state.js';
 import { SFX, ac, toggleSfx, isSfxMuted } from './sfx.js';
-import { startMusic, toggleMusic, isMusicOn, setBossMode } from './music.js';
+import { startMusic, toggleMusic, isMusicOn, setBossMode, setShopMode } from './music.js';
 import { setBossBackground } from '../shaders/background.js';
 
 let unlocked = false;
@@ -43,7 +43,8 @@ export function initAudio() {
   });
   bus.on('phase', ({ phase }) => {
     if (phase === PHASES.BOOSTER) SFX.packOpen();
-    if (phase === PHASES.BLIND_SELECT) { setBossMode(false); setBossBackground(false); }
+    if (phase === PHASES.BLIND_SELECT) { setBossMode(false); setBossBackground(false); setShopMode(false); }
+    if (phase === PHASES.SHOP) setShopMode(true);
   });
 
   // 静音按钮
