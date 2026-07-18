@@ -258,7 +258,7 @@ function hideOverlay() { els.overlay.innerHTML = ''; }
 function showBlindSelect() {
   const boss = G.upcomingBoss;
   const cardsHtml = BLINDS.map((b, i) => {
-    const target = blindTarget(G.ante, i, i === 2 ? boss : null).toLocaleString();
+    const target = blindTarget(G.ante, i, i === 2 ? boss : null, G.config).toLocaleString();
     const cur = i === G.blindIndex ? 'current' : (i < G.blindIndex ? 'done' : '');
     return `<div class="blind-card ${cur}">
       <div class="bc-icon ${['small', 'big', 'boss'][i]}">${blindIcon(['small', 'big', 'boss'][i])}</div>
@@ -453,6 +453,11 @@ export async function showMainMenu() {
         ${statsHtml}
         <div class="menu-actions">
           ${contHtml}
+          <div class="diff-row" id="diff-select">
+            <span class="diff-btn" data-d="beginner">新手</span>
+            <span class="diff-btn sel" data-d="easy">简单</span>
+            <span class="diff-btn" data-d="normal">标准</span>
+          </div>
           <button class="btn btn-play menu-btn" id="menu-new"><span>新 游 戏</span></button>
           <div class="seed-row">
             <input id="menu-seed" maxlength="12" placeholder="自定义种子（可选）" spellcheck="false">
@@ -471,9 +476,17 @@ export async function showMainMenu() {
       el.style.setProperty('--py', `${(-dy * depth).toFixed(1)}px`);
     });
   });
+  // 难度选择 toggle
+  let selDiff = 'easy';
+  document.querySelectorAll('.diff-btn').forEach(b =>
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+      selDiff = b.dataset.d;
+    }));
   $('menu-new').addEventListener('click', () => {
     const seed = $('menu-seed').value.trim().toUpperCase();
-    round.startRun(seed ? { seed } : {});
+    round.startRun(seed ? { seed, difficulty: selDiff } : { difficulty: selDiff });
   });
   $('menu-continue')?.addEventListener('click', () => {
     if (!round.continueRun(save)) {

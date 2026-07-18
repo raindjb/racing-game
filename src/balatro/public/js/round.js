@@ -29,8 +29,8 @@ export function continueRun(saveData) {
 }
 
 /** 开新局 */
-export function startRun({ seed } = {}) {
-  initRun({ seed });
+export function startRun({ seed, difficulty } = {}) {
+  initRun({ seed, difficulty });
   G.recentBosses = [];
   gotoBlindSelect();
 }
@@ -96,7 +96,7 @@ export function startBlind({ forceBossId } = {}) {
   for (const j of G.jokers) j.disabled = false;   // 清除绯红之心禁用
   applyBossOnBlindStart();
   applyNextBlindBonus();               // 顺手/杂耍标签：+出牌/弃牌/手牌
-  G.target = blindTarget(G.ante, G.blindIndex, G.boss);
+  G.target = blindTarget(G.ante, G.blindIndex, G.boss, G.config);
 
   const drawn = drawToHandSize();
   for (const c of drawn) applyBossOnCardDrawn(c);

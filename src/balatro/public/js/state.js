@@ -37,6 +37,7 @@ export function defaultConfig() {
     interestCap: 5,      // 利息上限 $5
     interestPer: 5,      // 每 $5 得 $1
     rerollBase: 5,       // 商店重掷起价
+    blindScale: 1,       // 盲注分数倍率（<1 = 简单；1 = 标准）
     // 商店/优惠券相关
     shopSlots: 2,
     shopDiscount: 1,     // 清仓甩卖 → 0.75
@@ -44,6 +45,22 @@ export function defaultConfig() {
     editionRateMult: 1,  // 磨砺 → 2
     telescope: false,    // 望远镜
   };
+}
+
+/** 难度预设 */
+export const DIFFICULTIES = {
+  beginner: {
+    zh: '新手', desc: '盲注分 ×0.6 | +1 出牌 | +$2 起始',
+    blindScale: 0.6, hands: 5, startMoney: 6,
+  },
+  easy: {
+    zh: '简单', desc: '盲注分 ×0.8 | 标准手牌/金币',
+    blindScale: 0.8, hands: 4, startMoney: 4,
+  },
+  normal: {
+    zh: '标准', desc: '原版 White Stake 数值',
+    blindScale: 1, hands: 4, startMoney: 4,
+  },
 }
 
 /** 全局状态（单例）。字段变更需同步 serialize 测试与 SAVE_VERSION。 */
@@ -97,7 +114,7 @@ export function setPhase(phase) {
 }
 
 /** 开新局：重置 G 并生成整副牌 */
-export function initRun({ seed } = {}) {
+export function initRun({ seed, difficulty = 'normal' } = {}) {
   G.seed = seed || randomSeedString();
   G.rng = createRng(G.seed);
   resetCardIds();
@@ -109,10 +126,14 @@ export function initRun({ seed } = {}) {
   G.hand = []; G.discardPile = []; G.playedZone = []; G.removedCards = []; G.selected = [];
   G.jokers = []; G.consumables = [];
   G.config = defaultConfig();
+  // 应用难度预设
+  const diff = DIFFICULTIES[difficulty] ?? DIFFICULTIES.normal;
+  Object.assign(G.config, diff);
+  G.config.diffKey = difficulty;
   G.money = G.config.startMoney;
   G.ante = 1; G.blindIndex = 0; G.round = 0;
   G.handsLeft = G.config.hands; G.discardsLeft = G.config.discards;
-  G.roundScore = 0; G.target = 300;
+  G.roundScore = 0; G.target = Math.floor(300 * (G.config.blindScale ?? 1));
   G.handLevels = Object.fromEntries(HAND_TYPES.map(h => [h.id, 1]));
   G.handPlayed = Object.fromEntries(HAND_TYPES.map(h => [h.id, 0]));
   G.roundPlayedTypes = [];

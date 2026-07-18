@@ -224,6 +224,17 @@
   background: var(--panel); border-radius: 8px;
   padding: 12px 18px; margin-bottom: 18px; letter-spacing: 1px;
 }
+.diff-row {
+  display: flex; gap: 6px; background: rgba(255,255,255,0.04);
+  border-radius: 12px; padding: 5px; margin-bottom: 2px;
+}
+.diff-btn {
+  flex: 1; padding: 7px 0; border-radius: 10px; font-size: 14px; font-weight: 700;
+  cursor: pointer; text-align: center; color: rgba(255,255,255,0.5);
+  transition: all 0.2s; letter-spacing: 1px;
+}
+.diff-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+.diff-btn.sel { background: rgba(240,192,96,0.18); color: var(--gold-bright); }
 .seed-row input {
   width: 280px; padding: 10px 14px;
   background: var(--panel); border: 1px solid var(--panel-line);
