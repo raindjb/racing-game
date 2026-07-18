@@ -341,7 +341,7 @@ function showShop() {
     `<div class="s-item s-owned" data-sell="${j.uid}">
       <div class="s-art" style="width:46px;height:64px">${jokerArtSVG(j.art, j.id)}</div>
       <div class="s-name">${j.zh}</div>
-      <div class="s-price" style="color:#ff9d94">卖 $${sellValue(G, j)}</div>
+      <div class="s-price" style="color:#ff9d94">卖 $${sellValue(j)}</div>
     </div>`).join('') : `<div class="s-item" style="opacity:0.4;cursor:default;pointer-events:none"><div class="s-emoji">◇</div><div class="s-name" style="color:var(--text-dim)">暂无小丑</div></div>`;
   const ownedConsHTML = G.consumables.length ? G.consumables.map(c =>
     `<div class="s-item s-owned" data-sellc="${c.uid}">
