@@ -188,22 +188,28 @@
   .btn { font-size: 16px; padding: 14px 34px; }
 }
 
-/* ===== 发牌员（右下角） ===== */
+/* ===== 发牌员（中央背景半身像） ===== */
 #dealer {
-  position: absolute; right: 8px; bottom: 8px; z-index: 10;
-  width: 120px; display: flex; flex-direction: column; align-items: center;
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; opacity: 0.5;
+  transition: opacity 0.6s;
+}
+#dealer-face {
+  width: 200px; height: 280px; cursor: pointer; pointer-events: auto;
+  filter: drop-shadow(0 12px 30px rgba(0,0,0,0.6));
   transition: transform 0.3s;
 }
-#dealer:hover { transform: scale(1.05); }
-#dealer-face { width: 100px; height: 100px; cursor: pointer; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+#dealer-face:hover { transform: scale(1.04); }
 #dealer-face svg { width: 100%; height: 100%; }
 .dealer-bubble {
-  position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
-  background: rgba(20, 16, 10, 0.92); border: 1px solid var(--gold-bright);
-  border-radius: 12px; padding: 8px 14px; font-size: 13px; color: #fff;
-  white-space: nowrap; opacity: 0; transition: opacity 0.25s;
-  pointer-events: none; max-width: 180px; text-align: center;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+  background: rgba(16, 12, 8, 0.94); border: 1px solid var(--gold-bright);
+  border-radius: 14px; padding: 10px 18px; font-size: 15px; color: #fff;
+  white-space: nowrap; opacity: 0; transition: opacity 0.3s;
+  pointer-events: none; max-width: 240px; text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6); letter-spacing: 1px;
+  z-index: 3;
 }
 .dealer-bubble.show { opacity: 1; }
 .dealer-bubble::after {
