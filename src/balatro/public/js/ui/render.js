@@ -486,7 +486,7 @@ export async function showMainMenu() {
 }
 
 // ===== 图鉴面板（版本 + 强化） =====
-import { EDITIONS, ENHANCEMENTS } from '../data/card-data.js';
+import { EDITIONS, ENHANCEMENTS, SEALS } from '../data/card-data.js';
 
 function showGuide() {
   const edColors = { foil: '#a8d8ff', holographic: '#ff80c0', polychrome: '#e088ff', negative: '#ff8a70' };
@@ -507,6 +507,15 @@ function showGuide() {
       <div class="gc-desc">${e.desc}</div>
     </div>`).join('');
 
+  const seColors = { red: '#ff4c40', gold: '#f0c060', blue: '#5a9fd4', purple: '#b53aff' };
+  const seIcons = { red: '●', gold: '●', blue: '●', purple: '●' };
+  const seCards = Object.entries(SEALS).map(([id, s]) =>
+    `<div class="gc-item gc-se" style="--gc-c:${seColors[id]}">
+      <div class="gc-icon">${seIcons[id]}</div>
+      <div class="gc-name">${s.zh}</div>
+      <div class="gc-desc">${s.desc}</div>
+    </div>`).join('');
+
   showOverlay(`
     <div class="panel guide-panel">
       <h2>📖 图鉴</h2>
@@ -517,6 +526,10 @@ function showGuide() {
       <div class="guide-sec">
         <h3>◆ 强化（塔罗牌/幻灵牌赋予）</h3>
         <div class="guide-grid">${enCards}</div>
+      </div>
+      <div class="guide-sec">
+        <h3>● 蜡封（标准包 / 幻灵牌赋予）</h3>
+        <div class="guide-grid">${seCards}</div>
       </div>
       <div class="panel-actions">
         <button class="btn btn-ghost" id="guide-close">关闭</button>
