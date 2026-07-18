@@ -314,6 +314,21 @@ function showRoundEnd() {
 function showShop() {
   const s = G.shop;
   if (!s) return;
+  // 每次渲染商店重新计算受 Joker/优惠券影响的价格（天文学家、清仓甩卖等）
+  const astronomer = G.jokers.some(j => j.id === 'astronomer');
+  const priceFn = v => Math.max(1, Math.round(v * (G.config.shopDiscount ?? 1)));
+  for (const slot of s.slots) {
+    if (slot.sold) continue;
+    const bp = slot._basePrice ?? slot.price;
+    if (slot.kind === 'planet' && astronomer) slot.price = 0;
+    else slot.price = priceFn(bp);
+  }
+  for (const p of s.packs) {
+    if (p.sold) continue;
+    const def = shop.PACK_MAP[p.id];
+    if (p.id === 'celestial' && astronomer) p.price = 0;
+    else p.price = priceFn(def?.price ?? p.price);
+  }
   const slotHTML = (item, i) => {
     if (item.sold) return `<div class="s-item sold">已售出</div>`;
     let body = '';
