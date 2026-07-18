@@ -109,11 +109,11 @@ function schedule() {
   const isShop = shopMode;
   // 商店模式：无雨声（室内逛店）
   if (!isShop) {
-    const rainMin = isBoss ? 0.15 : 0.06;
-    const rainMax = isBoss ? 0.35 : 0.18;
+    const perCycle = isBoss ? 2 : 5;
+    const interval = isBoss ? 0.18 : 0.04;
     while (nextDrop < c.currentTime + SCHEDULE_AHEAD) {
-      nextDrop += rainMin + Math.random() * (rainMax - rainMin);
-      raindrop(nextDrop, c);
+      for (let d = 0; d < perCycle; d++) raindrop(nextDrop + d * 0.006, c);
+      nextDrop += interval + Math.random() * interval * 1.2;
     }
   }
   while (nextBeat < c.currentTime + SCHEDULE_AHEAD) {
@@ -380,49 +380,83 @@ function stopBossPad() {
   bossPadOscs = [];
 }
 
-// ===== 雨声氛围（两模式共用） =====
+// ===== 雨声氛围（写实多层引擎） =====
 function startRain(c) {
-  rainLayer(c, { dur: 2.7, type: 'bandpass', freq: 900, q: 0.6, gain: 0.055 });
-  rainLayer(c, { dur: 3.2, type: 'lowpass', freq: 320, q: 0.5, gain: 0.045 });
+  // Hiss 宽带丝声（真实雨的核心：万千细滴同时落下 → 白噪高频底）
+  rainHiss(c, { dur: 3.1, hpFreq: 1800, gain: 0.035 });
+  // 中层雨幕：粉噪 + 带通 ~800Hz（主要 pitter-patter 体感）
+  pinkLayer(c, { dur: 2.5, type: 'bandpass', freq: 800, q: 0.55, gain: 0.05 });
+  // 低层远雨轰隆（远处雨帘的低频震动）
+  pinkLayer(c, { dur: 3.8, type: 'lowpass', freq: 250, q: 0.4, gain: 0.04 });
+  // 亚低音大气 rumb（非常安静，添加"氛围重量"）
+  pinkLayer(c, { dur: 4.2, type: 'lowpass', freq: 80, q: 0.3, gain: 0.025 });
 }
 
-function rainLayer(c, { dur, type, freq, q, gain }) {
+/** Hiss 层：白噪 → 高通（模拟万千微小水滴的集体嘶嘶声） */
+function rainHiss(c, { dur, hpFreq, gain }) {
   const len = Math.ceil(c.sampleRate * dur);
   const buf = c.createBuffer(1, len, c.sampleRate);
   const d = buf.getChannelData(0);
-  let b0 = 0, b1 = 0;
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1);
+  const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+  const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = hpFreq; hp.Q.value = 0.3;
+  const g = c.createGain(); g.gain.value = gain;
+  src.connect(hp); hp.connect(g); g.connect(musicGain);
+  src.start(); rainNodes.push({ src });
+}
+
+/** 粉噪层（IIR 近似粉噪：每采样点累加低频倾向，比白噪自然） */
+function pinkLayer(c, { dur, type, freq, q, gain }) {
+  const len = Math.ceil(c.sampleRate * dur);
+  const buf = c.createBuffer(1, len, c.sampleRate);
+  const d = buf.getChannelData(0);
+  let b0 = 0, b1 = 0, b2 = 0;
   for (let i = 0; i < len; i++) {
     const white = Math.random() * 2 - 1;
-    b0 = 0.997 * b0 + 0.03 * white;
-    b1 = 0.985 * b1 + 0.015 * white;
-    d[i] = (b0 + b1) * 0.5;
+    b0 = 0.99886 * b0 + white * 0.0555179;
+    b1 = 0.99332 * b1 + white * 0.0750759;
+    b2 = 0.985   * b2 + white * 0.1;
+    d[i] = (b0 + b1 + b2) * 0.25;
   }
   const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
   const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
   const g = c.createGain(); g.gain.value = gain;
   src.connect(f); f.connect(g); g.connect(musicGain);
-  src.start();
-  rainNodes.push({ src });
+  src.start(); rainNodes.push({ src });
 }
 
+/** 雨滴：锐起音 + 快衰减 + 立体声随机 pan + 偶尔重滴水 */
 function raindrop(t, c) {
-  const dur = 0.03 + Math.random() * 0.05;
+  const heavy = Math.random() < 0.15;  // 15% 概率重滴水（檐边/叶面积水坠落）
+  const dur = heavy ? 0.06 + Math.random() * 0.08 : 0.02 + Math.random() * 0.04;
   const len = Math.ceil(c.sampleRate * dur);
   const buf = c.createBuffer(1, len, c.sampleRate);
   const d = buf.getChannelData(0);
   for (let i = 0; i < len; i++) {
-    const env = 1 - i / len;
-    d[i] = (Math.random() * 2 - 1) * env * env;
+    // 锐起音包络：瞬时峰值 → 陡降（模拟水滴撞击瞬态）
+    const attack = Math.min(1, i / (len * 0.06));  // 6% 时长即达峰
+    const decay = Math.exp(-i / (len * 0.18));       // 指数衰减尾巴
+    d[i] = (Math.random() * 2 - 1) * attack * decay * (heavy ? 1.5 : 1);
   }
   const src = c.createBufferSource(); src.buffer = buf;
-  const bp = c.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = 2000 + Math.random() * 3000;
-  bp.Q.value = 1.5;
+
+  // 带通：重滴水低频（300-1800Hz），普通滴中频（1.5-5kHz）
+  const bp = c.createBiquadFilter(); bp.type = 'bandpass';
+  bp.frequency.value = heavy ? (300 + Math.random() * 1500) : (1500 + Math.random() * 3500);
+  bp.Q.value = heavy ? 1.8 : 1.2;
+
   const g = c.createGain();
-  g.gain.setValueAtTime(0.02 + Math.random() * 0.03, t);
+  const vol = heavy ? (0.04 + Math.random() * 0.06) : (0.015 + Math.random() * 0.025);
+  g.gain.setValueAtTime(vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  src.connect(bp); bp.connect(g); g.connect(musicGain);
-  src.start(t);
-  src.stop(t + dur + 0.01);
+
+  // 立体声 pan：随机左右（-0.6~0.6）
+  const pan = c.createStereoPanner ? c.createStereoPanner() : null;
+  if (pan) {
+    pan.pan.value = (Math.random() - 0.5) * 1.2;
+    src.connect(bp); bp.connect(pan); pan.connect(g); g.connect(musicGain);
+  } else {
+    src.connect(bp); bp.connect(g); g.connect(musicGain);
+  }
+  src.start(t); src.stop(t + dur + 0.02);
 }
