@@ -2,7 +2,7 @@
 // 每种 effect.type 是一个效果原语；M2 扩充 150 张时只需加数据（少数加原语）。
 import { registerJoker, isFaceCtx, cardSuitCtx, getJokerHandlers } from './index.js';
 import { JOKERS } from '../data/jokers.js';
-import { cardHasSuit, isFaceCard, RANK_INFO, RANKS, SUITS, makeCard } from '../data/card-data.js';
+import { cardHasSuit, isFaceCard, RANK_INFO, RANKS, SUITS, HAND_TYPES, makeCard } from '../data/card-data.js';
 import { sellValue, makeJokerInstance, addJoker } from '../joker-manager.js';
 import { makeConsumable, addConsumable, randomTarotId } from '../consumable-manager.js';
 import { destroyCards } from '../deck.js';
@@ -259,9 +259,10 @@ const COMPILERS = {
     onIndependent: (c, api, j) => api.addMult(e.per * j.state, src(j)),
     onReroll: (G, j) => { j.state++; },
   }),
-  campfire: e => ({                    // 篝火：每卖 Joker ×+0.25，击败 Boss 重置
+  campfire: e => ({                    // 篝火：每卖任意牌 ×+0.25，击败 Boss 重置
     onIndependent: (c, api, j) => { if (j.state) api.timesMult(1 + e.per * j.state, src(j)); },
     onJokerSold: (G, sold, j) => { j.state++; },
+    onConsumableSold: (G, sold, j) => { j.state++; },
     onBossDefeated: (G, j) => { j.state = 0; },
   }),
   hit_the_road: e => ({                // 上路：本回合每弃 J ×+0.5
@@ -342,8 +343,10 @@ const COMPILERS = {
   discard_rank_money: e => ({          // 邮寄回扣：弃[轮换点数]每张 +$5
     onBlindStart: (G, j) => { j.target = G.rng.pick(RANKS); },
     onDiscard: (G, cards, j) => {
+      if (!j.target) j.target = G.rng.pick(RANKS);  // 中局获取补初始化
       const n = cards.filter(x => x.rank === j.target && x.enhancement !== 'stone').length;
       if (n) { G.money += e.v * n; bus.emit('ui:reject', { reason: `邮寄回扣 +$${e.v * n}` }); }
+      return n * e.v;
     },
   }),
   trading_card: e => ({                // 交换卡：首次弃单张 → 销毁+$3
@@ -354,8 +357,12 @@ const COMPILERS = {
       }
     },
   }),
-  faceless_joker: e => ({ onDiscard: (G, cards, j) => {
-    if (cards.filter(x => isFaceCtx(G.jokers, x)).length >= e.n) G.money += e.v; } }),
+  faceless_joker: e => ({
+    onBlindStart: (G, j) => { j._triggered = false; },
+    onDiscard: (G, cards, j) => {
+      if (j._triggered) return;
+      if (cards.filter(x => isFaceCtx(G.jokers, x)).length >= e.n) { G.money += e.v; j._triggered = true; }
+    } }),
   matador: e => ({                     // 斗牛士（简化：Boss 回合每回合一次 +$8）
     onHandPlayed: (G, ev, j) => {
       if (G.blindIndex === 2 && G.boss && !G.bossDisabled && j.state !== G.round) {
@@ -469,8 +476,14 @@ const COMPILERS = {
     },
   }),
   to_do_list: e => ({
-    onBlindStart: (G, j) => { j.target = G.rng.pick(['high_card', 'pair', 'two_pair', 'three_of_a_kind', 'straight', 'flush']); },
-    onHandPlayed: (G, ev, j) => { if (ev.handType === j.target) G.money += e.v; },
+    onBlindStart: (G, j) => {
+      const pool = HAND_TYPES.filter(h => !h.secret).map(h => h.id);  // 全部非秘密手型
+      j.target = G.rng.pick(pool);
+    },
+    onHandPlayed: (G, ev, j) => {
+      if (!j.target) { const pool = HAND_TYPES.filter(h => !h.secret).map(h => h.id); j.target = G.rng.pick(pool); }
+      if (ev.handType === j.target) G.money += e.v;
+    },
   }),
 
   // ── 弃牌联动 ──
@@ -536,7 +549,10 @@ const COMPILERS = {
   perkeo: () => ({ onRoundEnd: (G, j) => {
     if (G.consumables.length) {
       const pick = G.rng.pick(G.consumables);
-      addConsumable(makeConsumable(pick.kind, pick.id));
+      const inst = makeConsumable(pick.kind, pick.id);
+      // Perkeo 复制品不计槽位（负片特性），绕过 addConsumable 的槽位检查
+      G.consumables.push(inst);
+      bus.emit('consumables:change');
     }
     return 0; } }),
   chicot: () => ({ onBlindStart: (G, j) => {
@@ -550,7 +566,7 @@ const COMPILERS = {
     onIndependent: (c, api, j) => api.addChips(j.state, src(j)),
     onBlindStart: (G, j) => { j.target = G.rng.pick(SUITS); },
     onDiscard: (G, cards, j) => {
-      if (!j.target) return;
+      if (!j.target) j.target = G.rng.pick(SUITS);  // 中局获取补初始化
       j.state += cards.filter(x => cardSuitCtx(G.jokers, x, j.target) && x.enhancement !== 'stone').length * e.v;
     },
   }),

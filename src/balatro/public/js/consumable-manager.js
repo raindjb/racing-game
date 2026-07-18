@@ -7,7 +7,7 @@ import { JOKERS } from './data/jokers.js';
 import { RANKS, SUITS, makeCard, HAND_TYPES } from './data/card-data.js';
 import { destroyCards } from './deck.js';
 import { makeJokerInstance, addJoker, sellValue } from './joker-manager.js';
-import { dispatchHook, getJokerHandlers } from './effects/index.js';
+import { dispatchHook, getJokerHandlers, resolveHandlers } from './effects/index.js';
 
 let nextUid = 1000;
 export function setNextConsumableUid(n) { nextUid = Math.max(1000, n); }
@@ -41,9 +41,12 @@ export function addConsumable(inst) {
 export function sellConsumable(uid) {
   const i = G.consumables.findIndex(c => c.uid === uid);
   if (i < 0) return false;
+  const inst = G.consumables[i];
   G.consumables.splice(i, 1);
   G.money += 1;
   bus.emit('consumables:change');
+  // 供 campfire 等监听
+  dispatchHook(G.jokers, 'onConsumableSold', G, inst);
   return true;
 }
 
