@@ -383,7 +383,7 @@ function showShop() {
     }));
   els.overlay.querySelectorAll('[data-sellc]').forEach(el =>
     el.addEventListener('click', () => {
-      sellConsumable(el.dataset.sellc);
+      sellConsumable(Number(el.dataset.sellc));
       showShop();
     }));
   $('shop-reroll').addEventListener('click', () => shop.rerollShop());
