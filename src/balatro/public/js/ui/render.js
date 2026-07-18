@@ -424,17 +424,20 @@ function showBooster() {
 }
 
 function showGameEnd(won) {
+  const endlessBtn = won ? `<button class="btn btn-shop-go" id="ov-endless">继续无尽模式 →</button>` : '';
   showOverlay(`
     <div class="panel game-end ${won ? 'win' : 'lose'}">
       <h1>${won ? '🏆 通关!' : '游戏结束'}</h1>
       <div class="panel-sub">
-        到达 ANTE ${Math.min(G.ante, 8)} · 回合 ${G.round} · 最佳一手 ${G.stats.bestHandScore.toLocaleString()} · $${G.money}
+        到达 ANTE ${G.ante} · 回合 ${G.round} · 最佳一手 ${G.stats.bestHandScore.toLocaleString()} · $${G.money}${G._endless ? ' · 无尽模式' : ''}
       </div>
       <div class="panel-actions">
+        ${endlessBtn}
         <button class="btn btn-play" id="ov-restart">再来一局</button>
         <button class="btn btn-ghost" id="ov-menu">主菜单</button>
       </div>
     </div>`);
+  $('ov-endless')?.addEventListener('click', () => round.continueEndless());
   $('ov-restart').addEventListener('click', () => round.startRun({}));
   $('ov-menu').addEventListener('click', () => round.toMenu());
 }

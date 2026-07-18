@@ -265,9 +265,12 @@ export function winRound(opts = {}) {
     G.ante++;
     G.blindIndex = 0;
     if (G.ante > ANTE_MAX) {
-      setPhase(PHASES.WIN);
-      bus.emit('run:won');
-      return;
+      // Ante 8 通关：可选继续无尽模式
+      if (G.ante === ANTE_MAX + 1 && !G._endless) {
+        G._endless = true;  // 首次通关标记
+      }
+      // 无尽模式：Ante 9+ 分数指数增长（每额外 Ante ×1.5）
+      // 不在此处结束；continue 到 ROUND_END
     }
   } else {
     G.blindIndex++;
@@ -292,8 +295,18 @@ export function leaveShop() {
 }
 
 export function gameOver(won) {
-  setPhase(won ? PHASES.WIN : PHASES.GAME_OVER);
-  bus.emit(won ? 'run:won' : 'run:lost', {
-    ante: G.ante, round: G.round, bestHand: G.stats.bestHandScore,
-  });
+  if (won) {
+    // Ante 8+ 通关：显示胜利并记录成就，但允许继续无尽模式
+    setPhase(PHASES.WIN);
+    bus.emit('run:won', { ante: G.ante, round: G.round, bestHand: G.stats.bestHandScore, endless: G._endless });
+  } else {
+    setPhase(PHASES.GAME_OVER);
+    bus.emit('run:lost', { ante: G.ante, round: G.round, bestHand: G.stats.bestHandScore });
+  }
+}
+
+/** 在胜利画面选择继续无尽模式 */
+export function continueEndless() {
+  setPhase(PHASES.ROUND_END);
+  bus.emit('round:won', { cashout: G.lastCashout ?? 0 });
 }
