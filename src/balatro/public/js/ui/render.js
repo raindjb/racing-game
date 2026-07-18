@@ -336,14 +336,30 @@ function showShop() {
       <div class="s-desc">${VOUCHER_MAP[v.id].desc}</div><div class="s-price">$${v.price}</div></div>`;
   const voucherHTML = vCard(s.voucher, 'shop-voucher') + vCard(s.voucher2, 'shop-voucher2');
 
+  // Joker 持有行（商店内快速出售）
+  const ownedJokerHTML = G.jokers.length ? G.jokers.map((j, i) =>
+    `<div class="s-item s-owned" data-sell="${j.uid}">
+      <div class="s-art" style="width:46px;height:64px">${jokerArtSVG(j.art, j.id)}</div>
+      <div class="s-name">${j.zh}</div>
+      <div class="s-price" style="color:#ff9d94">卖 $${sellValue(G, j)}</div>
+    </div>`).join('') : `<div class="s-item" style="opacity:0.4;cursor:default;pointer-events:none"><div class="s-emoji">◇</div><div class="s-name" style="color:var(--text-dim)">暂无小丑</div></div>`;
+  const ownedConsHTML = G.consumables.length ? G.consumables.map(c =>
+    `<div class="s-item s-owned" data-sellc="${c.uid}">
+      <div class="s-emoji">${c.kind === 'tarot' ? tarotIcon() : c.kind === 'planet' ? planetIcon() : spectralIcon()}</div>
+      <div class="s-name">${c.zh}</div>
+      <div class="s-price" style="color:#ff9d94">卖</div>
+    </div>`).join('') : `<div class="s-item" style="opacity:0.4;cursor:default;pointer-events:none"><div class="s-emoji">◇</div><div class="s-name" style="color:var(--text-dim)">暂无消耗牌</div></div>`;
+
   showOverlay(`
     <div class="panel shop-panel">
       <h2>🏪 商店</h2>
-      <div class="panel-sub">资金 <b class="gold">$${G.money}</b></div>
+      <div class="panel-sub">资金 <b class="gold">$${G.money}</b> · 小丑 ${G.jokers.length}/${jokerSlotsOf(G)} · 消耗 ${G.consumables.length}/${G.config.consumableSlots}</div>
       <div class="shop-rows">
-        <div class="shop-sec"><h3>卡位</h3><div class="shop-row">${s.slots.map(slotHTML).join('')}</div></div>
+        <div class="shop-sec"><h3>买位</h3><div class="shop-row">${s.slots.map(slotHTML).join('')}</div></div>
         <div class="shop-sec"><h3>卡包</h3><div class="shop-row">${s.packs.map(packHTML).join('')}</div></div>
         <div class="shop-sec"><h3>优惠券</h3><div class="shop-row">${voucherHTML}</div></div>
+        <div class="shop-sec shop-sec-owned"><h3>你的小丑（点击出售腾位置）</h3><div class="shop-row">${ownedJokerHTML}</div></div>
+        <div class="shop-sec shop-sec-owned"><h3>你的消耗牌（点击使用/出售）</h3><div class="shop-row">${ownedConsHTML}</div></div>
       </div>
       <div class="panel-actions">
         <button class="btn btn-discard" id="shop-reroll">重掷 $${shop.rerollCost()}</button>
@@ -357,6 +373,17 @@ function showShop() {
     el.addEventListener('click', () => shop.buyPack(Number(el.dataset.pack))));
   $('shop-voucher')?.addEventListener('click', () => shop.buyVoucher('voucher'));
   $('shop-voucher2')?.addEventListener('click', () => shop.buyVoucher('voucher2'));
+  // 商店内出售持有 Joker/消耗牌
+  els.overlay.querySelectorAll('[data-sell]').forEach(el =>
+    el.addEventListener('click', () => {
+      sellJoker(G, Number(el.dataset.sell));
+      showShop();   // 刷新商店面板
+    }));
+  els.overlay.querySelectorAll('[data-sellc]').forEach(el =>
+    el.addEventListener('click', () => {
+      sellConsumable(el.dataset.sellc);
+      showShop();
+    }));
   $('shop-reroll').addEventListener('click', () => shop.rerollShop());
   $('shop-leave').addEventListener('click', () => round.leaveShop());
 }
