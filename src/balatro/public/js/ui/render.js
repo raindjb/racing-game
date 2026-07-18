@@ -355,7 +355,7 @@ function showShop() {
   showOverlay(`
     <div class="panel shop-panel">
       <h2>🏪 商店</h2>
-      <div class="panel-sub">资金 <b class="gold">$${G.money}</b> · 小丑 ${G.jokers.length}/${jokerSlotsOf(G)} · 消耗 ${G.consumables.length}/${G.config.consumableSlots}</div>
+      <div class="panel-sub">资金 <b class="gold">$${G.money}</b> · 小丑 <b>${G.jokers.length}/${jokerSlotsOf(G)}</b> · 消耗 <b>${G.consumables.length}/${G.config.consumableSlots}</b> · 手牌 <b>${G.hand.length}</b> · 牌组 <b>${G.deck.length}</b> · 出牌 <b>${G.handsLeft}</b> · 弃牌 <b>${G.discardsLeft}</b></div>
       <div class="shop-rows">
         <div class="shop-sec"><h3>买位</h3><div class="shop-row">${s.slots.map(slotHTML).join('')}</div></div>
         <div class="shop-sec"><h3>卡包</h3><div class="shop-row">${s.packs.map(packHTML).join('')}</div></div>
