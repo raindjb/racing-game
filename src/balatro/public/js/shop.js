@@ -66,9 +66,9 @@ function genSlots() {
   for (let i = 0; i < cfg.shopSlots; i++) {
     let r = G.rng.random() * total;
     if ((r -= wJoker) < 0) { out.push(genJokerItem()); continue; }
-    if ((r -= wTarot) < 0) { out.push({ kind: 'tarot', id: randomTarotId(G.rng), price: price(3) }); continue; }
-    if ((r -= wPlanet) < 0) { out.push({ kind: 'planet', id: randomPlanetId(G.rng), price: freePlanets ? 0 : price(3) }); continue; }
-    if ((r -= wSpectral) < 0) { out.push({ kind: 'spectral', id: randomSpectralId(G.rng), price: price(4) }); continue; }
+    if ((r -= wTarot) < 0) { out.push({ kind: 'tarot', id: randomTarotId(G.rng), _basePrice: 3, price: price(3) }); continue; }
+    if ((r -= wPlanet) < 0) { out.push({ kind: 'planet', id: randomPlanetId(G.rng), _basePrice: 3, price: freePlanets ? 0 : price(3) }); continue; }
+    if ((r -= wSpectral) < 0) { out.push({ kind: 'spectral', id: randomSpectralId(G.rng), _basePrice: 4, price: price(4) }); continue; }
     // 魔术戏法：游戏牌上架
     const card = makeCard(G.rng.pick(SUITS), G.rng.pick(RANKS));
     if ((cfg.shopCards ?? 0) >= 2 && G.rng.chance(0.5)) {
@@ -90,8 +90,9 @@ function genJokerItem() {
   if (!pool.length) pool = JOKERS.filter(j => j.rarity !== 'legendary');
   const def = G.rng.pick(pool);
   const edition = rollEdition(G.rng, G.config.editionRateMult);
+  const baseP = def.cost + (edition ? EDITION_PRICE[edition] : 0);
   return { kind: 'joker', id: def.id, edition,
-           price: price(def.cost + (edition ? EDITION_PRICE[edition] : 0)) };
+           _basePrice: baseP, price: price(baseP) };
 }
 
 function genPacks() {
@@ -115,6 +116,13 @@ export function buyVoucher(which = 'voucher') {
   if (!v || v.sold) return false;
   if (v.price > 0 && !pay(v.price)) return false;
   applyVoucher(G, v.id);
+  // 折扣券生效后，立刻重新计算所有受影响的价格
+  for (const slot of G.shop?.slots ?? []) {
+    if (!slot.sold) slot.price = price(slot._basePrice ?? slot.price);
+  }
+  for (const p of G.shop?.packs ?? []) {
+    if (!p.sold) p.price = price(PACK_MAP[p.id]?.price ?? p.price);
+  }
   v.sold = true;
   bus.emit('shop:stock');
   bus.emit('voucher:bought', { id: v.id });
