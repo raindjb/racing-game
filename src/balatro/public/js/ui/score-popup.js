@@ -1,6 +1,6 @@
 // ui/score-popup.js — 结算逐步跳分：按 steps 日志重放，每步定位来源元素（卡牌/Joker/面板）
 import { SFX } from '../audio/sfx.js';
-import { floatText, spawnParticles, shakeScreen } from './notifications.js';
+import { floatText, scoreBurst, shakeScreen } from './notifications.js';
 
 const $ = id => document.getElementById(id);
 
@@ -67,11 +67,13 @@ export function playScoreAnimation(result, onDone) {
   const finish = () => {
     const pop = $('score-pop');
     pop.textContent = `+${result.score.toLocaleString()}`;
+    const r0 = pop.getBoundingClientRect();
+    // 分级爆发：赤橙黄绿青紫，越高越炸
+    const tier = scoreBurst(r0.left + r0.width / 2, r0.top, result.score);
+    pop.className = tier.cls;        // 颜色随档位
     pop.classList.add('on');
-    const r = pop.getBoundingClientRect();
-    spawnParticles(r.left + r.width / 2, r.top, Math.min(70, 22 + result.score / 40), '#f0c060');
-    if (result.score >= 2000) { shakeScreen(true); spawnParticles(r.left + r.width / 2, r.top, 50, '#fff'); }
-    else if (result.score >= 600) shakeScreen(false);
+    if (result.score >= 5000) shakeScreen(true);
+    else if (result.score >= 800) shakeScreen(false);
     setTimeout(() => {
       pop.classList.remove('on');
       onDone?.();

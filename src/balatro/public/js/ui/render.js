@@ -415,24 +415,61 @@ export async function showMainMenu() {
   if (G.phase !== PHASES.MENU) return;   // 异步期间阶段已变
 
   const statsHtml = stats && stats.games
-    ? `<div class="menu-stats">局数 ${stats.games} · 胜场 ${stats.wins ?? 0} · 最佳一手 ${(stats.bestScore ?? 0).toLocaleString()} · 最高底注 ${stats.bestAnte ?? 0}</div>`
+    ? `<div class="menu-stats">局数 <b>${stats.games}</b> · 胜场 <b>${stats.wins ?? 0}</b> · 最佳一手 <b>${(stats.bestScore ?? 0).toLocaleString()}</b> · 最高底注 <b>${stats.bestAnte ?? 0}</b></div>`
     : '';
   const contHtml = save
-    ? `<button class="btn btn-shop-go" id="menu-continue">继续 · ANTE ${save.ante} · $${save.money}</button>`
+    ? `<button class="btn btn-shop-go menu-btn" id="menu-continue"><span>继续 · ANTE ${save.ante} · $${save.money}</span></button>`
     : '';
+  // 背景浮动卡牌（四花色 A + 王冠 Joker）
+  const floatCards = ['spades', 'hearts', 'clubs', 'diamonds'].map((s, i) =>
+    `<div class="mfc mfc-${i}">${cardFaceSVG({ suit: s, rank: 'A' })}</div>`).join('');
   showOverlay(`
-    <div class="panel menu-panel">
-      <h1>🃏 小丑牌</h1>
-      <div class="panel-sub">BALATRO 复刻 · M1</div>
-      ${statsHtml}
-      <div class="menu-actions">
-        ${contHtml}
-        <button class="btn btn-play" id="menu-new">新游戏</button>
-        <div class="seed-row">
-          <input id="menu-seed" maxlength="12" placeholder="自定义种子（可选）" spellcheck="false">
+    <div class="menu-stage">
+      ${floatCards}
+      <div class="panel menu-panel">
+        <div class="menu-title">
+          <svg viewBox="0 0 460 150" class="title-svg">
+            <defs>
+              <linearGradient id="mtg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffe9a8"/>
+                <stop offset="0.45" stop-color="#f0c060"/>
+                <stop offset="0.55" stop-color="#c89838"/>
+                <stop offset="1" stop-color="#f8d888"/>
+              </linearGradient>
+              <linearGradient id="mtr" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#ff4c40"/>
+                <stop offset="1" stop-color="#c82818"/>
+              </linearGradient>
+            </defs>
+            <g class="t-suit t-s1"><path d="M0 -9 L7 -1 A4.3 4.3 0 1 1 0.8 4 L0 3.2 L-0.8 4 A4.3 4.3 0 1 1 -7 -1 Z M0 2 C0.8 6 2.2 7.8 4 9.7 L-4 9.7 C-2.2 7.8 -0.8 6 0 2 Z" fill="#2b2b33" transform="translate(38 34) scale(1.9)"/></g>
+            <g class="t-suit t-s2"><path d="M0 9 L-7 1.5 A4.3 4.3 0 1 1 0 -3 A4.3 4.3 0 1 1 7 1.5 Z" fill="url(#mtr)" transform="translate(422 32) scale(1.9)"/></g>
+            <g class="t-suit t-s3"><path d="M0 -9.5 L7 0 L0 9.5 L-7 0 Z" fill="url(#mtr)" transform="translate(30 118) scale(1.9)"/></g>
+            <g class="t-suit t-s4"><g transform="translate(430 116) scale(1.9)"><circle cx="0" cy="-4.6" r="3.8" fill="#2b2b33"/><circle cx="-4" cy="1.4" r="3.8" fill="#2b2b33"/><circle cx="4" cy="1.4" r="3.8" fill="#2b2b33"/><path d="M0 0.5 C0.8 5 2.2 7 4 9 L-4 9 C-2.2 7 -0.8 5 0 0.5 Z" fill="#2b2b33"/></g></g>
+            <text x="230" y="82" text-anchor="middle" class="t-main">小丑牌</text>
+            <text x="230" y="126" text-anchor="middle" class="t-sub">B A L A T R O</text>
+          </svg>
         </div>
+        ${statsHtml}
+        <div class="menu-actions">
+          ${contHtml}
+          <button class="btn btn-play menu-btn" id="menu-new"><span>新 游 戏</span></button>
+          <div class="seed-row">
+            <input id="menu-seed" maxlength="12" placeholder="自定义种子（可选）" spellcheck="false">
+          </div>
+        </div>
+        <div class="menu-foot">150 小丑 · 28 Boss · 32 优惠券 · 原创程序化美术</div>
       </div>
     </div>`);
+  // 视差：鼠标移动时浮动卡牌轻微跟随
+  const stage = els.overlay.querySelector('.menu-stage');
+  stage.addEventListener('pointermove', e => {
+    const dx = (e.clientX / innerWidth - 0.5), dy = (e.clientY / innerHeight - 0.5);
+    stage.querySelectorAll('.mfc').forEach((el, i) => {
+      const depth = 14 + i * 8;
+      el.style.setProperty('--px', `${(-dx * depth).toFixed(1)}px`);
+      el.style.setProperty('--py', `${(-dy * depth).toFixed(1)}px`);
+    });
+  });
   $('menu-new').addEventListener('click', () => {
     const seed = $('menu-seed').value.trim().toUpperCase();
     round.startRun(seed ? { seed } : {});
