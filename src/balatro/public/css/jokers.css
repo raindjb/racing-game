@@ -1,37 +1,37 @@
 /* jokers.css — Joker/消耗牌 槽位与卡面：稀有度边框、脉冲、出售提示 */
 
-.card-row { min-height: 116px; }
+.card-row { min-height: 142px; }
 
 .j-slot {
-  width: 82px; height: 112px;
-  border-radius: 9px;
-  border: 2px dashed rgba(255, 255, 255, 0.12);
+  width: 100px; height: 136px;
+  border-radius: 10px;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
   display: flex; align-items: center; justify-content: center;
-  color: rgba(255, 255, 255, 0.15); font-size: 22px;
+  color: rgba(255, 255, 255, 0.18); font-size: 26px;
   flex-shrink: 0;
 }
 
 .j-card {
   position: relative;
-  width: 82px; height: 112px;
-  border-radius: 9px;
+  width: 100px; height: 136px;
+  border-radius: 10px;
   cursor: pointer;
   transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
   flex-shrink: 0;
 }
 .j-card:hover { transform: translateY(-8px) scale(1.05); z-index: 20; }
-.j-card svg { width: 100%; height: 100%; display: block; border-radius: 9px; }
+.j-card svg { width: 100%; height: 100%; display: block; border-radius: 10px; }
 
 .j-card .j-name {
-  position: absolute; top: 4px; left: 4px; right: 4px;
-  font-size: 10px; font-weight: 800; color: #fff;
+  position: absolute; top: 5px; left: 5px; right: 5px;
+  font-size: 14px; font-weight: 800; color: #fff;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   text-align: center; pointer-events: none;
 }
 .j-card .j-desc {
-  position: absolute; bottom: 4px; left: 3px; right: 3px;
-  font-size: 8px; line-height: 1.25; color: rgba(255, 255, 255, 0.92);
+  position: absolute; bottom: 5px; left: 5px; right: 5px;
+  font-size: 12px; line-height: 1.3; color: rgba(255, 255, 255, 0.92);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
   text-align: center; pointer-events: none;
 }
@@ -57,7 +57,7 @@
 /* 出售提示 */
 .j-card .sell-tip {
   position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
-  font-size: 9px; color: #ff9d94; white-space: nowrap;
+  font-size: 12px; color: #ff9d94; white-space: nowrap;
   opacity: 0; transition: opacity 0.18s; pointer-events: none;
 }
 .j-card:hover .sell-tip { opacity: 1; }
@@ -65,10 +65,10 @@
 /* 计数徽章（成长型 Joker） */
 .j-card .j-count {
   position: absolute; top: -6px; right: -6px;
-  min-width: 20px; height: 20px; border-radius: 10px;
+  min-width: 24px; height: 24px; border-radius: 12px;
   background: var(--red); color: #fff;
-  font-size: 11px; font-weight: 800;
+  font-size: 14px; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
-  padding: 0 5px;
+  padding: 0 6px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }

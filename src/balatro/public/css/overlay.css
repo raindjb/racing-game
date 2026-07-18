@@ -43,9 +43,9 @@
 .bc-icon.small, .bc-icon.big { background: none; border: none; }
 .bc-icon.boss { background: none; border: none; animation: bossPulse 1.6s ease-in-out infinite; border-radius: 50%; }
 .bc-name { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
-.bc-target { font-size: 13px; color: var(--red); font-weight: 700; }
-.bc-reward { font-size: 12px; color: var(--gold-bright); margin-top: 4px; }
-.bc-boss-desc { font-size: 11px; color: #ff9d94; margin-top: 8px; line-height: 1.4; }
+.bc-target { font-size: 15px; color: var(--red); font-weight: 700; }
+.bc-reward { font-size: 14px; color: var(--gold-bright); margin-top: 4px; }
+.bc-boss-desc { font-size: 13px; color: #ff9d94; margin-top: 8px; line-height: 1.4; }
 
 /* 现金结算 */
 .round-end { min-width: 380px; }
@@ -109,21 +109,21 @@
 .s-icon { width: 52px; height: 52px; margin-bottom: 2px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4)); }
 .s-icon svg { width: 100%; height: 100%; }
 .s-name { font-size: 14px; font-weight: 800; text-align: center; line-height: 1.2; }
-.s-desc { font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.4; }
+.s-desc { font-size: 13px; color: var(--text-dim); text-align: center; line-height: 1.4; }
 .s-price {
   position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
   font-size: 16px; font-weight: 900; color: var(--gold-bright);
   text-shadow: 0 0 8px rgba(240, 192, 96, 0.25);
 }
-.s-rarity { font-size: 10px; padding: 2px 8px; border-radius: 4px; }
+.s-rarity { font-size: 12px; padding: 3px 8px; border-radius: 4px; }
 .s-rarity.r-common { background: #4a5462; color: #cdd6e0; }
 .s-rarity.r-uncommon { background: var(--rarity-uncommon); color: #0c2414; }
 .s-rarity.r-rare { background: var(--rarity-rare); color: #2c0906; }
 
 .s-item .s-tag {
   position: absolute; top: 4px; right: 4px;
-  font-size: 11px; background: rgba(0,0,0,0.5);
-  padding: 1px 5px; border-radius: 3px;
+  font-size: 12px; background: rgba(0,0,0,0.5);
+  padding: 2px 6px; border-radius: 3px;
   color: var(--text-dim);
 }
 
@@ -212,7 +212,7 @@
 .menu-btn:hover { transform: translateY(-3px) scale(1.03); }
 
 .menu-foot {
-  margin-top: 20px; font-size: 11px; letter-spacing: 2px;
+  margin-top: 20px; font-size: 12px; letter-spacing: 2px;
   color: rgba(200, 200, 190, 0.4);
 }
 
@@ -250,4 +250,4 @@
 }
 .gc-icon { font-size: 28px; color: var(--gc-c); text-shadow: 0 0 8px var(--gc-c); }
 .gc-name { font-size: 15px; font-weight: 800; color: var(--gc-c); }
-.gc-desc { font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.4; }
+.gc-desc { font-size: 13px; color: var(--text-dim); text-align: center; line-height: 1.4; }

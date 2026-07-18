@@ -45,5 +45,5 @@ body {
 
 button { font-family: inherit; color: inherit; }
 
-.lbl { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+.lbl { font-size: 13px; color: var(--text-dim); letter-spacing: 1px; }
 .dim { color: var(--text-dim); }
