@@ -2,7 +2,7 @@
 import { ac, masterNode } from './sfx.js';
 
 const NORMAL_BPM = 84;
-const BOSS_BPM = 72;               // Boss 更慢更沉
+const BOSS_BPM = 56;               // Boss 诡异慢速
 const SWING = 0.62;
 const LOOKAHEAD_MS = 25;
 const SCHEDULE_AHEAD = 0.15;
@@ -23,12 +23,12 @@ const PROG_NORMAL = [
   { bass: 'G2',  chord: ['G3','A#3','D4','F4'] },
   { bass: 'C2',  chord: ['C3','E3','G3','A#3'] },
 ];
-// Boss：Dm7-A#maj7-Gm7-A7（更暗的色调，但保留和弦进行）
+// Boss：Dm7–B♭m6–Gm7–A♭dim（诡异：半音移动 + 减和弦紧张，不定向）
 const PROG_BOSS = [
-  { bass: 'D2',  chord: ['D3','F3','A3','C4'] },
-  { bass: 'A#1', chord: ['A#2','D3','F3','A3'] },
-  { bass: 'G2',  chord: ['G3','A#3','D4','F4'] },
-  { bass: 'A1',  chord: ['A2','C#3','E3','G3'] },
+  { bass: 'D2',  chord: ['D3','F3','A3','C4'] },          // Dm7
+  { bass: 'A#1', chord: ['A#2','C#3','F3','G3'] },       // B♭m6（半音中音）
+  { bass: 'G2',  chord: ['G3','A#3','D4','F4'] },         // Gm7
+  { bass: 'G#1', chord: ['G#2','B2','D3','F3'] },         // G#dim（减和弦紧张，不定向）
 ];
 
 let running = false;
@@ -46,6 +46,7 @@ let bossPadOscs = [];
 export function setBossMode(on) {
   prog = on ? PROG_BOSS : PROG_NORMAL;
   bpm = on ? BOSS_BPM : NORMAL_BPM;
+  if (musicGain) musicGain.gain.value = on ? 0.22 : 0.16;
   if (on && running) startBossPad();
   else stopBossPad();
 }
@@ -56,7 +57,7 @@ export function startMusic() {
   const c = ac();
   running = true;
   musicGain = c.createGain();
-  musicGain.gain.value = 0.16;
+  musicGain.gain.value = prog === PROG_BOSS ? 0.22 : 0.16;
   musicGain.connect(masterNode());
   nextBeat = c.currentTime + 0.1;
   nextDrop = c.currentTime + 0.1;
@@ -86,8 +87,11 @@ function schedule() {
     nextBeat += (beatIdx % 2 === 0) ? eighth * 2 * SWING : eighth * 2 * (1 - SWING);
     beatIdx++;
   }
+  // 雨滴间隔：Boss 慢一倍（诡异稀疏感）
+  const rainMin = prog === PROG_BOSS ? 0.15 : 0.06;
+  const rainMax = prog === PROG_BOSS ? 0.35 : 0.18;
   while (nextDrop < c.currentTime + SCHEDULE_AHEAD) {
-    nextDrop += 0.06 + Math.random() * 0.18;
+    nextDrop += rainMin + Math.random() * (rainMax - rainMin);
     raindrop(nextDrop, c);
   }
 }
@@ -192,7 +196,7 @@ function darkHat(t, c) {
   const d = buf.getChannelData(0);
   for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * (1 - k / len);
   const src = c.createBufferSource(); src.buffer = buf;
-  const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3100; f.Q.value = 0.5;
+  const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.5;
   const g = c.createGain();
   g.gain.setValueAtTime(0.04 + Math.random() * 0.03, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
@@ -233,7 +237,7 @@ function strum(chordNotes, t, c, vol, isBoss = false) {
     const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
     o.type = isBoss ? 'sawtooth' : 'triangle';
     o.frequency.value = N[name] * (1 + (Math.random() - 0.5) * 0.0015);
-    f.type = 'lowpass'; f.frequency.value = isBoss ? 700 : 1600;
+    f.type = 'lowpass'; f.frequency.value = isBoss ? 480 : 1600;
     const at = t + i * (isBoss ? 0.022 : 0.012);  // Boss 和弦更散
     const dur = isBoss ? 1.6 : 1.15;
     g.gain.setValueAtTime(0.0001, at);
