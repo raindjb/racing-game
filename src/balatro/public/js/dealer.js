@@ -82,6 +82,15 @@ export function initDealer() {
 
   // 事件监听
   bus.on('hand:played', onHandPlayed);
+  bus.on('phase', ({ phase }) => {
+    // 浮层遮罩时隐藏发牌员（z-index 低于 overlay-backdrop 的 300）
+    if (phase === PHASES.MENU || phase === PHASES.BLIND_SELECT || phase === PHASES.SHOP ||
+        phase === PHASES.BOOSTER || phase === PHASES.ROUND_END || phase === PHASES.GAME_OVER || phase === PHASES.WIN) {
+      container.style.zIndex = '5';
+    } else {
+      container.style.zIndex = '10';
+    }
+  });
   bus.on('round:won', () => say(LINES.round_won));
   bus.on('run:won', () => { say(LINES.run_won); setExpression('amazed'); });
   bus.on('run:lost', () => { say(LINES.run_lost); setExpression('sad'); });
