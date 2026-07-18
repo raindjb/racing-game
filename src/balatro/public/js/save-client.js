@@ -1,6 +1,7 @@
 // save-client.js — 前端存档客户端：REST 优先，localStorage 兜底
 import { G, PHASES, bus } from './state.js';
 import { serializeRun } from './serialize.js';
+import { awardChips } from './upgrades.js';
 
 const LS_RUN = 'balatro_run';
 const LS_STATS = 'balatro_stats';
@@ -67,12 +68,16 @@ export async function fetchStats() {
   try { return JSON.parse(localStorage.getItem(LS_STATS)) ?? null; } catch (e) { return null; }
 }
 
+const LS_CHIP_RESULT = 'balatro_last_chip';
+function saveChipResult(info) { try { localStorage.setItem(LS_CHIP_RESULT, JSON.stringify(info)); } catch (e) {} }
+export function getLastChipResult() { try { return JSON.parse(localStorage.getItem(LS_CHIP_RESULT)); } catch (e) { return null; } }
+
 /** 自动存档挂钩：盲注选择/商店/每次出弃牌落地后保存；终局清档+记录 */
 export function initSaveClient() {
   bus.on('phase', ({ phase }) => {
     if (phase === PHASES.BLIND_SELECT || phase === PHASES.SHOP) saveNow();
-    if (phase === PHASES.GAME_OVER) { recordResult(false); clearSave(); }
-    if (phase === PHASES.WIN) { recordResult(true); clearSave(); }
+    if (phase === PHASES.GAME_OVER) { awardChips(false, G.ante, G.stats.bestHandScore); recordResult(false); clearSave(); }
+    if (phase === PHASES.WIN) { const chip = awardChips(true, G.ante, G.stats.bestHandScore); saveChipResult(chip); recordResult(true); clearSave(); }
   });
   bus.on('hand:resolved', saveNow);
   bus.on('hand:discarded', saveNow);

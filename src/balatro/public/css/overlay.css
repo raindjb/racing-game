@@ -267,3 +267,25 @@
 .gc-icon { font-size: 28px; color: var(--gc-c); text-shadow: 0 0 8px var(--gc-c); }
 .gc-name { font-size: 15px; font-weight: 800; color: var(--gc-c); }
 .gc-desc { font-size: 13px; color: var(--text-dim); text-align: center; line-height: 1.4; }
+
+/* ===== 升级面板 ===== */
+.up-panel { min-width: 500px; }
+.up-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.up-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--panel); border: 1px solid var(--panel-line);
+  border-radius: 10px; padding: 10px 14px;
+}
+.up-row.up-maxed { opacity: 0.55; border-style: dashed; }
+.up-info { flex: 1; text-align: left; }
+.up-name { font-size: 15px; font-weight: 800; }
+.up-lv { font-size: 12px; color: var(--text-dim); font-weight: 400; }
+.up-desc { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.up-btn { min-width: 70px; padding: 8px 16px !important; font-size: 14px !important; }
+.btn-dis { opacity: 0.4; pointer-events: none; }
+.menu-chips {
+  font-size: 16px; color: var(--text-dim); letter-spacing: 1px;
+  background: rgba(255,255,255,0.05); border-radius: 10px;
+  padding: 8px 16px; margin-bottom: 10px;
+}
+.menu-chips b { color: var(--gold-bright); }

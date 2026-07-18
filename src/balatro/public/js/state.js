@@ -129,6 +129,8 @@ export function initRun({ seed, difficulty = 'normal' } = {}) {
   // 应用难度预设
   const diff = DIFFICULTIES[difficulty] ?? DIFFICULTIES.normal;
   Object.assign(G.config, diff);
+  // 应用永久升级
+  import('./upgrades.js').then(m => m.applyUpgrades(G.config));
   G.config.diffKey = difficulty;
   G.money = G.config.startMoney;
   G.ante = 1; G.blindIndex = 0; G.round = 0;

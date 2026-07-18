@@ -20,7 +20,8 @@ import { SPECTRAL_MAP } from '../data/spectrals.js';
 import { VOUCHER_MAP } from '../data/vouchers.js';
 import { tarotIcon, planetIcon, spectralIcon, packIcon, voucherIcon, blindIcon } from '../svg/icons.js';
 import { playScoreAnimation } from './score-popup.js';
-import { loadSave, fetchStats } from '../save-client.js';
+import { loadSave, fetchStats, getLastChipResult } from '../save-client.js';
+import { getChips, UPGRADES, getUpgrades, buyUpgrade } from '../upgrades.js';
 
 const $ = id => document.getElementById(id);
 let els = {};
@@ -483,6 +484,8 @@ export async function showMainMenu() {
           </svg>
         </div>
         ${statsHtml}
+        <div class="menu-chips">🪙 筹码 <b>${getChips()}</b>${(() => { const r = getLastChipResult(); return r ? ` · 上局 +${r.earned}` : ''; })()}</div>
+        ${getChips() >= (UPGRADES[0]?.baseCost ?? 999) ? `<button class="btn btn-ghost menu-btn" id="menu-upgrades"><span>🔧 升级面板</span></button>` : ''}
         <div class="menu-actions">
           ${contHtml}
           <div class="diff-row" id="diff-select">
@@ -528,6 +531,48 @@ export async function showMainMenu() {
       syncAll();
     }
   });
+  $('menu-upgrades')?.addEventListener('click', showUpgrades);
+}
+
+// ===== 升级面板 =====
+export function showUpgrades() {
+  const chips = getChips();
+  const ups = getUpgrades();
+  const rows = UPGRADES.map(u => {
+    const lv = ups[u.id] || 0;
+    const maxed = lv >= u.max;
+    const cost = maxed ? 0 : u.baseCost + lv * u.costStep;
+    const canBuy = !maxed && chips >= cost;
+    return `<div class="up-row ${maxed ? 'up-maxed' : ''}">
+      <div class="up-info">
+        <div class="up-name">${u.zh} <span class="up-lv">Lv${lv}/${u.max}</span></div>
+        <div class="up-desc">${u.desc}</div>
+      </div>
+      <button class="btn btn-ghost up-btn ${canBuy ? '' : 'btn-dis'}" data-up="${u.id}" ${canBuy ? '' : 'disabled'}>
+        ${maxed ? '已满' : `$${cost}`}
+      </button>
+    </div>`;
+  }).join('');
+
+  showOverlay(`
+    <div class="panel up-panel">
+      <h2>🔧 永久升级</h2>
+      <div class="panel-sub">🪙 筹码 <b style="color:var(--gold-bright)">${chips}</b> — 每局通关/高分获得，永久保留</div>
+      <div class="up-list">${rows}</div>
+      <div class="panel-actions">
+        <button class="btn btn-ghost" id="up-close">返回</button>
+      </div>
+    </div>`);
+
+  // 绑定购买
+  els.overlay.querySelectorAll('.up-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const r = buyUpgrade(btn.dataset.up);
+      flashMessage(r.msg);
+      if (r.ok) showUpgrades();  // 刷新面板
+    });
+  });
+  $('up-close').addEventListener('click', () => showMainMenu());
 }
 
 // ===== 图鉴面板（版本 + 强化） =====
