@@ -196,6 +196,12 @@ function syncPreview() {
     $('calc-chips').textContent = '0'; $('calc-mult').textContent = '0';
     return;
   }
+  // Boss 盖牌：不暴露牌型预览（否则玩家可通过预览反推盖牌内容）
+  if (sel.some(c => c.faceDown)) {
+    $('hand-type-label').textContent = '???';
+    $('calc-chips').textContent = '?'; $('calc-mult').textContent = '?';
+    return;
+  }
   const ev = evalHand(sel, round.evalOptsFromJokers());
   const ht = HAND_TYPE_MAP[ev.handType];
   const lv = G.handLevels[ev.handType] ?? 1;
@@ -216,6 +222,14 @@ function syncSidebar() {
   const b = BLINDS[G.blindIndex];
   $('blind-name').textContent = G.blindIndex === 2 && G.boss ? G.boss.zh : b.zh;
   $('blind-reward').textContent = `$${b.reward}`;
+  // Boss 效果提示
+  const bossEl = $('boss-effect');
+  if (G.boss) {
+    bossEl.style.display = 'block';
+    bossEl.textContent = `⚠ ${G.boss.desc}`;
+  } else {
+    bossEl.style.display = 'none';
+  }
   const icon = $('blind-icon');
   icon.className = ['small', 'big', 'boss'][G.blindIndex] ?? 'small';
   icon.innerHTML = blindIcon(['small', 'big', 'boss'][G.blindIndex] ?? 'small');
