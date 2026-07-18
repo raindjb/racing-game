@@ -2,6 +2,7 @@
 import { bus, G, PHASES } from '../state.js';
 import { SFX, ac, toggleSfx, isSfxMuted } from './sfx.js';
 import { startMusic, toggleMusic, isMusicOn, setBossMode } from './music.js';
+import { setBossBackground } from '../shaders/background.js';
 
 let unlocked = false;
 
@@ -37,11 +38,12 @@ export function initAudio() {
   bus.on('shop:enter', () => SFX.packOpen());
   bus.on('blind:start', ({ boss }) => {
     setBossMode(!!boss);
+    setBossBackground(!!boss);
     boss ? SFX.bossWarn() : SFX.blindStart();
   });
   bus.on('phase', ({ phase }) => {
     if (phase === PHASES.BOOSTER) SFX.packOpen();
-    if (phase === PHASES.BLIND_SELECT) setBossMode(false);
+    if (phase === PHASES.BLIND_SELECT) { setBossMode(false); setBossBackground(false); }
   });
 
   // 静音按钮

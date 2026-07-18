@@ -39,8 +39,13 @@ let beatIdx = 0;       // 全局八分音符计数
 let prog = PROG_NORMAL;
 let rainNodes = [];    // 雨声层节点（替代原黑胶噪声）
 let nextDrop = 0;      // 下一枚雨滴时间
+let droneOsc = null, droneGain = null;  // Boss 紧张低音持续音
 
-export function setBossMode(on) { prog = on ? PROG_BOSS : PROG_NORMAL; }
+export function setBossMode(on) {
+  prog = on ? PROG_BOSS : PROG_NORMAL;
+  if (on && running) startBossDrone();
+  else stopBossDrone();
+}
 export function isMusicOn() { return running; }
 
 export function startMusic() {
@@ -59,6 +64,7 @@ export function startMusic() {
 
 export function stopMusic() {
   running = false;
+  stopBossDrone();
   clearInterval(timer); timer = null;
   rainNodes.forEach(n => { try { n.src.stop(); } catch (e) {} n.src.disconnect(); });
   rainNodes = [];
@@ -87,11 +93,18 @@ function scheduleBeat(i, t, c) {
   const eighthInBar = i % 8;      // 每小节 8 个八分音符
   const bar = Math.floor(i / 8) % 4;
   const ch = prog[bar];
+  const bossNow = prog === PROG_BOSS;
 
-  // 鼓
-  if (eighthInBar === 0 || eighthInBar === 4) kick(t, c);
-  if (eighthInBar === 2 || eighthInBar === 6) snare(t, c);
-  hat(t, c, eighthInBar % 2 === 1 ? 0.02 : 0.036);
+  // 鼓（Boss 态：每拍沉重 kick + 低沉军鼓）
+  if (bossNow) {
+    kick(t, c, true);                                      // 每拍 kick
+    if (eighthInBar === 2 || eighthInBar === 6) bossSnare(t, c);  // 低沉重击
+    hat(t, c, (eighthInBar % 2 === 1 ? 0.014 : 0.022));   // 帽子轻
+  } else {
+    if (eighthInBar === 0 || eighthInBar === 4) kick(t, c);
+    if (eighthInBar === 2 || eighthInBar === 6) snare(t, c);
+    hat(t, c, eighthInBar % 2 === 1 ? 0.02 : 0.036);
+  }
 
   // 贝斯：1 拍根音、3 拍五度
   if (eighthInBar === 0) bassNote(N[ch.bass], t, c);
@@ -102,15 +115,32 @@ function scheduleBeat(i, t, c) {
   if (eighthInBar === 5) strum(ch.chord, t, c, 0.035);
 }
 
-function kick(t, c) {
+function kick(t, c, heavy = false) {
   const o = c.createOscillator(), g = c.createGain();
   o.type = 'sine';
-  o.frequency.setValueAtTime(115, t);
-  o.frequency.exponentialRampToValueAtTime(42, t + 0.11);
-  g.gain.setValueAtTime(0.5, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+  const startFreq = heavy ? 160 : 115;
+  const endFreq = heavy ? 35 : 42;
+  const amp = heavy ? 0.65 : 0.5;
+  o.frequency.setValueAtTime(startFreq, t);
+  o.frequency.exponentialRampToValueAtTime(endFreq, t + 0.11);
+  g.gain.setValueAtTime(amp, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + (heavy ? 0.2 : 0.16));
   o.connect(g); g.connect(musicGain);
-  o.start(t); o.stop(t + 0.18);
+  o.start(t); o.stop(t + (heavy ? 0.22 : 0.18));
+}
+
+/** Boss 低沉重击（更深的频率、更大的振幅） */
+function bossSnare(t, c) {
+  const len = Math.ceil(c.sampleRate * 0.12);
+  const buf = c.createBuffer(1, len, c.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / len, 2.4);
+  const src = c.createBufferSource(); src.buffer = buf;
+  const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1200; f.Q.value = 1.1;
+  const g = c.createGain(); g.gain.setValueAtTime(0.3, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  src.connect(f); f.connect(g); g.connect(musicGain);
+  src.start(t);
 }
 
 function snare(t, c) {
@@ -192,6 +222,38 @@ function rainLayer(c, { dur, type, freq, q, gain }) {
   src.connect(f); f.connect(g); g.connect(musicGain);
   src.start();
   rainNodes.push({ src });
+}
+
+// ===== Boss 紧张低音持续音（27.5Hz 亚低音 + 轻微失谐拍频） =====
+function startBossDrone() {
+  if (droneOsc) return;
+  const c = ac();
+  droneGain = c.createGain();
+  droneGain.gain.setValueAtTime(0.0001, c.currentTime);
+  droneGain.gain.linearRampToValueAtTime(0.08, c.currentTime + 0.6);
+  droneGain.connect(musicGain);
+  // 两个略微失谐的正弦波产生脉动拍频
+  for (const f of [55, 56.5]) {
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = f;
+    o.connect(droneGain);
+    o.start();
+    if (!droneOsc) droneOsc = [o]; else droneOsc.push(o);
+  }
+}
+
+function stopBossDrone() {
+  if (!droneOsc) return;
+  if (droneGain) {
+    droneGain.gain.setValueAtTime(droneGain.gain.value, ac().currentTime);
+    droneGain.gain.linearRampToValueAtTime(0.001, ac().currentTime + 0.4);
+  }
+  setTimeout(() => {
+    if (droneOsc) droneOsc.forEach(o => { try { o.stop(); } catch (e) {} o.disconnect(); });
+    if (droneGain) droneGain.disconnect();
+    droneOsc = null; droneGain = null;
+  }, 420);
 }
 
 /** 单枚雨滴：短促滤波噪点（2-5kHz，音量低于乐器层） */
