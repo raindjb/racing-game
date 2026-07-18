@@ -70,11 +70,40 @@ export const SFX = {
   discard()    { noise({ dur: 0.16, from: 2600, to: 300, gain: 0.11 }); },
   drag()       { noise({ dur: 0.05, from: 2000, to: 1400, gain: 0.04 }); },
 
-  // 结算
-  chipTick(i = 0) { tone(500 + i * 60, { type: 'square', dur: 0.05, gain: 0.09, ff: 4500 }); },
-  multTick(i = 0) { tone(300 + i * 45, { type: 'sawtooth', dur: 0.06, gain: 0.08, ff: 2500 }); },
-  xmult()      { tone(220, { type: 'sawtooth', dur: 0.22, gain: 0.16, ff: 2000, slideTo: 440 }); },
+  // 结算（芯片=亮短叮 / 倍率=暖共鸣 / ×倍=戏剧化上行）
+  chipTick(i = 0) {
+    // 芯片计分：清脆高频短音，逐步升调
+    tone(900 + i * 110, { type: 'triangle', dur: 0.06, gain: 0.11, ff: 8000 });
+    tone(1200 + i * 130, { type: 'sine', dur: 0.04, gain: 0.05, ff: 9000, delay: 0.01 });
+  },
+  multTick(i = 0) {
+    // 倍率计分：中频共鸣"咚"，与芯片完全不同
+    tone(350 + i * 55, { type: 'sine', dur: 0.15, gain: 0.14, ff: 1400 });
+    noise({ dur: 0.07, from: 400, to: 200, gain: 0.06, type: 'lowpass', delay: 0.02 });
+  },
+  xmult() {
+    // ×倍率：戏剧化频率攀升
+    tone(180, { type: 'sawtooth', dur: 0.28, gain: 0.18, ff: 2500, slideTo: 520 });
+    tone(360, { type: 'sine', dur: 0.15, gain: 0.1, ff: 2000, slideTo: 720, delay: 0.06 });
+  },
   jokerTrigger() { tone(1180, { dur: 0.07, gain: 0.13, ff: 9000 }); tone(1570, { dur: 0.06, gain: 0.09, delay: 0.05 }); },
+  // 档位收场音：分数越高越华丽
+  scoreFanfare(tierLevel) {
+    switch (tierLevel) {
+      case 0: seq([523, 659], { step: 0.08, gain: 0.13, type: 'triangle' }); break;
+      case 1: seq([523, 659, 784], { step: 0.06, gain: 0.15, type: 'triangle' }); break;
+      case 2: seq([392, 523, 659, 784], { step: 0.06, gain: 0.16, type: 'triangle' }); tone(1047, { dur: 0.1, gain: 0.08, delay: 0.24 }); break;
+      case 3: seq([392, 523, 659, 784, 1047], { step: 0.05, gain: 0.18, type: 'triangle' }); noise({ dur: 0.14, from: 200, to: 80, gain: 0.12, type: 'lowpass', delay: 0.25 }); break;
+      case 4: seq([262, 392, 523, 659, 784, 1047], { step: 0.05, gain: 0.2, type: 'triangle' }); tone(55, { type: 'sine', dur: 0.35, gain: 0.18, ff: 300, delay: 0.28 }); noise({ dur: 0.18, from: 160, to: 60, gain: 0.15, type: 'lowpass', delay: 0.28 }); break;
+      case 5: seq([196, 262, 392, 523, 659, 784, 1047, 1319], { step: 0.04, gain: 0.22, type: 'triangle' }); tone(44, { type: 'sine', dur: 0.45, gain: 0.22, ff: 250, delay: 0.3 }); noise({ dur: 0.25, from: 120, to: 45, gain: 0.2, type: 'lowpass', delay: 0.3 }); break;
+      case 6: // 紫档：全音阶爆发 + 重低音冲击
+        tone(33, { type: 'sine', dur: 0.6, gain: 0.28, ff: 200 });
+        noise({ dur: 0.35, from: 100, to: 30, gain: 0.28, type: 'lowpass' });
+        seq([196, 262, 392, 523, 659, 784, 1047, 1319, 1568, 2093], { step: 0.035, gain: 0.24, type: 'triangle', delay: 0.05 });
+        noise({ dur: 0.4, from: 8000, to: 200, gain: 0.16, type: 'bandpass', delay: 0.3 });
+        break;
+    }
+  },
   scoreTotal() { seq([523, 659, 784, 1047], { step: 0.06, gain: 0.15 }); },
   bigScore()   { seq([392, 523, 659, 784, 1047, 1319], { step: 0.05, gain: 0.18 }); },
   glassBreak() { noise({ dur: 0.3, from: 8000, to: 2500, gain: 0.2, type: 'highpass' }); tone(2400, { dur: 0.12, gain: 0.08, slideTo: 900 }); },

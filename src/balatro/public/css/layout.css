@@ -124,10 +124,7 @@
   display: flex; gap: 10px; justify-content: center;
   align-items: center; min-height: 150px;
 }
-#score-pop {
-  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-  font-size: 30px; font-weight: 900; color: #fff; pointer-events: none;
-}
+/* #score-pop 样式已迁移至 cards.css（含 7 档颜色分级） */
 
 /* ===== 手牌区 ===== */
 #hand-wrap { position: relative; flex-shrink: 0; }

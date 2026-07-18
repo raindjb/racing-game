@@ -110,21 +110,28 @@
 }
 
 /* 分数弹出（tier-0~6 = 白赤橙黄绿青紫，档位越高越大越亮） */
-#score-pop { opacity: 0; transition: opacity 0.25s, transform 0.25s; transform: translateX(-50%) scale(0.6); }
-#score-pop.on { opacity: 1; transform: translateX(-50%) scale(1); }
-#score-pop.tier-0 { color: #e8e4d8; text-shadow: 0 0 22px rgba(232, 228, 216, 0.55); }
-#score-pop.tier-1 { color: #ff6a58; text-shadow: 0 0 26px rgba(255, 76, 64, 0.7); }
-#score-pop.tier-2 { color: #ffa048; text-shadow: 0 0 28px rgba(255, 144, 48, 0.75); }
-#score-pop.tier-3 { color: #ffe25a; text-shadow: 0 0 32px rgba(255, 216, 58, 0.8); }
-#score-pop.tier-4 { color: #62ff86; text-shadow: 0 0 34px rgba(75, 255, 110, 0.8); }
-#score-pop.tier-5 { color: #58f0ff; text-shadow: 0 0 38px rgba(58, 232, 232, 0.85); }
+#score-pop {
+  opacity: 0; transition: opacity 0.25s, transform 0.25s, font-size 0.25s;
+  transform: translateX(-50%) scale(0.6);
+  font-size: 30px; font-weight: 900; pointer-events: none;
+  position: absolute; bottom: 4px; left: 50%;
+}
+#score-pop.on { opacity: 1; }
+#score-pop.tier-0 { color: #e8e4d8 !important; text-shadow: 0 0 22px rgba(232, 228, 216, 0.55); }
+#score-pop.tier-1 { color: #ff6a58 !important; text-shadow: 0 0 26px rgba(255, 76, 64, 0.7); }
+#score-pop.tier-2 { color: #ffa048 !important; text-shadow: 0 0 28px rgba(255, 144, 48, 0.75); }
+#score-pop.tier-3 { color: #ffe25a !important; text-shadow: 0 0 32px rgba(255, 216, 58, 0.8); }
+#score-pop.tier-4 { color: #62ff86 !important; text-shadow: 0 0 34px rgba(75, 255, 110, 0.8); }
+#score-pop.tier-5 { color: #58f0ff !important; text-shadow: 0 0 38px rgba(58, 232, 232, 0.85); }
 #score-pop.tier-6 {
   background: linear-gradient(90deg, #b53aff, #ff52c8, #e088ff, #b53aff);
   background-size: 220% 100%;
-  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-background-clip: text; background-clip: text; color: transparent !important;
   filter: drop-shadow(0 0 20px rgba(181, 58, 255, 0.85));
   animation: tier6flow 1.2s linear infinite;
 }
-#score-pop.tier-4.on, #score-pop.tier-5.on { transform: translateX(-50%) scale(1.15); }
-#score-pop.tier-6.on { transform: translateX(-50%) scale(1.3); }
+#score-pop.tier-0.on, #score-pop.tier-1.on { font-size: 30px; transform: translateX(-50%) scale(1); }
+#score-pop.tier-2.on, #score-pop.tier-3.on { font-size: 38px; transform: translateX(-50%) scale(1.1); }
+#score-pop.tier-4.on, #score-pop.tier-5.on { font-size: 48px; transform: translateX(-50%) scale(1.15); }
+#score-pop.tier-6.on { font-size: 60px; transform: translateX(-50%) scale(1.3); }
 @keyframes tier6flow { to { background-position: 220% 0; } }

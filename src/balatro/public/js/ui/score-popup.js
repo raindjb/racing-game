@@ -1,6 +1,6 @@
 // ui/score-popup.js — 结算逐步跳分：按 steps 日志重放，每步定位来源元素（卡牌/Joker/面板）
 import { SFX } from '../audio/sfx.js';
-import { floatText, scoreBurst, shakeScreen } from './notifications.js';
+import { floatText, scoreBurst, shakeScreen, SCORE_TIERS } from './notifications.js';
 
 const $ = id => document.getElementById(id);
 
@@ -70,12 +70,15 @@ export function playScoreAnimation(result, onDone) {
     const r0 = pop.getBoundingClientRect();
     // 分级爆发：赤橙黄绿青紫，越高越炸
     const tier = scoreBurst(r0.left + r0.width / 2, r0.top, result.score);
-    pop.className = tier.cls;        // 颜色随档位
+    pop.className = tier.cls;
     pop.classList.add('on');
+    // 档位收场音效（0-6 递增华丽度）
+    SFX.scoreFanfare(SCORE_TIERS.indexOf(tier));
     if (result.score >= 5000) shakeScreen(true);
     else if (result.score >= 800) shakeScreen(false);
     setTimeout(() => {
       pop.classList.remove('on');
+      pop.className = '';            // 清除档位颜色残留
       onDone?.();
     }, 750);
   };
