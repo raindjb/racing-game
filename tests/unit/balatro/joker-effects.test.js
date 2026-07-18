@@ -127,8 +127,8 @@ describe('成长型', () => {
     const j = J('ride_the_bus', { state: 2 });
     expect(scoreHand(ctxOf(pairOf9(), { jokers: [j] })).mult).toBe(4);
     const h = getJokerHandlers('ride_the_bus');
-    h.onHandPlayed({}, { scoringCards: [mk('spades', '5')] }, j); expect(j.state).toBe(3);
-    h.onHandPlayed({}, { scoringCards: [mk('spades', 'K')] }, j); expect(j.state).toBe(0);
+    h.onHandPlayed({ playedZone: [mk('spades', '5')], jokers: [] }, {}, j); expect(j.state).toBe(3);
+    h.onHandPlayed({ playedZone: [mk('spades', 'K')], jokers: [] }, {}, j); expect(j.state).toBe(0);
   });
   test('会员卡：第 6 次出牌 ×4', () => {
     expect(scoreHand(ctxOf(pairOf9(), { jokers: [J('loyalty_card', { state: 5 })] })).mult).toBe(8);

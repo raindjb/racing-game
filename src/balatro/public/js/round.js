@@ -162,6 +162,9 @@ export function playSelected({ instant = true } = {}) {
   G.roundScore += result.score;
   G.money += result.moneyDelta;
 
+  // G.lastPlay 必须在 dispatchHook 之前设置——lucky_cat/招财猫读其中的 luckyProcs
+  G.lastPlay = { eval: ev, result };
+
   // Joker 出牌后钩子（需在 handPlayed 计数之前——方尖碑/会员卡等读 pre-increment 值）
   dispatchHook(G.jokers, 'onHandPlayed', G, ev);
 
@@ -170,8 +173,6 @@ export function playSelected({ instant = true } = {}) {
   G.roundPlayedTypes.push(ev.handType);
   G.stats.totalHandsPlayed++;
   if (result.score > G.stats.bestHandScore) G.stats.bestHandScore = result.score;
-
-  G.lastPlay = { eval: ev, result };
   bus.emit('hand:played', { cards, eval: ev, result });
 
   if (instant) resolveAfterScoring();

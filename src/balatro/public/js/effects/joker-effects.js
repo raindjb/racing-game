@@ -105,7 +105,8 @@ const COMPILERS = {
   ride_the_bus: () => ({
     onIndependent: (c, api, j) => api.addMult(j.state, src(j)),
     onHandPlayed: (G, ev, j) => {
-      if (ev.scoringCards.some(x => isFaceCtx(G.jokers, x))) j.state = 0; else j.state++;
+      // 检查所有打出的牌（非仅 scoringCards——附加的非计分人头也应清零）
+      if (G.playedZone.some(x => isFaceCtx(G.jokers, x))) j.state = 0; else j.state++;
     },
   }),
   loyalty: e => ({
@@ -334,8 +335,9 @@ const COMPILERS = {
   delayed_gratification: e => ({ onRoundEnd: (G, j) =>
     G.discardsLeft === G.config.discards ? e.v * G.config.discards : 0 }),
   reserved_parking: e => ({ onRoundEnd: (G, j) => {
+    const p = e.p * (G.jokers.some(x => x.id === 'oops_all_6s') ? 2 : 1);
     let m = 0;
-    for (const c of G.hand) if (isFaceCtx(G.jokers, c) && G.rng.chance(e.p)) m += e.v;
+    for (const c of G.hand) if (isFaceCtx(G.jokers, c) && G.rng.chance(p)) m += e.v;
     return m; } }),
   discard_rank_money: e => ({          // 邮寄回扣：弃[轮换点数]每张 +$5
     onBlindStart: (G, j) => { j.target = G.rng.pick(RANKS); },
@@ -365,10 +367,11 @@ const COMPILERS = {
   // ── 概率/一次性 ──
   gros_michel: e => ({
     onIndependent: (c, api, j) => api.addMult(e.v, src(j)),
-    onRoundEnd: (G, j) => { if (G.rng.chance(e.destroyChance)) selfDestroy(G, j); return 0; },
+    onRoundEnd: (G, j) => { if (G.rng.chance(e.destroyChance * (G.jokers.some(x => x.id === 'oops_all_6s') ? 2 : 1))) selfDestroy(G, j); return 0; },
   }),
   space_joker: e => ({ onHandPlayed: (G, ev, j) => {
-    if (G.rng.chance(e.p)) G.handLevels[ev.handType] = (G.handLevels[ev.handType] ?? 1) + 1; } }),
+    const oops = G.jokers.some(x => x.id === 'oops_all_6s') ? 2 : 1;
+    if (G.rng.chance(e.p * oops)) G.handLevels[ev.handType] = (G.handLevels[ev.handType] ?? 1) + 1; } }),
   seltzer: e => ({
     retriggerScored: () => 1,
     onHandPlayed: (G, ev, j) => { j.state++; if (j.state >= e.uses) selfDestroy(G, j); },
@@ -516,7 +519,8 @@ const COMPILERS = {
   seance: () => ({ onHandPlayed: (G, ev, j) => {
     if (ev.handType === 'straight_flush') G.pendingSpectral = (G.pendingSpectral ?? 0) + 1; } }),
   hallucination: e => ({ onPackOpened: (G, j) => {
-    if (G.rng.chance(e.p)) addConsumable(makeConsumable('tarot', randomTarotId(G.rng))); } }),
+    const p = e.p * (G.jokers.some(x => x.id === 'oops_all_6s') ? 2 : 1);
+    if (G.rng.chance(p)) addConsumable(makeConsumable('tarot', randomTarotId(G.rng))); } }),
 
   // ── 传奇 ──
   canio: () => ({

@@ -78,7 +78,8 @@ export function heldCardTriggers(ctx, card) {
 /** 生命周期分发助手：对每个 Joker 调用（经复制解析的）钩子 */
 export function dispatchHook(jokers, hook, ...args) {
   let acc = 0;
-  for (const j of jokers) {
+  // 浅拷贝防 selfDestroy 在迭代中 splice 导致跳过后续 Joker
+  for (const j of [...jokers]) {
     const h = resolveHandlers(jokers, j);
     const r = h[hook]?.(...args, j);
     if (typeof r === 'number') acc += r;
