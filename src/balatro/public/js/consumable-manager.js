@@ -7,7 +7,7 @@ import { JOKERS } from './data/jokers.js';
 import { RANKS, SUITS, makeCard, HAND_TYPES } from './data/card-data.js';
 import { destroyCards } from './deck.js';
 import { makeJokerInstance, addJoker, sellValue } from './joker-manager.js';
-import { dispatchHook } from './effects/index.js';
+import { dispatchHook, getJokerHandlers } from './effects/index.js';
 
 let nextUid = 1000;
 export function setNextConsumableUid(n) { nextUid = Math.max(1000, n); }
@@ -246,8 +246,9 @@ function useSpectral(id) {
     case 'wraith': {
       const pool = JOKERS.filter(j => j.rarity === 'rare' && !G.jokers.some(x => x.id === j.id));
       const inst = makeJokerInstance(rng.pick(pool.length ? pool : JOKERS.filter(j => j.rarity !== 'legendary')).id);
+      if (!addJoker(G, inst)) return { ok: false, msg: '小丑牌槽已满' };
       G.money = 0;
-      return addJoker(G, inst) ? { ok: true, msg: `怨灵：获得「${inst.zh}」，金钱归零` } : { ok: false, msg: '小丑牌槽已满' };
+      return { ok: true, msg: `怨灵：获得「${inst.zh}」，金钱归零` };
     }
     case 'sigil': {
       const s = rng.pick(SUITS);
@@ -267,9 +268,12 @@ function useSpectral(id) {
       return { ok: true, msg: `灵质：「${j.zh}」获得负片` };
     }
     case 'immolate': {
+      if (!G.hand.length) return { ok: false, msg: '手中无牌' };
       const n = Math.min(5, G.hand.length);
-      const victims = [];
-      for (let i = 0; i < n; i++) { victims.push(G.hand[Math.floor(rng.random() * G.hand.length)]); destroyCards([victims[i]]); }
+      // Fisher-Yates shuffle to pick uniformly (旧版 rng.random * 递减长度导致偏斜)
+      const shuffled = [...G.hand]; rng.shuffle(shuffled);
+      const victims = shuffled.slice(0, n);
+      for (const v of victims) destroyCards([v]);
       G.money += 20;
       return { ok: true, msg: `献祭：销毁 ${n} 张牌 +$20` };
     }
@@ -278,6 +282,8 @@ function useSpectral(id) {
       const target = rng.pick(G.jokers);
       const dup = makeJokerInstance(target.id, { edition: target.edition });
       dup.state = target.state;
+      // 清除所有旧 Joker 的被动效果
+      for (const j of G.jokers) { getJokerHandlers(j.id).onRemoved?.(G, j); getJokerHandlers(j.id).onSelfSold?.(G, j); }
       G.jokers.length = 0;
       G.jokers.push(dup);
       bus.emit('jokers:change');
@@ -287,6 +293,8 @@ function useSpectral(id) {
       if (!G.jokers.length) return { ok: false, msg: '没有小丑牌' };
       const target = rng.pick(G.jokers);
       target.edition = 'polychrome';
+      // 清除被销毁 Joker 的被动效果
+      for (const j of G.jokers) { if (j !== target) { getJokerHandlers(j.id).onRemoved?.(G, j); getJokerHandlers(j.id).onSelfSold?.(G, j); } }
       G.jokers = [target];
       bus.emit('jokers:change');
       return { ok: true, msg: `妖术：「${target.zh}」获得多彩，其余销毁` };

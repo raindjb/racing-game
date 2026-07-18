@@ -18,6 +18,8 @@ function notifyCardAdded(G, card) {
 function selfDestroy(G, j) {
   const i = G.jokers.indexOf(j);
   if (i >= 0) {
+    getJokerHandlers(j.id).onRemoved?.(G, j);
+    getJokerHandlers(j.id).onSelfSold?.(G, j);
     G.jokers.splice(i, 1);
     bus.emit('jokers:change');
     bus.emit('ui:reject', { reason: `「${j.zh}」消失了` });
@@ -292,6 +294,8 @@ const COMPILERS = {
       const victim = G.jokers[i + 1];
       if (victim) {
         j.state += sellValue(victim) * 2;
+        getJokerHandlers(victim.id).onRemoved?.(G, victim);
+        getJokerHandlers(victim.id).onSelfSold?.(G, victim);
         G.jokers.splice(i + 1, 1);
         bus.emit('jokers:change');
       }
@@ -448,6 +452,8 @@ const COMPILERS = {
         const others = G.jokers.filter(x => x !== j);
         if (others.length) {
           const victim = G.rng.pick(others);
+          getJokerHandlers(victim.id).onRemoved?.(G, victim);
+          getJokerHandlers(victim.id).onSelfSold?.(G, victim);
           G.jokers.splice(G.jokers.indexOf(victim), 1);
           bus.emit('jokers:change');
         }

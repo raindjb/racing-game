@@ -162,14 +162,14 @@ export function playSelected({ instant = true } = {}) {
   G.roundScore += result.score;
   G.money += result.moneyDelta;
 
+  // Joker 出牌后钩子（需在 handPlayed 计数之前——方尖碑/会员卡等读 pre-increment 值）
+  dispatchHook(G.jokers, 'onHandPlayed', G, ev);
+
   // 记录
   G.handPlayed[ev.handType] = (G.handPlayed[ev.handType] ?? 0) + 1;
   G.roundPlayedTypes.push(ev.handType);
   G.stats.totalHandsPlayed++;
   if (result.score > G.stats.bestHandScore) G.stats.bestHandScore = result.score;
-
-  // Joker 出牌后钩子（累积型计数等，经复制解析）
-  dispatchHook(G.jokers, 'onHandPlayed', G, ev);
 
   G.lastPlay = { eval: ev, result };
   bus.emit('hand:played', { cards, eval: ev, result });
@@ -265,12 +265,13 @@ export function winRound(opts = {}) {
     G.ante++;
     G.blindIndex = 0;
     if (G.ante > ANTE_MAX) {
-      // Ante 8 通关：可选继续无尽模式
+      // Ante 8 首次通关：触发胜利画面（可选继续无尽）
       if (G.ante === ANTE_MAX + 1 && !G._endless) {
-        G._endless = true;  // 首次通关标记
+        G._endless = true;
+        return gameOver(true);
       }
-      // 无尽模式：Ante 9+ 分数指数增长（每额外 Ante ×1.5）
-      // 不在此处结束；continue 到 ROUND_END
+      // 已在无尽模式：继续推进，分数指数增长
+      G._endless = true;
     }
   } else {
     G.blindIndex++;
