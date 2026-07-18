@@ -232,3 +232,22 @@
   outline: none;
 }
 .seed-row input:focus { border-color: var(--gold); }
+
+/* ===== 图鉴面板 ===== */
+.guide-panel { min-width: 620px; }
+.guide-sec h3 {
+  font-size: 13px; letter-spacing: 2px; color: var(--gold-bright);
+  margin: 16px 0 10px; text-align: left;
+}
+.guide-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.gc-item {
+  width: 130px; padding: 14px 10px 12px; border-radius: 12px;
+  background: linear-gradient(165deg, rgba(255,255,255,0.04), rgba(0,0,0,0.2));
+  border: 1.5px solid var(--gc-c, rgba(255,255,255,0.15));
+  border-top-color: var(--gc-c, rgba(255,255,255,0.3));
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.gc-icon { font-size: 28px; color: var(--gc-c); text-shadow: 0 0 8px var(--gc-c); }
+.gc-name { font-size: 15px; font-weight: 800; color: var(--gc-c); }
+.gc-desc { font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.4; }

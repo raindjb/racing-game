@@ -46,6 +46,7 @@ export function initRender() {
   els.discard.addEventListener('click', () => round.discardSelected());
   $('btn-sort-rank').addEventListener('click', () => round.sortHand('rank'));
   $('btn-sort-suit').addEventListener('click', () => round.sortHand('suit'));
+  $('btn-guide')?.addEventListener('click', showGuide);
 
   // 引擎事件
   bus.on('phase', onPhase);
@@ -482,4 +483,44 @@ export async function showMainMenu() {
       syncAll();
     }
   });
+}
+
+// ===== 图鉴面板（版本 + 强化） =====
+import { EDITIONS, ENHANCEMENTS } from '../data/card-data.js';
+
+function showGuide() {
+  const edColors = { foil: '#a8d8ff', holographic: '#ff80c0', polychrome: '#e088ff', negative: '#ff8a70' };
+  const edIcons = { foil: '✦', holographic: '◇', polychrome: '✧', negative: '⬡' };
+  const edCards = Object.entries(EDITIONS).map(([id, e]) =>
+    `<div class="gc-item gc-ed" style="--gc-c:${edColors[id]}">
+      <div class="gc-icon">${edIcons[id]}</div>
+      <div class="gc-name">${e.zh}</div>
+      <div class="gc-desc">${e.desc}</div>
+    </div>`).join('');
+
+  const enColors = { bonus: '#5a9fd4', mult: '#e05545', wild: '#e8c84a', glass: '#a8e0ff', steel: '#8aa8cc', stone: '#8a8a8a', gold: '#f0c060', lucky: '#68d868' };
+  const enIcons = { bonus: '⊕', mult: '＋', wild: '♣', glass: '◇', steel: '◈', stone: '■', gold: '$', lucky: '⚅' };
+  const enCards = Object.entries(ENHANCEMENTS).map(([id, e]) =>
+    `<div class="gc-item gc-en" style="--gc-c:${enColors[id] ?? '#888'}">
+      <div class="gc-icon">${enIcons[id] ?? '?'}</div>
+      <div class="gc-name">${e.zh}</div>
+      <div class="gc-desc">${e.desc}</div>
+    </div>`).join('');
+
+  showOverlay(`
+    <div class="panel guide-panel">
+      <h2>📖 图鉴</h2>
+      <div class="guide-sec">
+        <h3>✦ 版本（出现在卡牌/Joker 上）</h3>
+        <div class="guide-grid">${edCards}</div>
+      </div>
+      <div class="guide-sec">
+        <h3>◆ 强化（塔罗牌/幻灵牌赋予）</h3>
+        <div class="guide-grid">${enCards}</div>
+      </div>
+      <div class="panel-actions">
+        <button class="btn btn-ghost" id="guide-close">关闭</button>
+      </div>
+    </div>`);
+  $('guide-close').addEventListener('click', hideOverlay);
 }
