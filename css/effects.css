@@ -1,0 +1,139 @@
+/* effects.css — 版本特效 / 浮动文字 / 跳分反馈 / 背景降级 / 手型面板 */
+
+/* ===== 版本特效（卡牌与 Joker 通用：.ed-*） ===== */
+/* 注意：.card 的 position:absolute 来自 cards.css，这里只补 .j-card（默认 static） */
+.j-card { position: relative; }
+.card::after, .j-card::after {
+  content: ''; position: absolute; inset: 0;
+  border-radius: 9px; pointer-events: none;
+  opacity: 0; transition: opacity 0.3s;
+}
+
+/* 闪箔：金属斜向扫光 */
+.ed-foil::after {
+  opacity: 1;
+  background: linear-gradient(115deg,
+    transparent 25%, rgba(190, 215, 255, 0.05) 38%,
+    rgba(220, 235, 255, 0.5) 50%,
+    rgba(190, 215, 255, 0.05) 62%, transparent 75%);
+  background-size: 260% 260%;
+  animation: foilSweep 3.2s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+@keyframes foilSweep {
+  0% { background-position: 120% 120%; }
+  55%, 100% { background-position: -60% -60%; }
+}
+
+/* 镭射：旋转彩虹锥形 */
+.ed-holographic::after {
+  opacity: 0.32;
+  background: conic-gradient(from 0deg at 50% 50%,
+    #ff5252, #ffb43a, #ffe93a, #4bff6e, #3aa8ff, #b53aff, #ff52c8, #ff5252);
+  animation: holoSpin 4.5s linear infinite;
+  mix-blend-mode: color-dodge;
+}
+@keyframes holoSpin { to { filter: hue-rotate(360deg); } }
+
+/* 多彩：呼吸彩虹描边 + 微饱和 */
+.ed-polychrome { animation: polySat 3s ease-in-out infinite; }
+.ed-polychrome::after {
+  opacity: 1;
+  background: linear-gradient(130deg,
+    rgba(255, 82, 82, 0.25), rgba(255, 233, 58, 0.22),
+    rgba(75, 255, 110, 0.22), rgba(58, 168, 255, 0.25), rgba(181, 58, 255, 0.25));
+  background-size: 300% 300%;
+  animation: polyFlow 3.6s ease-in-out infinite;
+  mix-blend-mode: overlay;
+}
+@keyframes polyFlow { 0%, 100% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } }
+@keyframes polySat { 0%, 100% { filter: saturate(1.15); } 50% { filter: saturate(1.55); } }
+
+/* 负片：反相 + 紫光 */
+.ed-negative { filter: invert(0.92) hue-rotate(180deg) brightness(1.05); }
+.ed-negative::after {
+  opacity: 1;
+  box-shadow: inset 0 0 14px rgba(200, 80, 255, 0.55);
+}
+
+/* ===== 浮动文字 ===== */
+.float-txt {
+  position: fixed; z-index: 520; pointer-events: none;
+  font-weight: 900; font-size: 19px; white-space: nowrap;
+  animation: floatUp 1.1s ease-out forwards;
+}
+.ft-chips { color: #66b8ff; text-shadow: 0 0 10px rgba(0, 157, 255, 0.6); }
+.ft-mult  { color: #ff7a70; text-shadow: 0 0 10px rgba(255, 76, 64, 0.6); }
+.ft-xmult { color: #ff4c40; font-size: 24px; text-shadow: 0 0 16px rgba(255, 76, 64, 0.8); }
+.ft-gold  { color: var(--gold-bright); text-shadow: 0 0 10px rgba(240, 192, 96, 0.6); }
+.ft-white { color: #fff; text-shadow: 0 0 14px rgba(255, 255, 255, 0.6); }
+.ft-red   { color: #ff4c40; text-shadow: 0 0 10px rgba(255, 76, 64, 0.7); }
+@keyframes floatUp {
+  0% { opacity: 0; transform: translateY(6px) scale(0.8); }
+  15% { opacity: 1; transform: translateY(0) scale(1.15); }
+  45% { transform: translateY(-22px) scale(1); }
+  100% { opacity: 0; transform: translateY(-62px) scale(0.8); }
+}
+
+/* ===== 跳分反馈 ===== */
+.card.score-flash { animation: cardFlash 0.35s ease-out; }
+@keyframes cardFlash {
+  0% { filter: brightness(1); }
+  35% { filter: brightness(1.9) drop-shadow(0 0 16px rgba(255, 255, 255, 0.7)); }
+  100% { filter: brightness(1); }
+}
+.calc-pulse { animation: calcPulse 0.28s ease-out; }
+@keyframes calcPulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-6px, 3px); }
+  30% { transform: translate(6px, -3px); }
+  45% { transform: translate(-4px, -4px); }
+  60% { transform: translate(4px, 4px); }
+  75% { transform: translate(-2px, 2px); }
+  90% { transform: translate(2px, -1px); }
+}
+
+/* ===== WebGL 降级背景 ===== */
+body.bg-fallback {
+  background: linear-gradient(115deg, #0a1810, #17402a, #0c2618, #1e4a30);
+  background-size: 380% 380%;
+  animation: bgDrift 22s ease-in-out infinite;
+}
+body.bg-fallback #bg-canvas { display: none; }
+@keyframes bgDrift {
+  0%, 100% { background-position: 0% 30%; }
+  50% { background-position: 100% 70%; }
+}
+
+/* ===== 牌型等级面板 ===== */
+#hand-panel {
+  position: fixed; right: 14px; top: 60px; z-index: 260;
+  width: 250px;
+  background: var(--panel-dark);
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.55);
+  animation: panelPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#hand-panel h3 { font-size: 13px; color: var(--gold-bright); margin-bottom: 8px; letter-spacing: 2px; }
+#hand-panel .hp-tip { font-size: 12px; color: var(--text-dim); float: right; }
+.hp-row {
+  display: flex; align-items: center; gap: 7px;
+  padding: 3.5px 8px; border-radius: 6px; font-size: 13px;
+}
+.hp-row:nth-child(even) { background: rgba(255, 255, 255, 0.03); }
+.hp-row.locked { opacity: 0.35; }
+.hp-lv { color: var(--gold); font-weight: 800; width: 32px; }
+.hp-name { flex: 1; }
+.hp-chips { color: var(--blue); }
+.hp-mult { color: var(--red); }
+.hp-played { color: var(--text-dim); font-size: 9.5px; }
+
+#audio-btns { display: flex; gap: 6px; }
+#audio-btns .btn { flex: 1; padding: 7px 5px; font-size: 13px; }

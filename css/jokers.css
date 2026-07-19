@@ -1,0 +1,102 @@
+/* jokers.css — Joker/消耗牌 槽位与卡面：稀有度边框、脉冲、出售提示 */
+
+.card-row { min-height: 142px; overflow-x: auto; overflow-y: visible; flex-wrap: nowrap; position: relative; }
+/* 精致滚动条（金线+圆角） */
+.card-row::-webkit-scrollbar { height: 5px; }
+.card-row::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; margin: 0 30px; }
+.card-row::-webkit-scrollbar-thumb { background: linear-gradient(90deg, rgba(240,192,96,0.4), rgba(240,192,96,0.7), rgba(240,192,96,0.4)); border-radius: 3px; }
+.card-row::-webkit-scrollbar-thumb:hover { background: rgba(240,192,96,0.9); }
+/* 滚动提示花色（左右边小标记） */
+.card-row::before, .card-row::after {
+  content: ''; position: sticky; bottom: 2px; z-index: 5; pointer-events: none;
+  width: 18px; height: 18px; opacity: 0.35; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-row::before { left: 2px; }
+.card-row::after { right: 2px; }
+#joker-row::before { content: '♦'; color: #d13b30; }
+#joker-row::after { content: '♣'; color: #e8e4d8; }
+#consumable-row::before { content: '♥'; color: #d13b30; }
+#consumable-row::after { content: '♠'; color: #e8e4d8; }
+
+.j-slot {
+  width: 100px; height: 136px;
+  border-radius: 10px;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255, 255, 255, 0.18); font-size: 26px;
+  flex-shrink: 0;
+}
+
+.j-card {
+  position: relative;
+  width: 100px; height: 136px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  flex-shrink: 0;
+}
+@media (hover: hover) { .j-card:hover { transform: translateY(-8px) scale(1.05); z-index: 20; } }
+.j-card svg { width: 100%; height: 100%; display: block; border-radius: 10px; }
+
+.j-card .j-name {
+  position: absolute; top: 5px; left: 5px; right: 5px;
+  font-size: 14px; font-weight: 800; color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  text-align: center; pointer-events: none;
+}
+.j-card .j-desc {
+  position: absolute; bottom: 5px; left: 5px; right: 5px;
+  font-size: 12px; line-height: 1.3; color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
+  text-align: center; pointer-events: none;
+}
+
+/* 稀有度边框 */
+.j-card.rarity-common   { outline: 2px solid rgba(160, 172, 188, 0.55); outline-offset: -2px; border-radius: 9px; }
+.j-card.rarity-uncommon { outline: 2px solid var(--rarity-uncommon); outline-offset: -2px; box-shadow: 0 0 10px rgba(53, 189, 104, 0.35); border-radius: 9px; }
+.j-card.rarity-rare     { outline: 2px solid var(--rarity-rare); outline-offset: -2px; box-shadow: 0 0 12px rgba(255, 76, 64, 0.4); border-radius: 9px; }
+.j-card.rarity-legendary { outline: 2px solid var(--rarity-legendary); outline-offset: -2px; animation: legendGlow 1.8s ease-in-out infinite; border-radius: 9px; }
+@keyframes legendGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(178, 108, 255, 0.4); }
+  50% { box-shadow: 0 0 22px rgba(178, 108, 255, 0.85); }
+}
+
+/* 结算激活脉冲（Task 10 触发） */
+.j-card.pulse { animation: jokerPulse 0.42s ease-out; }
+@keyframes jokerPulse {
+  0% { transform: scale(1); filter: brightness(1) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45)); }
+  35% { transform: scale(1.16); filter: brightness(1.9) drop-shadow(0 0 18px rgba(255, 255, 255, 0.5)); }
+  100% { transform: scale(1); filter: brightness(1) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45)); }
+}
+
+/* 出售提示 */
+.j-card .sell-tip {
+  position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+  font-size: 12px; color: #ff9d94; white-space: nowrap;
+  opacity: 0; transition: opacity 0.18s; pointer-events: none;
+}
+@media (hover: hover) { .j-card:hover .sell-tip { opacity: 1; } }
+@media (hover: none) { .j-card .sell-tip { opacity: 1; font-size: 10px; } }
+/* 随机目标标签（城堡/邮寄回扣/待办） */
+.j-card .j-target-tag {
+  position: absolute; top: -6px; left: -6px;
+  min-width: 22px; height: 22px; border-radius: 11px;
+  background: var(--gold-bright); color: #201a08;
+  font-size: 14px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* 计数徽章（成长型 Joker） */
+.j-card .j-count {
+  position: absolute; top: -6px; right: -6px;
+  min-width: 24px; height: 24px; border-radius: 12px;
+  background: var(--red); color: #fff;
+  font-size: 14px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}

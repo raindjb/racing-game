@@ -1,0 +1,11 @@
+{
+  "name": "小丑牌 Balatro",
+  "short_name": "小丑牌",
+  "description": "150 小丑 · 28 Boss · 原创程序化美术",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0a1810",
+  "theme_color": "#17402a",
+  "icons": []
+}
