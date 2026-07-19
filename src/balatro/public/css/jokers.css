@@ -1,8 +1,23 @@
 /* jokers.css — Joker/消耗牌 槽位与卡面：稀有度边框、脉冲、出售提示 */
 
-.card-row { min-height: 142px; overflow-x: auto; overflow-y: visible; flex-wrap: nowrap; }
-#joker-row::-webkit-scrollbar, #consumable-row::-webkit-scrollbar { height: 4px; }
-#joker-row::-webkit-scrollbar-thumb, #consumable-row::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+.card-row { min-height: 142px; overflow-x: auto; overflow-y: visible; flex-wrap: nowrap; position: relative; }
+/* 精致滚动条（金线+圆角） */
+.card-row::-webkit-scrollbar { height: 5px; }
+.card-row::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; margin: 0 30px; }
+.card-row::-webkit-scrollbar-thumb { background: linear-gradient(90deg, rgba(240,192,96,0.4), rgba(240,192,96,0.7), rgba(240,192,96,0.4)); border-radius: 3px; }
+.card-row::-webkit-scrollbar-thumb:hover { background: rgba(240,192,96,0.9); }
+/* 滚动提示花色（左右边小标记） */
+.card-row::before, .card-row::after {
+  content: ''; position: sticky; bottom: 2px; z-index: 5; pointer-events: none;
+  width: 18px; height: 18px; opacity: 0.35; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-row::before { left: 2px; }
+.card-row::after { right: 2px; }
+#joker-row::before { content: '♦'; color: #d13b30; }
+#joker-row::after { content: '♣'; color: #e8e4d8; }
+#consumable-row::before { content: '♥'; color: #d13b30; }
+#consumable-row::after { content: '♠'; color: #e8e4d8; }
 
 .j-slot {
   width: 100px; height: 136px;

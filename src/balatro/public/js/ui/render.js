@@ -130,8 +130,24 @@ function targetOf(j) {
   return null;
 }
 
+/** 全部有累积状态的 Joker（id → state显示名） */
+const ACCUM = {
+  green_joker: '倍率', ride_the_bus: '倍率', loyalty_card: '计数', supernova: '倍率',
+  square_joker: '倍率', spare_trousers: '倍率', wee_joker: '筹码', red_card: '倍率',
+  flash_card: '倍率', hit_the_road: '倍率', vampire: '×倍率', constellation: '×倍率',
+  hologram: '×倍率', campfire: '×倍率', castle: '筹码', ceremonial_dagger: '倍率',
+  madness: '×倍率', obelisk: '×倍率', lucky_cat: '×倍率', glass_joker: '×倍率',
+  runner: '筹码', marble_joker: '计数', steel_joker: '×倍率',
+};
+function accumLabel(j) {
+  const label = ACCUM[j.id];
+  if (!label) return null;
+  const v = j.state ?? 0;
+  if (j.id === 'loyalty_card') return `${v}`;  // 会员卡显示计数而非倍率
+  return v > 0 ? `${v} ${label}` : null;
+}
+
 /** Joker 行：实例卡 + 空槽；右键出售 */
-const GROWING = new Set(['green_joker', 'ride_the_bus', 'loyalty_card']);
 function syncJokers() {
   const row = $('joker-row');
   row.innerHTML = '';
@@ -150,9 +166,10 @@ function syncJokers() {
     el.dataset.juid = j.uid;
     // 显示随机目标（城堡花色 / 邮寄回扣点数 / 待办手型）
     const targetLabel = targetOf(j);
+    const acc = accumLabel(j);
     el.innerHTML = jokerArtSVG(j.art, j.id) +
       `<div class="j-name">${j.zh}</div><div class="j-desc">${j.desc}</div>` +
-      (GROWING.has(j.id) ? `<div class="j-count">${j.state}</div>` : '') +
+      (acc ? `<div class="j-count">${acc}</div>` : '') +
       (targetLabel ? `<div class="j-target-tag">${targetLabel}</div>` : '') +
       `<div class="sell-tip">右键出售 $${sellValue(j)}</div>`;
     el.title = `${j.zh}：${j.desc}`;
