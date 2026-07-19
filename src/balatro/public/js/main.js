@@ -25,6 +25,21 @@ initBackground();
 initParticles();
 initHandPanel();
 initSaveClient();
+// 左下角筹码堆（3D 可视化永久筹码余额）
+(function addChipPile() {
+  const pile = document.createElement('div');
+  pile.id = 'chip-pile';
+  document.getElementById('board')?.appendChild(pile);
+  import('./svg/chip-pile.js').then(m => { pile.innerHTML = m.renderChipPile(); });
+  // 每局结束后更新（异步绑定）
+  import('./state.js').then(({ bus, PHASES }) => {
+    bus.on('phase', ({ phase }) => {
+      if (phase === PHASES.GAME_OVER || phase === PHASES.WIN) {
+        import('./svg/chip-pile.js').then(m => { pile.innerHTML = m.renderChipPile(); });
+      }
+    });
+  });
+})();
 // 背景花色装饰（play-area 内浮动黑红梅方）
 (function addBgSuits() {
   const area = document.getElementById('play-area');
