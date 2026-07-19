@@ -107,6 +107,7 @@
   font-size: 26px; font-weight: 900; color: var(--gold-bright);
   text-shadow: 0 2px 0 rgba(0,0,0,0.45), 0 0 14px rgba(240,192,96,0.3);
 }
+#perm-chips { margin-top: 4px; font-size: 13px; color: #f0c860; letter-spacing: 1px; }
 
 /* ===== 主板 ===== */
 #board {
@@ -207,11 +208,11 @@
 .bg-suit:nth-child(4) { bottom: 10%; right: 6%; animation-delay: -12s; font-size: 66px; }
 .bg-suit:nth-child(5) { top: 45%; left: 2%; animation-delay: -6s; font-size: 56px; }
 .bg-suit:nth-child(6) { top: 40%; right: 3%; animation-delay: -10s; font-size: 60px; }
-/* ===== 左下角筹码堆（赌场散堆，背景层） ===== */
+/* ===== 左下角筹码堆（赌场筹码海，背景层） ===== */
 #chip-pile {
-  position: absolute; left: -10px; bottom: 20px; z-index: 1;
-  pointer-events: none; opacity: 0.55;
-  width: 260px; max-height: 130px;
+  position: absolute; left: -20px; bottom: 8px; z-index: 1;
+  pointer-events: none; opacity: 0.52;
+  width: 280px; max-height: 160px;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5));
 }
 #chip-pile svg { width: 100%; height: auto; }

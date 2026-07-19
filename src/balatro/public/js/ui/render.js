@@ -254,6 +254,8 @@ function syncSidebar() {
   $('hands-left').textContent = G.handsLeft;
   $('discards-left').textContent = G.discardsLeft;
   $('money').textContent = `$${G.money}`;
+  // 永久筹码余额（从 upgrades 模块读取）
+  import('../upgrades.js').then(m => { $('perm-chips').textContent = `🪙 ${m.getChips()}`; });
   $('target-score').textContent = G.target.toLocaleString();
 
   const b = BLINDS[G.blindIndex];
