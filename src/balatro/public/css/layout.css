@@ -180,8 +180,40 @@
 }
 
 @media (max-width: 980px) {
-  #sidebar { width: 170px; }
-  :root { --card-w: 76px; --card-h: 108px; }
+  #app { flex-direction: column; max-width: 100vw; padding: 4px; gap: 4px; }
+  #sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 6px; }
+  #sidebar section { flex: 1; min-width: 60px; padding: 4px 6px; }
+  #blind-badge { gap: 4px; }
+  #blind-icon { width: 32px; height: 32px; }
+  #blind-name { font-size: 13px; }
+  #target-score { font-size: 16px; }
+  #round-score { font-size: 22px; }
+  #money { font-size: 20px; }
+  .counter .num { font-size: 16px; }
+  #board { min-width: 0; }
+  #hand-area { height: 140px; margin: 0 20px; }
+  #action-bar { gap: 6px; }
+  .btn { padding: 10px 18px; font-size: 13px; letter-spacing: 1px; }
+  #sort-group { display: none; }
+  :root { --card-w: 62px; --card-h: 88px; }
+  .bg-suit { display: none; }
+  #chip-pile { display: none; }
+  #hand-panel { right: 4px; top: auto; bottom: 50px; width: 40vw; font-size: 10px; }
+  .panel { max-width: 96vw; padding: 16px; }
+  .panel h1 { font-size: 28px; }
+  .panel h2 { font-size: 22px; }
+  .shop-panel { min-width: 0; max-width: 96vw; }
+  .s-item { width: 100px; min-height: 100px; padding: 6px 4px 22px; }
+  .s-art { width: 52px; height: 72px; }
+  .s-name { font-size: 12px; }
+  .s-desc { font-size: 11px; }
+  .blind-card { width: 30vw; padding: 12px 8px; }
+  .j-card { width: 64px; height: 90px; }
+  .j-slot { width: 64px; height: 90px; }
+  .j-card .j-name { font-size: 10px; }
+  .j-card .j-desc { font-size: 8px; line-height: 1.15; }
+  .card-row { min-height: 100px; }
+  .dealer-bubble { font-size: 11px; max-width: 160px; }
 }
 
 @media (min-width: 1600px) {
