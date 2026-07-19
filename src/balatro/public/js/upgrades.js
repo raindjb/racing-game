@@ -40,17 +40,24 @@ export function getUpgrades() {
 }
 function setUpgrades(up) { localStorage.setItem(LS_UPGRADES, JSON.stringify(up)); }
 
-// ===== 每局奖励结算 =====
+// ===== 每局奖励结算（按回合数/盲注难度，非分数） =====
 export function awardChips(won, ante, bestScore) {
   let chips = 0;
-  if (won) {
-    chips += 50 + ante * 60;                      // 通关：底分 + 每 ante 加成
-    chips += Math.floor(bestScore / 200);          // 高分加成（百万分→5000+）
-  } else {
-    chips += Math.floor(ante * 12);                // 败局：按进度少量奖励
-    chips += Math.floor(bestScore / 800);
+  // 按盲注难度累计：S=小盲基数，大盲×1.5，Boss×2
+  // Ante 1-8: S = 5 + (ante-1)×3，递增
+  // Ante 9+: S = 20，恒定
+  for (let a = 1; a <= ante; a++) {
+    const S = a <= 8 ? 5 + (a - 1) * 3 : 20;
+    // 3 盲注：小盲×1 + 大盲×1.5 + Boss×2 = S×(1+1.5+2) = S×4.5
+    if (a < ante) {
+      chips += Math.floor(S * 4.5);   // 完整 ante
+    } else {
+      // 当前 ante：根据进度给
+      chips += Math.floor(S * 4.5);   // 简化：通关即给整 ante
+    }
   }
-  chips = Math.max(5, Math.min(5000, chips));       // 上下限（百万分玩家应得更多）
+  if (!won) chips = Math.floor(chips * 0.4);   // 失败只给 40%
+  chips = Math.max(5, Math.min(5000, chips));
   const total = getChips() + chips;
   setChips(total);
   return { earned: chips, total };
