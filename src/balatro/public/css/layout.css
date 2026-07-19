@@ -24,10 +24,7 @@
   display: flex; height: 100vh;
   max-width: 1400px; margin: 0 auto;
   padding: 10px; gap: 12px;
-  flex-direction: row;
 }
-#board { order: 1; }   /* 主板在左 */
-#sidebar { order: 2; } /* 侧栏移到右 */
 
 /* ===== 左侧信息栏（立体浮雕层次） ===== */
 #sidebar {
@@ -210,11 +207,11 @@
 .bg-suit:nth-child(4) { bottom: 10%; right: 6%; animation-delay: -12s; font-size: 66px; }
 .bg-suit:nth-child(5) { top: 45%; left: 2%; animation-delay: -6s; font-size: 56px; }
 .bg-suit:nth-child(6) { top: 40%; right: 3%; animation-delay: -10s; font-size: 60px; }
-/* ===== 左下角筹码堆（3D 可视化，背景层） ===== */
+/* ===== 左下角筹码堆（赌场散堆，背景层） ===== */
 #chip-pile {
-  position: absolute; left: 0; bottom: 0; z-index: 1;
-  pointer-events: none; opacity: 0.65;
-  width: 220px; max-height: 170px;
+  position: absolute; left: -10px; bottom: 20px; z-index: 1;
+  pointer-events: none; opacity: 0.55;
+  width: 260px; max-height: 130px;
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5));
 }
 #chip-pile svg { width: 100%; height: auto; }
