@@ -44,13 +44,13 @@ function setUpgrades(up) { localStorage.setItem(LS_UPGRADES, JSON.stringify(up))
 export function awardChips(won, ante, bestScore) {
   let chips = 0;
   if (won) {
-    chips += 50 + ante * 40;                      // 通关：底分 + 每 ante 加成
-    chips += Math.floor(bestScore / 500);          // 高分加成
+    chips += 50 + ante * 60;                      // 通关：底分 + 每 ante 加成
+    chips += Math.floor(bestScore / 200);          // 高分加成（百万分→5000+）
   } else {
-    chips += Math.floor(ante * 8);                 // 败局：按进度少量奖励
-    chips += Math.floor(bestScore / 2000);
+    chips += Math.floor(ante * 12);                // 败局：按进度少量奖励
+    chips += Math.floor(bestScore / 800);
   }
-  chips = Math.max(5, Math.min(800, chips));       // 上下限
+  chips = Math.max(5, Math.min(5000, chips));       // 上下限（百万分玩家应得更多）
   const total = getChips() + chips;
   setChips(total);
   return { earned: chips, total };
