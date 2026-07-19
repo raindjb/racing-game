@@ -116,13 +116,15 @@ export function screenFlash(color = '#fff', ms = 220) {
 
 // ===== 结算分级爆发：赤橙黄绿青紫（分数越高越炸裂） =====
 export const SCORE_TIERS = [
-  { min: 0,     cls: 'tier-0', colors: ['#e8e4d8'],                               n: 16 },                       // 白：起步
-  { min: 300,   cls: 'tier-1', colors: ['#ff4c40', '#ff8a70'],                    n: 28 },                       // 赤
-  { min: 800,   cls: 'tier-2', colors: ['#ff9030', '#ffb860'],                    n: 40, ring: 1 },              // 橙
-  { min: 2000,  cls: 'tier-3', colors: ['#ffd83a', '#fff0a0'],                    n: 55, ring: 1, star: true },  // 黄
-  { min: 5000,  cls: 'tier-4', colors: ['#4bff6e', '#a8ffc0', '#20d848'],         n: 72, ring: 2, star: true },  // 绿
-  { min: 12000, cls: 'tier-5', colors: ['#3ae8e8', '#88f4ff', '#20b8d8'],         n: 92, ring: 2, star: true, flash: true },  // 青
-  { min: 30000, cls: 'tier-6', colors: ['#b53aff', '#e088ff', '#ff52c8', '#8a20e8'], n: 120, ring: 3, star: true, flash: true }, // 紫
+  { min: 0,      cls: 'tier-0', colors: ['#e8e4d8'],                               n: 16 },
+  { min: 300,    cls: 'tier-1', colors: ['#ff4c40', '#ff8a70'],                    n: 28 },
+  { min: 800,    cls: 'tier-2', colors: ['#ff9030', '#ffb860'],                    n: 40, ring: 1 },
+  { min: 2000,   cls: 'tier-3', colors: ['#ffd83a', '#fff0a0'],                    n: 55, ring: 1, star: true },
+  { min: 5000,   cls: 'tier-4', colors: ['#4bff6e', '#a8ffc0', '#20d848'],         n: 72, ring: 2, star: true },
+  { min: 12000,  cls: 'tier-5', colors: ['#3ae8e8', '#88f4ff', '#20b8d8'],         n: 92, ring: 2, star: true, flash: true },
+  { min: 30000,  cls: 'tier-6', colors: ['#b53aff', '#e088ff', '#ff52c8', '#8a20e8'], n: 120, ring: 3, star: true, flash: true },
+  { min: 100000, cls: 'tier-7', colors: ['#ff4c40','#ffd83a','#4bff6e','#3ae8e8','#b53aff','#ff52c8'], n: 180, ring: 4, star: true, flash: true },
+  { min: 1000000,cls: 'tier-8', colors: ['#ff0000','#ff8000','#ffff00','#00ff00','#0080ff','#8000ff','#ff00ff','#ffffff'], n: 260, ring: 6, star: true, flash: true },
 ];
 
 export function tierOf(score) {

@@ -1,6 +1,8 @@
 /* jokers.css — Joker/消耗牌 槽位与卡面：稀有度边框、脉冲、出售提示 */
 
-.card-row { min-height: 142px; }
+.card-row { min-height: 142px; overflow-x: auto; overflow-y: visible; flex-wrap: nowrap; }
+#joker-row::-webkit-scrollbar, #consumable-row::-webkit-scrollbar { height: 4px; }
+#joker-row::-webkit-scrollbar-thumb, #consumable-row::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
 .j-slot {
   width: 100px; height: 136px;
@@ -61,6 +63,16 @@
   opacity: 0; transition: opacity 0.18s; pointer-events: none;
 }
 .j-card:hover .sell-tip { opacity: 1; }
+/* 随机目标标签（城堡/邮寄回扣/待办） */
+.j-card .j-target-tag {
+  position: absolute; top: -6px; left: -6px;
+  min-width: 22px; height: 22px; border-radius: 11px;
+  background: var(--gold-bright); color: #201a08;
+  font-size: 14px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
 
 /* 计数徽章（成长型 Joker） */
 .j-card .j-count {

@@ -120,6 +120,16 @@ function syncConsumables() {
   }
 }
 
+/** 显示 Joker 的随机目标（城堡=花色, 邮寄回扣=点数, 待办=手型） */
+function targetOf(j) {
+  if (!j.target) return null;
+  const suitMap = { spades: '♠', hearts: '♥', diamonds: '♦', clubs: '♣' };
+  if (j.id === 'castle') return suitMap[j.target] ?? j.target;
+  if (j.id === 'mail_in_rebate') return j.target;
+  if (j.id === 'to_do_list') { const ht = HAND_TYPE_MAP[j.target]; return ht?.zh ?? j.target; }
+  return null;
+}
+
 /** Joker 行：实例卡 + 空槽；右键出售 */
 const GROWING = new Set(['green_joker', 'ride_the_bus', 'loyalty_card']);
 function syncJokers() {
@@ -138,9 +148,12 @@ function syncJokers() {
     el.className = `j-card rarity-${j.rarity}`;
     if (j.edition) el.classList.add(`ed-${j.edition}`);
     el.dataset.juid = j.uid;
+    // 显示随机目标（城堡花色 / 邮寄回扣点数 / 待办手型）
+    const targetLabel = targetOf(j);
     el.innerHTML = jokerArtSVG(j.art, j.id) +
       `<div class="j-name">${j.zh}</div><div class="j-desc">${j.desc}</div>` +
       (GROWING.has(j.id) ? `<div class="j-count">${j.state}</div>` : '') +
+      (targetLabel ? `<div class="j-target-tag">${targetLabel}</div>` : '') +
       `<div class="sell-tip">右键出售 $${sellValue(j)}</div>`;
     el.title = `${j.zh}：${j.desc}`;
     el.addEventListener('contextmenu', e => {

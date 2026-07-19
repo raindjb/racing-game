@@ -102,6 +102,21 @@ export const SFX = {
         seq([196, 262, 392, 523, 659, 784, 1047, 1319, 1568, 2093], { step: 0.035, gain: 0.24, type: 'triangle', delay: 0.05 });
         noise({ dur: 0.4, from: 8000, to: 200, gain: 0.16, type: 'bandpass', delay: 0.3 });
         break;
+      case 7: // 10万+：双重低音 + 全音阶 + 降调冲击
+        tone(28, { type: 'sine', dur: 0.8, gain: 0.32, ff: 180 });
+        tone(22, { type: 'sawtooth', dur: 0.6, gain: 0.18, ff: 140, delay: 0.15 });
+        noise({ dur: 0.5, from: 80, to: 20, gain: 0.34, type: 'lowpass' });
+        seq([131, 196, 262, 392, 523, 659, 784, 1047, 1319, 1568, 2093, 2637], { step: 0.03, gain: 0.26, type: 'triangle' });
+        noise({ dur: 0.5, from: 10000, to: 100, gain: 0.2, type: 'bandpass', delay: 0.3 });
+        break;
+      case 8: // 100万+：地震级爆发
+        tone(18, { type: 'sine', dur: 1.0, gain: 0.38, ff: 150 });
+        tone(16, { type: 'sawtooth', dur: 0.8, gain: 0.22, ff: 120, delay: 0.2 });
+        noise({ dur: 0.7, from: 60, to: 15, gain: 0.4, type: 'lowpass' });
+        seq([98, 131, 196, 262, 392, 523, 659, 784, 1047, 1319, 1568, 2093, 2637, 3136], { step: 0.025, gain: 0.3, type: 'triangle' });
+        noise({ dur: 0.6, from: 12000, to: 50, gain: 0.24, type: 'bandpass', delay: 0.3 });
+        noise({ dur: 0.5, from: 3000, to: 800, gain: 0.15, type: 'highpass', delay: 0.5 });
+        break;
     }
   },
   scoreTotal() { seq([523, 659, 784, 1047], { step: 0.06, gain: 0.15 }); },
