@@ -82,7 +82,7 @@ export function initSaveClient() {
       saveChipResult({ ...chip, gambled });
       recordResult(false); clearSave();
     }
-    if (phase === PHASES.WIN) { const chip = awardChips(G.ante, false); saveChipResult(chip); recordResult(true); clearSave(); }
+    if (phase === PHASES.WIN) { const ante = G.ante > 8 ? G.ante - 1 : G.ante; const chip = awardChips(ante, false); saveChipResult(chip); recordResult(true); clearSave(); }
   });
   bus.on('hand:resolved', saveNow);
   bus.on('hand:discarded', saveNow);
