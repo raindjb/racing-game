@@ -131,19 +131,26 @@ function targetOf(j) {
 }
 
 /** 全部有累积状态的 Joker（id → state显示名） */
+/** Joker ID → 累积值显示标签。只包含有 j.state（含 sellBonus）的 Joker */
 const ACCUM = {
-  green_joker: '倍率', ride_the_bus: '倍率', loyalty_card: '计数', supernova: '倍率',
-  square_joker: '倍率', spare_trousers: '倍率', wee_joker: '筹码', red_card: '倍率',
-  flash_card: '倍率', hit_the_road: '倍率', vampire: '×倍率', constellation: '×倍率',
+  green_joker: '倍率', ride_the_bus: '倍率', loyalty_card: '计数',
+  square_joker: '倍率', spare_trousers: '倍率', wee_joker: '筹码',
+  runner: '筹码', red_card: '倍率', flash_card: '倍率',
+  hit_the_road: '倍率', vampire: '×倍率', constellation: '×倍率',
   hologram: '×倍率', campfire: '×倍率', castle: '筹码', ceremonial_dagger: '倍率',
   madness: '×倍率', obelisk: '×倍率', lucky_cat: '×倍率', glass_joker: '×倍率',
-  runner: '筹码', marble_joker: '计数', steel_joker: '×倍率',
+  rocket: '金钱', invisible_joker: '计数', canio: '×倍率',
+  ice_cream: '筹码', popcorn: '倍率', ramen: '×倍率', seltzer: '重触发',
+  egg: '价值',
 };
 function accumLabel(j) {
   const label = ACCUM[j.id];
   if (!label) return null;
-  const v = j.state ?? 0;
-  if (j.id === 'loyalty_card') return `${v}`;  // 会员卡显示计数而非倍率
+  const v = j.id === 'egg' ? (j.sellBonus ?? 0) : (j.state ?? 0);
+  if (j.id === 'loyalty_card' || j.id === 'invisible_joker') return v > 0 ? `${v} 计数` : null;
+  if (j.id === 'ice_cream' || j.id === 'popcorn' || j.id === 'ramen')
+    return `剩余 ${v}`;  // 衰减型显示当前值
+  if (j.id === 'seltzer') return v > 0 ? `剩余 ${v} 次` : null;
   return v > 0 ? `${v} ${label}` : null;
 }
 
