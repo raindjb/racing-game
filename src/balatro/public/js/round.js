@@ -308,6 +308,12 @@ export function gameOver(won) {
   }
 }
 
+/** 兑现筹码退出比赛（赌徒机制：保留全部筹码） */
+export function cashOut() {
+  G._cashedOut = true;
+  gameOver(true);
+}
+
 /** 在胜利画面选择继续无尽模式 */
 export function continueEndless() {
   setPhase(PHASES.ROUND_END);

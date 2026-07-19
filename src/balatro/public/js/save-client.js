@@ -76,8 +76,13 @@ export function getLastChipResult() { try { return JSON.parse(localStorage.getIt
 export function initSaveClient() {
   bus.on('phase', ({ phase }) => {
     if (phase === PHASES.BLIND_SELECT || phase === PHASES.SHOP) saveNow();
-    if (phase === PHASES.GAME_OVER) { const chip = awardChips(G.ante, G.stats.bestHandScore); saveChipResult(chip); recordResult(false); clearSave(); }
-    if (phase === PHASES.WIN) { const chip = awardChips(G.ante, G.stats.bestHandScore); saveChipResult(chip); recordResult(true); clearSave(); }
+    if (phase === PHASES.GAME_OVER) {
+      const gambled = G._gambled && !G._cashedOut;
+      const chip = awardChips(G.ante, gambled);
+      saveChipResult({ ...chip, gambled });
+      recordResult(false); clearSave();
+    }
+    if (phase === PHASES.WIN) { const chip = awardChips(G.ante, false); saveChipResult(chip); recordResult(true); clearSave(); }
   });
   bus.on('hand:resolved', saveNow);
   bus.on('hand:discarded', saveNow);

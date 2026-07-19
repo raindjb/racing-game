@@ -345,9 +345,13 @@ function showRoundEnd() {
       ${row('盲注奖励', c.reward)}${row('利息', c.interest)}${row('剩余出牌', c.handsBonus)}
       ${row('小丑牌', c.jokerMoney)}${row('黄金牌', c.goldCards)}
       <div class="cash-total">共 +$${c.total}</div>
-      <button class="btn btn-shop-go" id="ov-shop">进入商店</button>
+      <div class="panel-actions" style="flex-direction:column;gap:10px">
+        <button class="btn btn-shop-go" id="ov-shop">进入商店 · 继续挑战</button>
+        <button class="btn btn-discard" id="ov-cashout" style="font-size:13px;padding:9px 20px">💰 兑现筹码 · 退出比赛</button>
+      </div>
     </div>`);
-  $('ov-shop').addEventListener('click', () => round.leaveRoundEnd());
+  $('ov-shop').addEventListener('click', () => { G._gambled = true; round.leaveRoundEnd(); });
+  $('ov-cashout').addEventListener('click', () => round.cashOut());
 }
 
 function showShop() {

@@ -41,22 +41,17 @@ export function getUpgrades() {
 function setUpgrades(up) { localStorage.setItem(LS_UPGRADES, JSON.stringify(up)); }
 
 // ===== 每局奖励结算（按回合数/盲注难度，非分数） =====
-export function awardChips(ante, bestScore) {
+export function awardChips(ante, gambledAndLost = false) {
   let chips = 0;
   // 按盲注难度累计：S=小盲基数，大盲×1.5，Boss×2
   // Ante 1-8: S = 5 + (ante-1)×3，递增
   // Ante 9+: S = 20，恒定
   for (let a = 1; a <= ante; a++) {
     const S = a <= 8 ? 5 + (a - 1) * 3 : 20;
-    // 3 盲注：小盲×1 + 大盲×1.5 + Boss×2 = S×(1+1.5+2) = S×4.5
-    if (a < ante) {
-      chips += Math.floor(S * 4.5);   // 完整 ante
-    } else {
-      // 当前 ante：根据进度给
-      chips += Math.floor(S * 4.5);   // 简化：通关即给整 ante
-    }
+    chips += Math.floor(S * 4.5);
   }
-  // 不限胜负——无尽模式下只看走到多远
+  // 赌徒惩罚：选了继续但输了 → 只给 40%
+  if (gambledAndLost) chips = Math.floor(chips * 0.4);
   chips = Math.max(5, Math.min(5000, chips));
   const total = getChips() + chips;
   setChips(total);
